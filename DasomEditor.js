@@ -10,6 +10,11 @@ BOOT({
 		
 		webServerPort : 8731
 	},
+	BROWSER_CONFIG : {
+		SkyDesktop : {
+			theme : 'dark'
+		}
+	},
 	NODE_CONFIG : {
 		isNotUsingCPUClustering : true
 	}
