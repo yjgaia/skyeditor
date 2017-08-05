@@ -2,11 +2,7 @@
 웹 애플리케이션 개발을 위한 UPPERCASE용 UI BOX입니다.
 
 ## 설치하기
-1. 프로젝트의 `DEPENDENCY` 파일에 `Hanul/UUI`를 추가합니다.
-2. [`ubm`](https://www.npmjs.com/package/ubm)을 이용해 설치합니다.
-    ```
-    ubm install
-    ```
+프로젝트의 `DEPENDENCY` 파일에 `Hanul/UUI`를 추가합니다.
 
 ## BUTTON
 이미지가 위에, 글자가 아래에 오는 버튼을 생성합니다.
