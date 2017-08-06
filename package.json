@@ -3,6 +3,7 @@
 	"version": "0.0.1",
 	"main": "main.js",
 	"dependencies": {
-		"uppercase-core": "^1.0.0"
+		"uppercase-core": "latest",
+		"uppercase-model": "latest"
 	}
 }

@@ -73,7 +73,7 @@ createWindow = () => {
 		WRITE_FILE({
 			path : 'config.json',
 			isSync : true,
-			content : JSON.stringify(config)
+			content : JSON.stringify(config, null, '\t')
 		});
 	});
 
