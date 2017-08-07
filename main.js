@@ -46,7 +46,9 @@ createWindow = () => {
 	win.setMenu(null);
 	
 	// 개발자 도구를 엽니다.
-	win.webContents.openDevTools();
+	if (config.isDevMode === true) {
+		win.webContents.openDevTools();
+	}
 	
 	let setConfig = () => {
 		
