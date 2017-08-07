@@ -28,7 +28,8 @@ createWindow = () => {
 		x : config.x,
 		y : config.y,
 		width : config.width,
-		height : config.height
+		height : config.height,
+		icon : __dirname + '/DasomEditor/R/favicon.ico'
 	});
 	
 	if (config.isMaximized === true) {
