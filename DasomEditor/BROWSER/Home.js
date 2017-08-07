@@ -45,7 +45,7 @@ DasomEditor.Home = CLASS({
 							size : 77,
 							c : SkyDesktop.TabGroup({
 								tabs : [DasomEditor.JavaScriptEditor({
-									title : 'Test 1',
+									title : '자바스크립트 테스트',
 									content : 'test'
 								})]
 							})
