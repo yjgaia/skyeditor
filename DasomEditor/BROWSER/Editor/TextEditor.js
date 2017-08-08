@@ -1,4 +1,4 @@
-DasomEditor.JavaScriptEditor = CLASS({
+DasomEditor.TextEditor = CLASS({
 
 	preset : () => {
 		return DasomEditor.AceEditor;
@@ -6,9 +6,9 @@ DasomEditor.JavaScriptEditor = CLASS({
 	
 	params : () => {
 		return {
-			mode : 'javascript',
+			mode : 'text',
 			icon : IMG({
-				src : DasomEditor.R('icon/js.png')
+				src : SkyDesktop.R('file.png')
 			})
 		}
 	}

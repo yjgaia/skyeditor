@@ -4,7 +4,7 @@ BOOT({
 	CONFIG : {
 		isDevMode : true,
 		
-		defaultBoxName : 'DasomEditor',
+		defaultBoxName : 'DasomEditorServer',
 		
 		title : '다솜 에디터',
 		
