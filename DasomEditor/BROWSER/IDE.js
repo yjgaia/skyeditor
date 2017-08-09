@@ -30,12 +30,24 @@ DasomEditor.IDE = CLASS({
 				c : toolbar = SkyDesktop.Toolbar({
 					buttons : [SkyDesktop.ToolbarButton({
 						icon : IMG({
+							src : DasomEditor.R('icon/home.png')
+						}),
+						title : '홈',
+						on : {
+							tap : () => {
+								showHome(self);
+							}
+						}
+					}), SkyDesktop.ToolbarButton({
+						icon : IMG({
 							src : SkyDesktop.R('file.png')
 						}),
 						title : '새 파일',
 						on : {
 							tap : () => {
-								
+								addTab(DasomEditor.TextEditor({
+									title : '제목 없음'
+								}));
 							}
 						}
 					}), SkyDesktop.ToolbarButton({
@@ -50,12 +62,11 @@ DasomEditor.IDE = CLASS({
 						}
 					}), SkyDesktop.ToolbarButton({
 						icon : IMG({
-							src : DasomEditor.R('icon/home.png')
+							src : DasomEditor.R('icon/setting.png')
 						}),
-						title : '홈',
+						title : '에디터 설정',
 						on : {
 							tap : () => {
-								showHome(self);
 							}
 						}
 					})]

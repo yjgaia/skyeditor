@@ -1,5 +1,7 @@
 RUN(() => {
 	
+	const {shell} = require('electron');
+	
 	let editorStore = STORE('editorStore');
 	
 	let ide = DasomEditor.IDE({
@@ -7,15 +9,26 @@ RUN(() => {
 			
 			ide.addTab(DasomEditor.HomeTab({
 				title : '홈',
-				c : 'test'
+				c : DIV({
+					style : {
+						padding : 10
+					},
+					c : ['좋은 에디터 ', A({
+						style : {
+							color : '#59A7FD',
+							textDecoration : 'underline'
+						},
+						c : '다솜 에디터',
+						on : {
+							tap : () => {
+								shell.openExternal('https://github.com/Hanul/DasomEditor');
+							}
+						}
+					})]
+				})
 			}));
 		}
 	}).appendTo(BODY);
-	
-	ide.addTab(DasomEditor.JavaScriptEditor({
-		title : '홈',
-		c : 'test'
-	}));
 	
 	let loadWorkspaceFiles = () => {
 		
