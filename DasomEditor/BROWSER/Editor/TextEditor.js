@@ -1,15 +1,26 @@
-DasomEditor.TextEditor = CLASS({
-
-	preset : () => {
-		return DasomEditor.AceEditor;
-	},
+DasomEditor.TextEditor = CLASS((cls) => {
 	
-	params : () => {
-		return {
-			mode : 'text',
-			icon : IMG({
-				src : SkyDesktop.R('file.png')
-			})
+	let getName = cls.getName = () => {
+		return 'DasomEditor.TextEditor';
+	};
+	
+	let getIcon = cls.getIcon = () => {
+		return IMG({
+			src : SkyDesktop.R('file.png')
+		});
+	};
+	
+	return {
+		
+		preset : () => {
+			return DasomEditor.AceEditor;
+		},
+		
+		params : () => {
+			return {
+				mode : 'text',
+				icon : getIcon()
+			}
 		}
-	}
+	};
 });

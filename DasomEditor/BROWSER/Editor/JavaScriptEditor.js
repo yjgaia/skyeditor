@@ -1,15 +1,26 @@
-DasomEditor.JavaScriptEditor = CLASS({
-
-	preset : () => {
-		return DasomEditor.AceEditor;
-	},
+DasomEditor.JavaScriptEditor = CLASS((cls) => {
 	
-	params : () => {
-		return {
-			mode : 'javascript',
-			icon : IMG({
-				src : DasomEditor.R('icon/js.png')
-			})
+	let getName = cls.getName = () => {
+		return 'DasomEditor.JavaScriptEditor';
+	};
+	
+	let getIcon = cls.getIcon = () => {
+		return IMG({
+			src : DasomEditor.R('icon/js.png')
+		});
+	};
+	
+	return {
+		
+		preset : () => {
+			return DasomEditor.AceEditor;
+		},
+		
+		params : () => {
+			return {
+				mode : 'javascript',
+				icon : getIcon()
+			}
 		}
-	}
+	};
 });
