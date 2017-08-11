@@ -219,7 +219,35 @@ DasomEditor.IDE = CLASS((cls) => {
 					c : SkyDesktop.HorizontalTabList({
 						tabs : [SkyDesktop.Tab({
 							size : 23,
-							c : fileTree = SkyDesktop.FileTree(load)
+							c : fileTree = SkyDesktop.FileTree((path) => {
+								
+								load(path, (content) => {
+									
+									let i = path.lastIndexOf('/');
+									let j = path.lastIndexOf('\\');
+									
+									let filename = path.substring((j === -1 || i > j ? i : j) + 1);
+									let extname = path.substring(path.lastIndexOf('.') + 1).toLowerCase();
+									
+									let editorName = editorSettingStore.get(extname);
+									
+									let SelectedEditor = DasomEditor.TextEditor;
+									
+									if (editorMap[extname] !== undefined) {
+										EACH(editorMap[extname], (editor) => {
+											if (editorName === undefined || editor.getName() === editorName) {
+												SelectedEditor = editor;
+												return false;
+											}
+										});
+									}
+									
+									addTab(SelectedEditor({
+										title : filename,
+										content : content
+									}));
+								});
+							})
 						}), SkyDesktop.Tab({
 							size : 77,
 							c : tabGroup = SkyDesktop.TabGroup()

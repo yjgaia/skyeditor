@@ -31,8 +31,10 @@ RUN(() => {
 			}));
 		},
 		
-		load : (path) => {
-			console.log(path);
+		load : (path, openEditor) => {
+			READ_FILE(path, (buffer) => {
+				openEditor(buffer.toString());
+			});
 		},
 		
 		save : (path) => {
@@ -40,10 +42,6 @@ RUN(() => {
 		}
 		
 	}).appendTo(BODY);
-	
-	ide.addTab(DasomEditor.JavaScriptEditor({
-		title : 'JavaScript 짱짱맨'
-	}));
 	
 	let loadWorkspaceFiles = () => {
 		

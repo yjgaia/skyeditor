@@ -11,5 +11,10 @@ DasomEditor.MAIN = METHOD({
 			extname : 'js',
 			editor : DasomEditor.JavaScriptEditor
 		});
+		
+		DasomEditor.IDE.addEditor({
+			extname : 'html',
+			editor : DasomEditor.HTMLEditor
+		});
 	}
 });
