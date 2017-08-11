@@ -36,11 +36,14 @@ DasomEditor.IDE = CLASS((cls) => {
 		init : (inner, self, handlers) => {
 			//REQUIRED: handlers
 			//OPTIONAL: handlers.showHome
+			//REQUIRED: handlers.load
 			//REQUIRED: handlers.save
 			
 			let editorSettingStore = DasomEditor.STORE('editorSettingStore');
 			
 			let showHome = handlers.showHome;
+			let load = handlers.load;
+			let save = handlers.save;
 			
 			let toolbar;
 			self.append(TR({
@@ -216,7 +219,7 @@ DasomEditor.IDE = CLASS((cls) => {
 					c : SkyDesktop.HorizontalTabList({
 						tabs : [SkyDesktop.Tab({
 							size : 23,
-							c : fileTree = SkyDesktop.FileTree()
+							c : fileTree = SkyDesktop.FileTree(load)
 						}), SkyDesktop.Tab({
 							size : 77,
 							c : tabGroup = SkyDesktop.TabGroup()
@@ -225,11 +228,15 @@ DasomEditor.IDE = CLASS((cls) => {
 				})
 			}));
 			
-			let addFile = self.addFile = (file) => {
-				fileTree.addItem(file);
+			let addFile = self.addFile = (params) => {
+				//REQUIRED: params
+				//REQUIRED: params.key
+				//REQUIRED: params.item
+				
+				fileTree.addItem(params);
 			};
 			
-			let clearFileTree = self.clearFileTree = (file) => {
+			let clearFileTree = self.clearFileTree = () => {
 				fileTree.removeAllItems();
 			};
 			

@@ -6,6 +6,7 @@ RUN(() => {
 	let folderOpenedStore = STORE('folderOpened');
 	
 	let ide = DasomEditor.IDE({
+		
 		showHome : (ide) => {
 			
 			ide.addTab(DasomEditor.HomeTab({
@@ -28,7 +29,16 @@ RUN(() => {
 					})]
 				})
 			}));
+		},
+		
+		load : (path) => {
+			console.log(path);
+		},
+		
+		save : (path) => {
+			
 		}
+		
 	}).appendTo(BODY);
 	
 	ide.addTab(DasomEditor.JavaScriptEditor({
