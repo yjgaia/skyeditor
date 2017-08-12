@@ -1,7 +1,9 @@
 RUN(() => {
 	
 	const {shell} = require('electron');
+	const {dialog} = require('electron').remote;
 	
+	const FS = require('fs');
 	const SEP = require('path').sep;
 	
 	let exec = require('child_process').exec;
@@ -43,88 +45,161 @@ RUN(() => {
 			});
 		},
 		
-		save : (path, content) => {
+		save : (activeTab) => {
 			
-			WRITE_FILE({
-				path : path,
-				content : content
-			}, () => {
+			NEXT([(next) => {
 				
-				SkyDesktop.Noti('저장하였습니다.');
-				
-				let extname = path.substring(path.lastIndexOf('.') + 1).toLowerCase();
-				let command = saveCommandStore.get(extname);
-				
-				if (command !== undefined) {
+				if (activeTab.getPath() === undefined) {
 					
-					command = command.replace(/\{\{folder\}\}/g, path.substring(0, path.lastIndexOf(SEP)));
-					command = command.replace(/\{\{path\}\}/g, path);
-					
-					EACH(command.split('\n'), (command) => {
-						
-						console.log('저장 시 명령을 실행합니다: ' + command);
-						
-						exec(command, (error) => {
-							if (error !== TO_DELETE) {
-								SHOW_ERROR('저장 시 명령 실행', error.toString());
-							}
-						});
+					dialog.showSaveDialog((path) => {
+						if (path !== undefined) {
+							next(path);
+						}
 					});
 				}
-			});
+				
+				else {
+					next(activeTab.getPath());
+				}
+			},
+			
+			() => {
+				return (path) => {
+					
+					WRITE_FILE({
+						path : path,
+						content : activeTab.getContent()
+					}, () => {
+						
+						activeTab.setPath(path);
+						
+						SkyDesktop.Noti('저장하였습니다.');
+						
+						let i = path.lastIndexOf('/');
+						let j = path.lastIndexOf('\\');
+						
+						let filename = path.substring((j === -1 || i > j ? i : j) + 1);
+						activeTab.setTitle(filename);
+						
+						let extname = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+						
+						let Editor = DasomEditor.IDE.getEditor(extname);
+						if (Editor !== undefined) {
+							activeTab.setIcon(Editor.getIcon());
+						}
+						
+						let command = saveCommandStore.get(extname);
+						
+						if (command !== undefined) {
+							
+							command = command.replace(/\{\{folder\}\}/g, path.substring(0, path.lastIndexOf(SEP)));
+							command = command.replace(/\{\{path\}\}/g, path);
+							
+							EACH(command.split('\n'), (command) => {
+								
+								console.log('저장 시 명령을 실행합니다: ' + command);
+								
+								exec(command, (error) => {
+									if (error !== TO_DELETE) {
+										SHOW_ERROR('저장 시 명령 실행', error.toString());
+									}
+								});
+							});
+						}
+					});
+				};
+			}]);
 		}
 		
 	}).appendTo(BODY);
+	
+	let workspaceFileWatcher;
 	
 	let loadWorkspaceFiles = () => {
 		
 		ide.clearFileTree();
 		
-		let loadFiles = (path, addFile) => {
+		let createFileWatcher = (path, addItem, removeItem) => {
 			
-			FIND_FOLDER_NAMES(path, (folderNames) => {
+			return FS.watch(path, (eventType, fileName) => {
 				
-				EACH(folderNames, (folderName) => {
+				if (eventType === 'rename') {
 					
-					let folder;
-					let isOpened = folderOpenedStore.get(path + SEP + folderName);
-					
-					addFile({
-						key : path + SEP + folderName,
-						item : folder = SkyDesktop.Folder({
-							title : folderName,
-							isOpened : isOpened,
-							on : {
-								
-								open : () => {
-									
-									folderOpenedStore.save({
-										name : path + SEP + folderName,
-										value : true
-									});
-									
-									loadFiles(path + SEP + folderName, folder.addItem);
-								},
-								
-								close : () => {
-									folderOpenedStore.remove(path + SEP + folderName);
-								}
-							}
-						})
-					});
-				});
-				
-				FIND_FILE_NAMES(path, (fileNames) => {
-				
-					EACH(fileNames, (fileName) => {
+					CHECK_FILE_EXISTS(path + SEP + fileName, (isExists) => {
 						
-						addFile({
-							key : path + SEP + fileName,
-							item : SkyDesktop.File({
-								title : fileName
-							})
-						});
+						if (isExists === true) {
+							addItem({
+								key : path + SEP + fileName,
+								item : DasomEditor.File({
+									title : fileName
+								})
+							});
+						}
+						
+						else {
+							removeItem(path + SEP + fileName);
+						}
 					});
+				}
+			});
+		};
+		
+		let loadFiles = (path, addItem) => {
+			
+			let fileWatcher;
+			
+			EACH(FIND_FOLDER_NAMES({
+				path : path,
+				isSync : true
+			}), (folderName) => {
+				
+				let folder;
+				let isOpened = folderOpenedStore.get(path + SEP + folderName);
+				
+				addItem({
+					key : path + SEP + folderName,
+					item : folder = SkyDesktop.Folder({
+						title : folderName,
+						isOpened : isOpened,
+						on : {
+							
+							open : () => {
+								
+								folderOpenedStore.save({
+									name : path + SEP + folderName,
+									value : true
+								});
+								
+								loadFiles(path + SEP + folderName, folder.addItem);
+								
+								if (fileWatcher !== undefined) {
+									fileWatcher.close();
+								}
+								
+								fileWatcher = createFileWatcher(path + SEP + folderName, folder.addItem, folder.removeItem);
+							},
+							
+							close : () => {
+								
+								folderOpenedStore.remove(path + SEP + folderName);
+								
+								fileWatcher.close();
+							}
+						}
+					})
+				});
+			});
+			
+			EACH(FIND_FILE_NAMES({
+				path : path,
+				isSync : true
+			}), (fileName) => {
+				
+				addItem({
+					key : path + SEP + fileName,
+					item : DasomEditor.File({
+						title : fileName
+					})
 				});
 			});
 		};
@@ -135,7 +210,13 @@ RUN(() => {
 			workspacePath = 'workspace';
 		}
 		
-		loadFiles(workspacePath, ide.addFile);
+		loadFiles(workspacePath, ide.addItem);
+		
+		if (workspaceFileWatcher !== undefined) {
+			workspaceFileWatcher.close();
+		}
+		
+		workspaceFileWatcher = createFileWatcher(workspacePath, ide.addItem, ide.removeItem);
 	};
 	
 	ide.addToolbarButton(SkyDesktop.ToolbarButton({

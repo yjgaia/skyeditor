@@ -16,6 +16,12 @@ DasomEditor.Editor = CLASS({
 			return path;
 		};
 		
+		let setPath = self.setPath = (_path) => {
+			//REQUIRED: path
+			
+			path = _path;
+		};
+		
 		let getContent = self.getContent = () => {
 			return content;
 		};

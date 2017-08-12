@@ -1,6 +1,7 @@
 DasomEditor.IDE = CLASS((cls) => {
 	
 	let editorMap = {};
+	let editorSettingStore;
 	
 	let addEditor = cls.addEditor = (params) => {
 		//REQUIRED: params
@@ -15,6 +16,27 @@ DasomEditor.IDE = CLASS((cls) => {
 		}
 		
 		editorMap[extname].push(editor);
+	};
+	
+	let getEditor = cls.getEditor = (extname) => {
+		
+		let SelectedEditor = DasomEditor.TextEditor;
+		
+		if (editorSettingStore !== undefined) {
+			
+			let editorName = editorSettingStore.get(extname);
+			
+			if (editorMap[extname] !== undefined) {
+				EACH(editorMap[extname], (editor) => {
+					if (editorName === undefined || editor.getName() === editorName) {
+						SelectedEditor = editor;
+						return false;
+					}
+				});
+			}
+		}
+		
+		return SelectedEditor;
 	};
 	
 	return {
@@ -39,7 +61,9 @@ DasomEditor.IDE = CLASS((cls) => {
 			//REQUIRED: handlers.load
 			//REQUIRED: handlers.save
 			
-			let editorSettingStore = DasomEditor.STORE('editorSettingStore');
+			if (editorSettingStore === undefined) {
+				editorSettingStore = DasomEditor.STORE('editorSettingStore');
+			}
 			
 			let showHome = handlers.showHome;
 			let load = handlers.load;
@@ -69,7 +93,7 @@ DasomEditor.IDE = CLASS((cls) => {
 							title : '새 파일',
 							on : {
 								tap : () => {
-									addTab(DasomEditor.TextEditor({
+									openEditor(DasomEditor.TextEditor({
 										title : '제목 없음'
 									}));
 								}
@@ -85,7 +109,7 @@ DasomEditor.IDE = CLASS((cls) => {
 									let activeTab = editorGroup.getActiveTab();
 									
 									if (activeTab.checkIsInstanceOf(DasomEditor.Editor) === true) {
-										save(activeTab.getPath(), activeTab.getContent());
+										save(activeTab);
 									}
 								}
 							}
@@ -241,22 +265,8 @@ DasomEditor.IDE = CLASS((cls) => {
 											let j = path.lastIndexOf('\\');
 											
 											let filename = path.substring((j === -1 || i > j ? i : j) + 1);
-											let extname = path.substring(path.lastIndexOf('.') + 1).toLowerCase();
 											
-											let editorName = editorSettingStore.get(extname);
-											
-											let SelectedEditor = DasomEditor.TextEditor;
-											
-											if (editorMap[extname] !== undefined) {
-												EACH(editorMap[extname], (editor) => {
-													if (editorName === undefined || editor.getName() === editorName) {
-														SelectedEditor = editor;
-														return false;
-													}
-												});
-											}
-											
-											openEditor(SelectedEditor({
+											openEditor(getEditor(filename.substring(filename.lastIndexOf('.') + 1).toLowerCase())({
 												title : filename,
 												path : path,
 												content : content
@@ -280,12 +290,24 @@ DasomEditor.IDE = CLASS((cls) => {
 				})
 			}));
 			
-			let addFile = self.addFile = (params) => {
+			let addItem = self.addItem = (params) => {
 				//REQUIRED: params
 				//REQUIRED: params.key
 				//REQUIRED: params.item
 				
 				fileTree.addItem(params);
+			};
+			
+			let getItem = self.getItem = (key) => {
+				//REQUIRED: key
+				
+				return fileTree.getItem(key);
+			};
+			
+			let removeItem = self.removeItem = (key) => {
+				//REQUIRED: key
+				
+				fileTree.removeItem(key);
 			};
 			
 			let clearFileTree = self.clearFileTree = () => {
