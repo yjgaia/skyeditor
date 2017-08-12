@@ -81,7 +81,12 @@ DasomEditor.IDE = CLASS((cls) => {
 							title : '저장',
 							on : {
 								tap : () => {
-									SkyDesktop.Noti('저장하였습니다.');
+									
+									let activeTab = editorGroup.getActiveTab();
+									
+									if (activeTab.checkIsInstanceOf(DasomEditor.Editor) === true) {
+										save(activeTab.getPath(), activeTab.getContent());
+									}
 								}
 							}
 						}), SkyDesktop.ToolbarButton({
@@ -95,6 +100,7 @@ DasomEditor.IDE = CLASS((cls) => {
 									let list;
 									
 									SkyDesktop.Confirm({
+										okButtonTitle : '저장',
 										style : {
 											onDisplayResize : (width, height) => {
 							
@@ -116,7 +122,7 @@ DasomEditor.IDE = CLASS((cls) => {
 											c : '에디터 설정'
 										}), list = DIV({
 											style : {
-												marginTop : 5,
+												marginTop : 8,
 												overflowY : 'scroll',
 												padding : 8,
 												backgroundColor : '#e0e1e2',
@@ -131,7 +137,7 @@ DasomEditor.IDE = CLASS((cls) => {
 														};
 													} else {
 														return {
-															height : '90%'
+															height : 150
 														};
 													}
 												}
@@ -213,44 +219,62 @@ DasomEditor.IDE = CLASS((cls) => {
 			};
 			
 			let fileTree;
-			let tabGroup;
+			let editorGroup;
 			self.append(TR({
 				c : TD({
 					c : SkyDesktop.HorizontalTabList({
 						tabs : [SkyDesktop.Tab({
 							size : 23,
-							c : fileTree = SkyDesktop.FileTree((path) => {
-								
-								load(path, (content) => {
-									
-									let i = path.lastIndexOf('/');
-									let j = path.lastIndexOf('\\');
-									
-									let filename = path.substring((j === -1 || i > j ? i : j) + 1);
-									let extname = path.substring(path.lastIndexOf('.') + 1).toLowerCase();
-									
-									let editorName = editorSettingStore.get(extname);
-									
-									let SelectedEditor = DasomEditor.TextEditor;
-									
-									if (editorMap[extname] !== undefined) {
-										EACH(editorMap[extname], (editor) => {
-											if (editorName === undefined || editor.getName() === editorName) {
-												SelectedEditor = editor;
-												return false;
+							c : SkyDesktop.TabGroup({
+								activeTabIndex : 0,
+								tabs : [SkyDesktop.Tab({
+									isCannotClose : true,
+									icon : IMG({
+										src : DasomEditor.R('icon/workspace.png')
+									}),
+									title : '작업 폴더',
+									c : fileTree = SkyDesktop.FileTree((path) => {
+										
+										load(path, (path, content) => {
+											
+											let i = path.lastIndexOf('/');
+											let j = path.lastIndexOf('\\');
+											
+											let filename = path.substring((j === -1 || i > j ? i : j) + 1);
+											let extname = path.substring(path.lastIndexOf('.') + 1).toLowerCase();
+											
+											let editorName = editorSettingStore.get(extname);
+											
+											let SelectedEditor = DasomEditor.TextEditor;
+											
+											if (editorMap[extname] !== undefined) {
+												EACH(editorMap[extname], (editor) => {
+													if (editorName === undefined || editor.getName() === editorName) {
+														SelectedEditor = editor;
+														return false;
+													}
+												});
 											}
+											
+											openEditor(SelectedEditor({
+												title : filename,
+												path : path,
+												content : content
+											}));
 										});
-									}
-									
-									addTab(SelectedEditor({
-										title : filename,
-										content : content
-									}));
-								});
+									})
+								}), SkyDesktop.Tab({
+									isCannotClose : true,
+									icon : IMG({
+										src : DasomEditor.R('icon/ftp.png')
+									}),
+									title : 'FTP',
+									c : 'test'
+								})]
 							})
 						}), SkyDesktop.Tab({
 							size : 77,
-							c : tabGroup = SkyDesktop.TabGroup()
+							c : editorGroup = SkyDesktop.TabGroup()
 						})]
 					})
 				})
@@ -268,8 +292,8 @@ DasomEditor.IDE = CLASS((cls) => {
 				fileTree.removeAllItems();
 			};
 			
-			let addTab = self.addTab = (tab) => {
-				tabGroup.addTab(tab);
+			let openEditor = self.openEditor = (tab) => {
+				editorGroup.addTab(tab);
 			};
 			
 			if (showHome !== undefined) {

@@ -5,17 +5,12 @@ DasomEditor.AceEditor = CLASS({
 	},
 
 	init : (inner, self, params) => {
-		//OPTIONAL: params
+		//REQUIRED: params
 		//OPTIONAL: params.mode
 		//OPTIONAL: params.content
 		
-		let mode;
-		let content;
-		
-		if (params !== undefined) {
-			mode = params.mode;
-			content = params.content;
-		}
+		let mode = params.mode;
+		let content = params.content;
 		
 		let editor;
 		
@@ -56,6 +51,14 @@ DasomEditor.AceEditor = CLASS({
 					}
 				});
 			}
+		});
+		
+		let getContent;
+		OVERRIDE(self.getContent, (origin) => {
+			
+			getContent = self.getContent = () => {
+				return aceEditor.getValue();
+			};
 		});
 	}
 });

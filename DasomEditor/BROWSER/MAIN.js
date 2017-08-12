@@ -16,5 +16,15 @@ DasomEditor.MAIN = METHOD({
 			extname : 'html',
 			editor : DasomEditor.HTMLEditor
 		});
+		
+		DasomEditor.IDE.addEditor({
+			extname : 'hx',
+			editor : DasomEditor.HaxeEditor
+		});
+		
+		DasomEditor.IDE.addEditor({
+			extname : 'as',
+			editor : DasomEditor.ActionScriptEditor
+		});
 	}
 });
