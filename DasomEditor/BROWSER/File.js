@@ -17,5 +17,14 @@ DasomEditor.File = CLASS({
 		if (Editor !== undefined) {
 			self.setIcon(Editor.getIcon());
 		}
+		
+		self.on('contextmenu', (e) => {
+			
+			DasomEditor.FileContextMenu({
+				e : e
+			});
+			
+			e.stop();
+		});
 	}
 });

@@ -158,7 +158,7 @@ RUN(() => {
 				
 				addItem({
 					key : path + SEP + folderName,
-					item : folder = SkyDesktop.Folder({
+					item : folder = DasomEditor.Folder({
 						title : folderName,
 						isOpened : isOpened,
 						on : {
