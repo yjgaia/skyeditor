@@ -28,6 +28,9 @@ DasomEditor.AceEditor = CLASS({
 			aceEditor.getSession().setMode('ace/mode/' + mode);
 		}
 		aceEditor.getSession().setUseWrapMode(true);
+		aceEditor.getSession().on('changeScrollTop', () => {
+			self.fireEvent('scroll');
+		});
 		aceEditor.renderer.setScrollMargin(0, 300);
 		aceEditor.commands.addCommand({
 			name : 'replace2',
@@ -51,6 +54,24 @@ DasomEditor.AceEditor = CLASS({
 					}
 				});
 			}
+		});
+		
+		let getScrollTop;
+		OVERRIDE(self.getScrollTop, (origin) => {
+			
+			getScrollTop = self.getScrollTop = () => {
+				return aceEditor.getSession().getScrollTop();
+			};
+		});
+		
+		let setScrollTop;
+		OVERRIDE(self.setScrollTop, (origin) => {
+			
+			setScrollTop = self.setScrollTop = (scrollTop) => {
+				//REQUIRED: scrollTop
+				
+				aceEditor.getSession().setScrollTop(scrollTop);
+			};
 		});
 		
 		let getContent;

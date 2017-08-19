@@ -19,11 +19,24 @@ DasomEditor.Editor = CLASS({
 		let setPath = self.setPath = (_path) => {
 			//REQUIRED: path
 			
+			let editorOpenedStore = DasomEditor.IDE.getEditorOpenedStore();
+			
+			editorOpenedStore.remove(path);
+			
 			path = _path;
+			
+			editorOpenedStore.save({
+				name : path,
+				value : true
+			});
 		};
 		
 		let getContent = self.getContent = () => {
 			return content;
+		};
+		
+		let setScrollTop = self.setScrollTop = (scrollTop) => {
+			//REQUIRED: scrollTop
 		};
 	}
 });

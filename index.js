@@ -403,6 +403,10 @@ RUN(() => {
 							value : fileInput.getEl().files[0].path
 						});
 						
+						ide.closeAllEditors();
+						
+						DasomEditor.IDE.getEditorOpenedStore().clear();
+						
 						loadWorkspaceFiles();
 					}
 				});

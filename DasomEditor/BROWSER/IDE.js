@@ -2,6 +2,7 @@ DasomEditor.IDE = CLASS((cls) => {
 	
 	let editorMap = {};
 	let editorSettingStore;
+	let editorOpenedStore;
 	
 	let addEditor = cls.addEditor = (params) => {
 		//REQUIRED: params
@@ -39,6 +40,10 @@ DasomEditor.IDE = CLASS((cls) => {
 		return SelectedEditor;
 	};
 	
+	let getEditorOpenedStore = cls.getEditorOpenedStore = () => {
+		return editorOpenedStore;
+	};
+	
 	return {
 	
 		preset : () => {
@@ -61,13 +66,17 @@ DasomEditor.IDE = CLASS((cls) => {
 			//REQUIRED: handlers.load
 			//REQUIRED: handlers.save
 			
+			let showHome = handlers.showHome;
+			let load = handlers.load;
+			let save = handlers.save;
+			
 			if (editorSettingStore === undefined) {
 				editorSettingStore = DasomEditor.STORE('editorSettingStore');
 			}
 			
-			let showHome = handlers.showHome;
-			let load = handlers.load;
-			let save = handlers.save;
+			if (editorOpenedStore === undefined) {
+				editorOpenedStore = DasomEditor.STORE('editorOpenedStore');
+			}
 			
 			let toolbar;
 			self.append(TR({
@@ -242,6 +251,57 @@ DasomEditor.IDE = CLASS((cls) => {
 				toolbar.addButton(toolbarButton);
 			};
 			
+			let openEditor = self.openEditor = (tab) => {
+				
+				editorGroup.addTab(tab);
+				
+				if (tab.checkIsInstanceOf(DasomEditor.Editor) === true) {
+					
+					tab.on('scroll', RAR((e) => {
+						
+						editorOpenedStore.save({
+							name : tab.getPath(),
+							value : tab.getScrollTop()
+						});
+					}));
+					
+					tab.on('remove', () => {
+						editorOpenedStore.remove(tab.getPath());
+					});
+				}
+				
+				return tab;
+			};
+			
+			let closeAllEditors = self.closeAllEditors = () => {
+				editorGroup.removeAllTabs();
+			};
+			
+			let loadAndOpenEditor = (path, scrollTop, next) => {
+				
+				load(path, (path, content) => {
+					
+					let i = path.lastIndexOf('/');
+					let j = path.lastIndexOf('\\');
+					
+					let filename = path.substring((j === -1 || i > j ? i : j) + 1);
+					
+					let editor = openEditor(getEditor(filename.substring(filename.lastIndexOf('.') + 1).toLowerCase())({
+						title : filename,
+						path : path,
+						content : content
+					}));
+					
+					if (scrollTop !== undefined) {
+						editor.setScrollTop(scrollTop);
+					}
+					
+					if (next !== undefined) {
+						next();
+					}
+				});
+			};
+			
 			let fileTree;
 			let editorGroup;
 			self.append(TR({
@@ -257,22 +317,7 @@ DasomEditor.IDE = CLASS((cls) => {
 										src : DasomEditor.R('icon/workspace.png')
 									}),
 									title : '작업 폴더',
-									c : fileTree = SkyDesktop.FileTree((path) => {
-										
-										load(path, (path, content) => {
-											
-											let i = path.lastIndexOf('/');
-											let j = path.lastIndexOf('\\');
-											
-											let filename = path.substring((j === -1 || i > j ? i : j) + 1);
-											
-											openEditor(getEditor(filename.substring(filename.lastIndexOf('.') + 1).toLowerCase())({
-												title : filename,
-												path : path,
-												content : content
-											}));
-										});
-									})
+									c : fileTree = SkyDesktop.FileTree(loadAndOpenEditor)
 								}), SkyDesktop.Tab({
 									isCannotClose : true,
 									icon : IMG({
@@ -314,12 +359,23 @@ DasomEditor.IDE = CLASS((cls) => {
 				fileTree.removeAllItems();
 			};
 			
-			let openEditor = self.openEditor = (tab) => {
-				editorGroup.addTab(tab);
-			};
+			let editorOpenedInfos = [];
+			EACH(editorOpenedStore.all(), (scrollTop, path) => {
+				editorOpenedInfos.push({
+					path : path,
+					scrollTop : scrollTop
+				});
+			});
 			
-			if (showHome !== undefined) {
-				showHome(self);
+			if (editorOpenedInfos.length === 0) {
+				if (showHome !== undefined) {
+					showHome(self);
+				}
+			} else {
+				
+				NEXT(editorOpenedInfos, (editorOpenedInfo, next) => {
+					loadAndOpenEditor(editorOpenedInfo.path, editorOpenedInfo.scrollTop, next);
+				});
 			}
 		}
 	};
