@@ -146,8 +146,6 @@ RUN(() => {
 		
 		let loadFiles = (path, addItem) => {
 			
-			let fileWatcher;
-			
 			EACH(FIND_FOLDER_NAMES({
 				path : path,
 				isSync : true
@@ -155,6 +153,8 @@ RUN(() => {
 				
 				let folder;
 				let isOpened = folderOpenedStore.get(path + SEP + folderName);
+				
+				let fileWatcher;
 				
 				addItem({
 					key : path + SEP + folderName,

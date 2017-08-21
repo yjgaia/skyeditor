@@ -26,5 +26,10 @@ DasomEditor.MAIN = METHOD({
 			extname : 'as',
 			editor : DasomEditor.ActionScriptEditor
 		});
+		
+		DasomEditor.IDE.addEditor({
+			extname : 'erl',
+			editor : DasomEditor.ErlangEditor
+		});
 	}
 });
