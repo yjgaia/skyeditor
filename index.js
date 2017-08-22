@@ -12,11 +12,11 @@ RUN(() => {
 	let folderOpenedStore = STORE('folderOpened');
 	let saveCommandStore = STORE('saveCommandStore');
 	
-	let ide = DasomEditor.IDE({
+	DasomEditor.IDE.init({
 		
 		showHome : (ide) => {
 			
-			ide.openEditor(DasomEditor.HomeTab({
+			DasomEditor.IDE.openEditor(DasomEditor.HomeTab({
 				title : '홈',
 				c : DIV({
 					style : {
@@ -110,14 +110,13 @@ RUN(() => {
 				};
 			}]);
 		}
-		
-	}).appendTo(BODY);
+	});
 	
 	let workspaceFileWatcher;
 	
 	let loadWorkspaceFiles = () => {
 		
-		ide.clearFileTree();
+		DasomEditor.IDE.clearFileTree();
 		
 		let createFileWatcher = (path, addItem, removeItem) => {
 			
@@ -131,6 +130,7 @@ RUN(() => {
 							addItem({
 								key : path + SEP + fileName,
 								item : DasomEditor.File({
+									path : path + SEP + fileName,
 									title : fileName
 								})
 							});
@@ -159,6 +159,7 @@ RUN(() => {
 				addItem({
 					key : path + SEP + folderName,
 					item : folder = DasomEditor.Folder({
+						path : path + SEP + folderName,
 						title : folderName,
 						isOpened : isOpened,
 						on : {
@@ -198,6 +199,7 @@ RUN(() => {
 				addItem({
 					key : path + SEP + fileName,
 					item : DasomEditor.File({
+						path : path + SEP + fileName,
 						title : fileName
 					})
 				});
@@ -210,16 +212,16 @@ RUN(() => {
 			workspacePath = 'workspace';
 		}
 		
-		loadFiles(workspacePath, ide.addItem);
+		loadFiles(workspacePath, DasomEditor.IDE.addItem);
 		
 		if (workspaceFileWatcher !== undefined) {
 			workspaceFileWatcher.close();
 		}
 		
-		workspaceFileWatcher = createFileWatcher(workspacePath, ide.addItem, ide.removeItem);
+		workspaceFileWatcher = createFileWatcher(workspacePath, DasomEditor.IDE.addItem, DasomEditor.IDE.removeItem);
 	};
 	
-	ide.addToolbarButton(SkyDesktop.ToolbarButton({
+	DasomEditor.IDE.addToolbarButton(SkyDesktop.ToolbarButton({
 		icon : IMG({
 			src : DasomEditor.R('icon/command.png')
 		}),
@@ -363,7 +365,7 @@ RUN(() => {
 		}
 	}));
 	
-	ide.addToolbarButton(SkyDesktop.ToolbarButton({
+	DasomEditor.IDE.addToolbarButton(SkyDesktop.ToolbarButton({
 		icon : IMG({
 			src : DasomEditor.R('icon/workspace.png')
 		}),
@@ -403,7 +405,7 @@ RUN(() => {
 							value : fileInput.getEl().files[0].path
 						});
 						
-						ide.closeAllEditors();
+						DasomEditor.IDE.closeAllEditors();
 						
 						DasomEditor.IDE.getEditorOpenedStore().clear();
 						

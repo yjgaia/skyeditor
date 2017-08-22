@@ -9,6 +9,7 @@ DasomEditor.Folder = CLASS({
 		self.on('contextmenu', (e) => {
 			
 			DasomEditor.FileContextMenu({
+				path : self.getPath(),
 				e : e
 			});
 			
