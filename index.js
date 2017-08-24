@@ -120,6 +120,7 @@ RUN(() => {
 		},
 		
 		copy : (path) => {
+			clipboard.writeText(changeToOSPath(path));
 		},
 		
 		paste : (folderPath) => {
@@ -133,26 +134,59 @@ RUN(() => {
 				}
 			}
 			
+			if (VALID.notEmpty(clipboardPath) !== true) {
+				clipboardPath = clipboard.readText();
+			}
+			
 			if (VALID.notEmpty(clipboardPath) === true) {
 				
 				clipboardPath = fixPath(clipboardPath);
 				
 				let fileName = clipboardPath.substring(clipboardPath.lastIndexOf('/') + 1);
 				
-				READ_FILE(clipboardPath, (buffer) => {
+				RUN((f) => {
 					
-					let content = buffer.toString();
-					
-					WRITE_FILE({
-						path : folderPath + '/' + fileName,
-						content : content
-					}, () => {
+					CHECK_FILE_EXISTS(folderPath + '/' + fileName, (isExists) => {
 						
-						DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-							title : fileName,
-							path : folderPath + '/' + fileName,
-							content : content
-						}));
+						if (isExists === true) {
+							
+							let extname = '';
+							let index = fileName.lastIndexOf('.');
+							
+							if (index !== -1) {
+								extname = fileName.substring(index);
+								fileName = fileName.substring(0, index);
+							}
+							
+							fileName = fileName + ' (2)' + extname;
+							
+							f();
+						}
+						
+						else {
+							
+							READ_FILE(clipboardPath, {
+								notExists : () => {
+									// ignore.
+								},
+								success : (buffer) => {
+									
+									let content = buffer.toString();
+									
+									WRITE_FILE({
+										path : folderPath + '/' + fileName,
+										content : content
+									}, () => {
+										
+										DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+											title : fileName,
+											path : folderPath + '/' + fileName,
+											content : content
+										}));
+									});
+								}
+							});
+						}
 					});
 				});
 			}

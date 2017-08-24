@@ -71,7 +71,10 @@ DasomEditor.FileContextMenu = CLASS({
 			on : {
 				tap : () => {
 					
-					SkyDesktop.Prompt('새 이름을 입력해주시기 바랍니다.', (newName) => {
+					SkyDesktop.Prompt({
+						msg : '새 이름을 입력해주시기 바랍니다.',
+						value : path.substring(path.lastIndexOf('/') + 1)
+					}, (newName) => {
 						
 						DasomEditor.IDE.rename({
 							path : path,
