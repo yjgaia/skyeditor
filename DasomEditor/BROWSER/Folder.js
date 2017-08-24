@@ -10,6 +10,7 @@ DasomEditor.Folder = CLASS({
 			
 			DasomEditor.FileContextMenu({
 				path : self.getPath(),
+				folderPath : self.getPath(),
 				e : e
 			});
 			

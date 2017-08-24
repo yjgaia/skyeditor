@@ -20,8 +20,11 @@ DasomEditor.File = CLASS({
 		
 		self.on('contextmenu', (e) => {
 			
+			let path = self.getPath();
+			
 			DasomEditor.FileContextMenu({
-				path : self.getPath(),
+				path : path,
+				folderPath : path.substring(0, path.lastIndexOf('/')),
 				e : e
 			});
 			

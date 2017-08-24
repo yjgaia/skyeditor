@@ -6,41 +6,23 @@ DasomEditor.FileContextMenu = CLASS({
 
 	init : (inner, self, params) => {
 		//REQUIRED: params
-		//OPTIONAL: params.path
+		//REQUIRED: params.path
+		//REQUIRED: params.folderPath
 		
 		let path = params.path;
-		
-		console.log(path);
+		let folderPath = params.folderPath;
 		
 		self.append(SkyDesktop.ContextMenuItem({
 			title : '새 파일',
 			on : {
 				tap : () => {
 					
-					SkyDesktop.Prompt('파일명을 입력해주시기 바랍니다.', (filename) => {
-						console.log(c);
+					SkyDesktop.Prompt('파일명을 입력해주시기 바랍니다.', (fileName) => {
 						
-						/*DasomEditor.IDE.load(path, (path, content) => {
-							
-							let i = path.lastIndexOf('/');
-							let j = path.lastIndexOf('\\');
-							
-							let filename = path.substring((j === -1 || i > j ? i : j) + 1);
-							
-							let editor = openEditor(getEditor(filename.substring(filename.lastIndexOf('.') + 1).toLowerCase())({
-								title : filename,
-								path : path,
-								content : content
-							}));
-							
-							if (scrollTop !== undefined) {
-								editor.setScrollTop(scrollTop);
-							}
-							
-							if (next !== undefined) {
-								next();
-							}
-						});*/
+						DasomEditor.IDE.save(DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+							title : fileName,
+							path : folderPath + '/' + fileName
+						})));
 					});
 					
 					self.remove();
@@ -52,6 +34,8 @@ DasomEditor.FileContextMenu = CLASS({
 			title : '복사',
 			on : {
 				tap : () => {
+					
+					DasomEditor.IDE.copy(path);
 				
 					self.remove();
 				}
@@ -63,6 +47,8 @@ DasomEditor.FileContextMenu = CLASS({
 			on : {
 				tap : () => {
 					
+					DasomEditor.IDE.paste(folderPath);
+					
 					self.remove();
 				}
 			}
@@ -73,6 +59,8 @@ DasomEditor.FileContextMenu = CLASS({
 			on : {
 				tap : () => {
 					
+					DasomEditor.IDE.remove(path);
+					
 					self.remove();
 				}
 			}
@@ -82,6 +70,14 @@ DasomEditor.FileContextMenu = CLASS({
 			title : '이름 변경',
 			on : {
 				tap : () => {
+					
+					SkyDesktop.Prompt('새 이름을 입력해주시기 바랍니다.', (newName) => {
+						
+						DasomEditor.IDE.rename({
+							path : path,
+							newName : newName
+						});
+					});
 					
 					self.remove();
 				}

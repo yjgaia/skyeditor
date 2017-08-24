@@ -1,6 +1,6 @@
 RUN(() => {
 	
-	const {shell} = require('electron');
+	const {shell, clipboard} = require('electron');
 	const {dialog} = require('electron').remote;
 	
 	const FS = require('fs');
@@ -11,6 +11,17 @@ RUN(() => {
 	let editorStore = STORE('editorStore');
 	let folderOpenedStore = STORE('folderOpened');
 	let saveCommandStore = STORE('saveCommandStore');
+	
+	let fixPath = (path) => {
+		if (SEP !== '/') {
+			return path.replace(new RegExp('\\' + SEP, 'g'), '/');
+		}
+		return path;
+	};
+	
+	let changeToOSPath = (path) => {
+		return path.replace(new RegExp('/', 'g'), SEP);
+	};
 	
 	DasomEditor.IDE.init({
 		
@@ -38,10 +49,10 @@ RUN(() => {
 			}));
 		},
 		
-		load : (path, openEditor) => {
+		load : (path, innerOpenEditor) => {
 			
 			READ_FILE(path, (buffer) => {
-				openEditor(path, buffer.toString());
+				innerOpenEditor(path, buffer.toString());
 			});
 		},
 		
@@ -75,13 +86,10 @@ RUN(() => {
 						
 						SkyDesktop.Noti('저장하였습니다.');
 						
-						let i = path.lastIndexOf('/');
-						let j = path.lastIndexOf('\\');
+						let fileName = path.substring(path.lastIndexOf('/') + 1);
+						activeTab.setTitle(fileName);
 						
-						let filename = path.substring((j === -1 || i > j ? i : j) + 1);
-						activeTab.setTitle(filename);
-						
-						let extname = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+						let extname = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
 						
 						let Editor = DasomEditor.IDE.getEditor(extname);
 						if (Editor !== undefined) {
@@ -92,7 +100,7 @@ RUN(() => {
 						
 						if (command !== undefined) {
 							
-							command = command.replace(/\{\{folder\}\}/g, path.substring(0, path.lastIndexOf(SEP)));
+							command = command.replace(/\{\{folder\}\}/g, path.substring(0, path.lastIndexOf('/')));
 							command = command.replace(/\{\{path\}\}/g, path);
 							
 							EACH(command.split('\n'), (command) => {
@@ -109,6 +117,59 @@ RUN(() => {
 					});
 				};
 			}]);
+		},
+		
+		copy : (path) => {
+		},
+		
+		paste : (folderPath) => {
+			
+			let clipboardPath = clipboard.read('public.file-url');
+			
+			if (VALID.notEmpty(clipboardPath) !== true) {
+				clipboardPath = clipboard.read('FileNameW');
+				if (VALID.notEmpty(clipboardPath) === true) {
+					clipboardPath = clipboardPath.replace(new RegExp(String.fromCharCode(0), 'g'), '');
+				}
+			}
+			
+			if (VALID.notEmpty(clipboardPath) === true) {
+				
+				clipboardPath = fixPath(clipboardPath);
+				
+				let fileName = clipboardPath.substring(clipboardPath.lastIndexOf('/') + 1);
+				
+				READ_FILE(clipboardPath, (buffer) => {
+					
+					let content = buffer.toString();
+					
+					WRITE_FILE({
+						path : folderPath + '/' + fileName,
+						content : content
+					}, () => {
+						
+						DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+							title : fileName,
+							path : folderPath + '/' + fileName,
+							content : content
+						}));
+					});
+				});
+			}
+		},
+		
+		remove : (path) => {
+			REMOVE_FILE(path);
+		},
+		
+		rename : (path, newName) => {
+			
+			let folderPath = path.substring(0, path.lastIndexOf('/'));
+			
+			MOVE_FILE({
+				from : path,
+				to : folderPath + '/' + newName
+			});
 		}
 	});
 	
@@ -124,20 +185,25 @@ RUN(() => {
 				
 				if (eventType === 'rename') {
 					
-					CHECK_FILE_EXISTS(path + SEP + fileName, (isExists) => {
+					CHECK_FILE_EXISTS(path + '/' + fileName, (isExists) => {
 						
 						if (isExists === true) {
 							addItem({
-								key : path + SEP + fileName,
+								key : path + '/' + fileName,
 								item : DasomEditor.File({
-									path : path + SEP + fileName,
+									path : path + '/' + fileName,
 									title : fileName
 								})
 							});
 						}
 						
 						else {
-							removeItem(path + SEP + fileName);
+							removeItem(path + '/' + fileName);
+							
+							let opendEditor = DasomEditor.IDE.getOpenedEditor(path + '/' + fileName);
+							if (opendEditor !== undefined) {
+								//TODO: 저장되지 않은 에디터로 설정
+							}
 						}
 					});
 				}
@@ -152,14 +218,14 @@ RUN(() => {
 			}), (folderName) => {
 				
 				let folder;
-				let isOpened = folderOpenedStore.get(path + SEP + folderName);
+				let isOpened = folderOpenedStore.get(path + '/' + folderName);
 				
 				let fileWatcher;
 				
 				addItem({
-					key : path + SEP + folderName,
+					key : path + '/' + folderName,
 					item : folder = DasomEditor.Folder({
-						path : path + SEP + folderName,
+						path : path + '/' + folderName,
 						title : folderName,
 						isOpened : isOpened,
 						on : {
@@ -167,22 +233,22 @@ RUN(() => {
 							open : () => {
 								
 								folderOpenedStore.save({
-									name : path + SEP + folderName,
+									name : path + '/' + folderName,
 									value : true
 								});
 								
-								loadFiles(path + SEP + folderName, folder.addItem);
+								loadFiles(path + '/' + folderName, folder.addItem);
 								
 								if (fileWatcher !== undefined) {
 									fileWatcher.close();
 								}
 								
-								fileWatcher = createFileWatcher(path + SEP + folderName, folder.addItem, folder.removeItem);
+								fileWatcher = createFileWatcher(path + '/' + folderName, folder.addItem, folder.removeItem);
 							},
 							
 							close : () => {
 								
-								folderOpenedStore.remove(path + SEP + folderName);
+								folderOpenedStore.remove(path + '/' + folderName);
 								
 								fileWatcher.close();
 							}
@@ -197,9 +263,9 @@ RUN(() => {
 			}), (fileName) => {
 				
 				addItem({
-					key : path + SEP + fileName,
+					key : path + '/' + fileName,
 					item : DasomEditor.File({
-						path : path + SEP + fileName,
+						path : path + '/' + fileName,
 						title : fileName
 					})
 				});
@@ -402,7 +468,7 @@ RUN(() => {
 						
 						editorStore.save({
 							name : 'workspacePath',
-							value : fileInput.getEl().files[0].path
+							value : fixPath(fileInput.getEl().files[0].path)
 						});
 						
 						DasomEditor.IDE.closeAllEditors();
@@ -420,4 +486,35 @@ RUN(() => {
 	}));
 	
 	loadWorkspaceFiles();
+	
+	OVERRIDE(DasomEditor.FileContextMenu, (origin) => {
+		
+		DasomEditor.FileContextMenu = CLASS({
+			
+			preset : () => {
+				return origin;
+			},
+		
+			init : (inner, self, params) => {
+				//REQUIRED: params
+				//REQUIRED: params.path
+				//REQUIRED: params.folderPath
+				
+				let path = params.path;
+				let folderPath = params.folderPath;
+				
+				self.append(SkyDesktop.ContextMenuItem({
+					title : '탐색기에서 열기',
+					on : {
+						tap : () => {
+							
+							shell.showItemInFolder(path);
+							
+							self.remove();
+						}
+					}
+				}));
+			}
+		});
+	});
 });

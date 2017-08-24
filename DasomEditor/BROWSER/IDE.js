@@ -19,6 +19,10 @@ DasomEditor.IDE = OBJECT({
 		let showHomeHandler;
 		let loadHandler;
 		let saveHandler;
+		let copyHandler;
+		let pasteHandler;
+		let removeHandler;
+		let renameHandler;
 		
 		let editorMap = {};
 		let editorSettingStore = DasomEditor.STORE('editorSettingStore');
@@ -267,13 +271,10 @@ DasomEditor.IDE = OBJECT({
 			
 			loadHandler(path, (path, content) => {
 				
-				let i = path.lastIndexOf('/');
-				let j = path.lastIndexOf('\\');
+				let fileName = path.substring(path.lastIndexOf('/') + 1);
 				
-				let filename = path.substring((j === -1 || i > j ? i : j) + 1);
-				
-				let editor = openEditor(getEditor(filename.substring(filename.lastIndexOf('.') + 1).toLowerCase())({
-					title : filename,
+				let editor = openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+					title : fileName,
 					path : path,
 					content : content
 				}));
@@ -358,10 +359,18 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params.showHome
 			//REQUIRED: params.load
 			//REQUIRED: params.save
+			//REQUIRED: params.copy
+			//REQUIRED: params.paste
+			//REQUIRED: params.remove
+			//REQUIRED: params.rename
 			
 			showHomeHandler = params.showHome;
 			loadHandler = params.load;
 			saveHandler = params.save;
+			copyHandler = params.copy;
+			pasteHandler = params.paste;
+			removeHandler = params.remove;
+			renameHandler = params.rename;
 			
 			self.appendTo(BODY);
 			
@@ -375,12 +384,63 @@ DasomEditor.IDE = OBJECT({
 			}
 		};
 		
-		let load = self.load = (path, openEditor) => {
-			loadHandler(path, openEditor);
+		let save = self.save = (activeTab) => {
+			//REQUIRED: activeTab
+			
+			saveHandler(activeTab);
 		};
 		
-		let save = self.save = (activeTab) => {
-			saveHandler(activeTab);
+		let copy = self.copy = (path) => {
+			//REQUIRED: path
+			
+			copyHandler(path);
+		};
+		
+		let paste = self.paste = (folderPath) => {
+			//REQUIRED: folderPath
+			
+			pasteHandler(folderPath);
+		};
+		
+		let remove = self.remove = (path) => {
+			//REQUIRED: path
+			
+			SkyDesktop.Confirm({
+				msg : '정말 삭제 하시겠습니까?'
+			}, () => {
+				
+				let opendEditor = getOpenedEditor(path);
+				if (opendEditor !== undefined) {
+					opendEditor.remove();
+				}
+				
+				removeHandler(path);
+			});
+		};
+		
+		let rename = self.rename = (params) => {
+			//REQUIRED: params
+			//REQUIRED: params.path
+			//REQUIRED: params.newName
+			
+			let path = params.path;
+			let newName = params.newName;
+			
+			renameHandler(path, newName);
+		};
+		
+		let getOpenedEditor = self.getOpenedEditor = (path) => {
+			//REQUIRED: path
+			
+			let editor;
+			
+			EACH(editorGroup.getAllTabs(), (tab) => {
+				if (tab.checkIsInstanceOf(DasomEditor.Editor) === true && tab.getPath() === path) {
+					editor = tab;
+				}
+			});
+			
+			return editor;
 		};
 	}
 });
