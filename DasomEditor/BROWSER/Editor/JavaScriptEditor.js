@@ -6,7 +6,7 @@ DasomEditor.JavaScriptEditor = CLASS((cls) => {
 	
 	let getIcon = cls.getIcon = () => {
 		return IMG({
-			src : DasomEditor.R('icon/js.png')
+			src : DasomEditor.R('icon/javascript.png')
 		});
 	};
 	
