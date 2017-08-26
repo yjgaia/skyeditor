@@ -23,6 +23,7 @@ DasomEditor.IDE = OBJECT({
 		let pasteHandler;
 		let removeHandler;
 		let renameHandler;
+		let getInfoHandler;
 		
 		let editorMap = {};
 		let editorSettingStore = DasomEditor.STORE('editorSettingStore');
@@ -82,7 +83,7 @@ DasomEditor.IDE = OBJECT({
 						title : '홈',
 						on : {
 							tap : () => {
-								showHomeHandler(self);
+								showHomeHandler();
 							}
 						}
 					}), SkyDesktop.ToolbarButton({
@@ -269,22 +270,29 @@ DasomEditor.IDE = OBJECT({
 		
 		let loadAndOpenEditor = (path, scrollTop, next) => {
 			
-			loadHandler(path, (path, content) => {
+			loadHandler(path, {
 				
-				let fileName = path.substring(path.lastIndexOf('/') + 1);
+				error : () => {
+					editorOpenedStore.remove(path);
+				},
 				
-				let editor = openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-					title : fileName,
-					path : path,
-					content : content
-				}));
-				
-				if (scrollTop !== undefined) {
-					editor.setScrollTop(scrollTop);
-				}
-				
-				if (next !== undefined) {
-					next();
+				success : (path, content) => {
+					
+					let fileName = path.substring(path.lastIndexOf('/') + 1);
+					
+					let editor = openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+						title : fileName,
+						path : path,
+						content : content
+					}));
+					
+					if (scrollTop !== undefined) {
+						editor.setScrollTop(scrollTop);
+					}
+					
+					if (next !== undefined) {
+						next();
+					}
 				}
 			});
 		};
@@ -371,11 +379,12 @@ DasomEditor.IDE = OBJECT({
 			pasteHandler = params.paste;
 			removeHandler = params.remove;
 			renameHandler = params.rename;
+			getInfoHandler = params.getInfo;
 			
 			self.appendTo(BODY);
 			
 			if (editorOpenedInfos.length === 0) {
-				showHomeHandler(self);
+				showHomeHandler();
 			} else {
 				
 				NEXT(editorOpenedInfos, (editorOpenedInfo, next) => {
@@ -427,6 +436,13 @@ DasomEditor.IDE = OBJECT({
 			let newName = params.newName;
 			
 			renameHandler(path, newName);
+		};
+		
+		let getInfo = self.getInfo = (path, callback) => {
+			//REQUIRED: path
+			//REQUIRED: callback
+			
+			getInfoHandler(path, callback);
 		};
 		
 		let getOpenedEditor = self.getOpenedEditor = (path) => {

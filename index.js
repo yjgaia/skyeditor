@@ -25,7 +25,7 @@ RUN(() => {
 	
 	DasomEditor.IDE.init({
 		
-		showHome : (ide) => {
+		showHome : () => {
 			
 			DasomEditor.IDE.openEditor(DasomEditor.HomeTab({
 				title : '홈',
@@ -49,10 +49,13 @@ RUN(() => {
 			}));
 		},
 		
-		load : (path, innerOpenEditor) => {
+		load : (path, handlers) => {
 			
-			READ_FILE(path, (buffer) => {
-				innerOpenEditor(path, buffer.toString());
+			READ_FILE(path, {
+				error : handlers.error,
+				success : (buffer) => {
+					handlers.succes(path, buffer.toString());
+				}
 			});
 		},
 		
@@ -165,24 +168,40 @@ RUN(() => {
 						
 						else {
 							
-							READ_FILE(clipboardPath, {
-								notExists : () => {
-									// ignore.
-								},
-								success : (buffer) => {
+							CHECK_IS_FOLDER(clipboardPath, (isFolder) => {
+								
+								// 폴더 복사
+								if (isFolder === true) {
 									
-									let content = buffer.toString();
+									COPY_FOLDER({
+										from : clipboardPath,
+										to : folderPath + '/' + fileName
+									});
+								}
+								
+								// 파일 복사
+								else {
 									
-									WRITE_FILE({
-										path : folderPath + '/' + fileName,
-										content : content
-									}, () => {
-										
-										DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-											title : fileName,
-											path : folderPath + '/' + fileName,
-											content : content
-										}));
+									READ_FILE(clipboardPath, {
+										notExists : () => {
+											// ignore.
+										},
+										success : (buffer) => {
+											
+											let content = buffer.toString();
+											
+											WRITE_FILE({
+												path : folderPath + '/' + fileName,
+												content : content
+											}, () => {
+												
+												DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+													title : fileName,
+													path : folderPath + '/' + fileName,
+													content : content
+												}));
+											});
+										}
 									});
 								}
 							});
@@ -193,17 +212,28 @@ RUN(() => {
 		},
 		
 		remove : (path) => {
-			REMOVE_FILE(path);
+			
+			CHECK_IS_FOLDER(path, (isFolder) => {
+				
+				if (isFolder === true) {
+					REMOVE_FOLDER(path);
+				}
+				
+				else {
+					REMOVE_FILE(path);
+				}
+			});
 		},
 		
 		rename : (path, newName) => {
-			
-			let folderPath = path.substring(0, path.lastIndexOf('/'));
-			
 			MOVE_FILE({
 				from : path,
-				to : folderPath + '/' + newName
+				to : path.substring(0, path.lastIndexOf('/')) + '/' + newName
 			});
+		},
+		
+		getInfo : (path, callback) => {
+			GET_FILE_INFO(path, callback);
 		}
 	});
 	
@@ -222,12 +252,25 @@ RUN(() => {
 					CHECK_FILE_EXISTS(path + '/' + fileName, (isExists) => {
 						
 						if (isExists === true) {
-							addItem({
-								key : path + '/' + fileName,
-								item : DasomEditor.File({
-									path : path + '/' + fileName,
-									title : fileName
-								})
+							
+							CHECK_IS_FOLDER(path + '/' + fileName, (isFolder) => {
+								
+								if (isFolder === true) {
+									addItem({
+										key : path + '/' + fileName,
+										item : createFolderItem(path + '/' + fileName, fileName)
+									});
+								}
+								
+								else {
+									addItem({
+										key : path + '/' + fileName,
+										item : DasomEditor.File({
+											path : path + '/' + fileName,
+											title : fileName
+										})
+									});
+								}
 							});
 						}
 						
@@ -244,6 +287,46 @@ RUN(() => {
 			});
 		};
 		
+		let createFolderItem = (path, folderName) => {
+			
+			let isOpened = folderOpenedStore.get(path);
+			
+			let fileWatcher;
+			
+			let folder = DasomEditor.Folder({
+				path : path,
+				title : folderName,
+				isOpened : isOpened,
+				on : {
+					
+					open : () => {
+						
+						folderOpenedStore.save({
+							name : path,
+							value : true
+						});
+						
+						loadFiles(path, folder.addItem);
+						
+						if (fileWatcher !== undefined) {
+							fileWatcher.close();
+						}
+						
+						fileWatcher = createFileWatcher(path, folder.addItem, folder.removeItem);
+					},
+					
+					close : () => {
+						
+						folderOpenedStore.remove(path);
+						
+						fileWatcher.close();
+					}
+				}
+			});
+			
+			return folder;
+		};
+		
 		let loadFiles = (path, addItem) => {
 			
 			EACH(FIND_FOLDER_NAMES({
@@ -251,43 +334,9 @@ RUN(() => {
 				isSync : true
 			}), (folderName) => {
 				
-				let folder;
-				let isOpened = folderOpenedStore.get(path + '/' + folderName);
-				
-				let fileWatcher;
-				
 				addItem({
 					key : path + '/' + folderName,
-					item : folder = DasomEditor.Folder({
-						path : path + '/' + folderName,
-						title : folderName,
-						isOpened : isOpened,
-						on : {
-							
-							open : () => {
-								
-								folderOpenedStore.save({
-									name : path + '/' + folderName,
-									value : true
-								});
-								
-								loadFiles(path + '/' + folderName, folder.addItem);
-								
-								if (fileWatcher !== undefined) {
-									fileWatcher.close();
-								}
-								
-								fileWatcher = createFileWatcher(path + '/' + folderName, folder.addItem, folder.removeItem);
-							},
-							
-							close : () => {
-								
-								folderOpenedStore.remove(path + '/' + folderName);
-								
-								fileWatcher.close();
-							}
-						}
-					})
+					item : createFolderItem(path + '/' + folderName, folderName)
 				});
 			});
 			
