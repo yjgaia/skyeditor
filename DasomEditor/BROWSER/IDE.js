@@ -458,5 +458,33 @@ DasomEditor.IDE = OBJECT({
 			
 			return editor;
 		};
+		
+		let selectedFileItems = [];
+		
+		let selectMultipleFile = self.selectMultipleFile = (fileItem) => {
+			//REQUIRED: fileItem
+			
+			selectedFileItems.push(fileItem);
+			
+			fileItem.select();
+		};
+		
+		let selectFile = self.selectFile = (fileItem) => {
+			//REQUIRED: fileItem
+			
+			EACH(selectedFileItems, (selectedFileItem) => {
+				if (selectedFileItem.checkIsShowing() === true) {
+					selectedFileItem.unselect();
+				}
+			});
+			
+			selectedFileItems = [fileItem];
+			
+			fileItem.select();
+		};
+		
+		let getSelectedFileItems = self.getSelectedFileItems = () => {
+			return selectedFileItems;
+		}
 	}
 });

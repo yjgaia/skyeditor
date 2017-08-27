@@ -4,13 +4,19 @@ DasomEditor.FileContextMenu = CLASS({
 		return SkyDesktop.ContextMenu;
 	},
 
-	init : (inner, self, params) => {
-		//REQUIRED: params
-		//REQUIRED: params.path
-		//REQUIRED: params.folderPath
+	init : (inner, self) => {
 		
-		let path = params.path;
-		let folderPath = params.folderPath;
+		self.append(SkyDesktop.ContextMenuItem({
+			title : '열기',
+			on : {
+				tap : () => {
+					
+					
+					
+					self.remove();
+				}
+			}
+		}))
 		
 		self.append(SkyDesktop.ContextMenuItem({
 			title : '새 파일',
