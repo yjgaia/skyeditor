@@ -30,13 +30,18 @@ DasomEditor.File = CLASS({
 		
 		self.on('contextmenu', (e) => {
 			
-			if (isControlMode === true) {
-				DasomEditor.IDE.selectMultipleFile(self);
-			} else {
+			if (CHECK_IS_IN({
+				array : DasomEditor.IDE.getSelectedFileItems(),
+				value : self
+			}) !== true) {
 				DasomEditor.IDE.selectFile(self);
 			}
 			
+			let path = self.getPath();
+			
 			DasomEditor.FileContextMenu({
+				path : path,
+				folderPath : path.substring(0, path.lastIndexOf('/')),
 				e : e
 			});
 			

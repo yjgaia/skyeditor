@@ -122,12 +122,16 @@ RUN(() => {
 			}]);
 		},
 		
-		copy : (path) => {
-			clipboard.writeText(changeToOSPath(path));
+		copy : (paths) => {
+			
+			clipboard.writeText(STRINGIFY({
+				paths : paths
+			}));
 		},
 		
 		paste : (folderPath) => {
 			
+			let clipboardPaths;
 			let clipboardPath = clipboard.read('public.file-url');
 			
 			if (VALID.notEmpty(clipboardPath) !== true) {
@@ -137,11 +141,18 @@ RUN(() => {
 				}
 			}
 			
-			if (VALID.notEmpty(clipboardPath) !== true) {
-				clipboardPath = clipboard.readText();
+			if (VALID.notEmpty(clipboardPath) === true) {
+				clipboardPaths = [clipboardPath];
 			}
 			
-			if (VALID.notEmpty(clipboardPath) === true) {
+			else {
+				let info = PARSE_STR(clipboard.readText());
+				if (info !== undefined && info.paths !== undefined) {
+					clipboardPaths = info.paths;
+				}
+			}
+			
+			EACH(clipboardPaths, (clipboardPath) => {
 				
 				clipboardPath = fixPath(clipboardPath);
 				
@@ -193,13 +204,6 @@ RUN(() => {
 											WRITE_FILE({
 												path : folderPath + '/' + fileName,
 												content : content
-											}, () => {
-												
-												DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-													title : fileName,
-													path : folderPath + '/' + fileName,
-													content : content
-												}));
 											});
 										}
 									});
@@ -208,7 +212,7 @@ RUN(() => {
 						}
 					});
 				});
-			}
+			});
 		},
 		
 		remove : (path) => {
@@ -587,7 +591,7 @@ RUN(() => {
 				let folderPath = params.folderPath;
 				
 				self.append(SkyDesktop.ContextMenuItem({
-					title : '탐색기에서 열기',
+					title : '탐색기에서 보기',
 					on : {
 						tap : () => {
 							

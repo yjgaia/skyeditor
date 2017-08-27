@@ -399,10 +399,10 @@ DasomEditor.IDE = OBJECT({
 			saveHandler(activeTab);
 		};
 		
-		let copy = self.copy = (path) => {
-			//REQUIRED: path
+		let copy = self.copy = (paths) => {
+			//REQUIRED: paths
 			
-			copyHandler(path);
+			copyHandler(paths);
 		};
 		
 		let paste = self.paste = (folderPath) => {
@@ -414,17 +414,12 @@ DasomEditor.IDE = OBJECT({
 		let remove = self.remove = (path) => {
 			//REQUIRED: path
 			
-			SkyDesktop.Confirm({
-				msg : '정말 삭제 하시겠습니까?'
-			}, () => {
-				
-				let opendEditor = getOpenedEditor(path);
-				if (opendEditor !== undefined) {
-					opendEditor.remove();
-				}
-				
-				removeHandler(path);
-			});
+			let opendEditor = getOpenedEditor(path);
+			if (opendEditor !== undefined) {
+				opendEditor.remove();
+			}
+			
+			removeHandler(path);
 		};
 		
 		let rename = self.rename = (params) => {
@@ -464,7 +459,12 @@ DasomEditor.IDE = OBJECT({
 		let selectMultipleFile = self.selectMultipleFile = (fileItem) => {
 			//REQUIRED: fileItem
 			
-			selectedFileItems.push(fileItem);
+			if (CHECK_IS_IN({
+				array : selectedFileItems,
+				value : fileItem
+			}) !== true) {
+				selectedFileItems.push(fileItem);
+			}
 			
 			fileItem.select();
 		};

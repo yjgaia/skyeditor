@@ -18,13 +18,16 @@ DasomEditor.Folder = CLASS({
 		
 		self.on('contextmenu', (e) => {
 			
-			if (isControlMode === true) {
-				DasomEditor.IDE.selectMultipleFile(self);
-			} else {
+			if (CHECK_IS_IN({
+				array : DasomEditor.IDE.getSelectedFileItems(),
+				value : self
+			}) !== true) {
 				DasomEditor.IDE.selectFile(self);
 			}
 			
 			DasomEditor.FileContextMenu({
+				path : self.getPath(),
+				folderPath : self.getPath(),
 				e : e
 			});
 			
