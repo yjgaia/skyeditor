@@ -483,6 +483,48 @@ DasomEditor.IDE = OBJECT({
 			fileItem.select();
 		};
 		
+		let selectFileRange = self.selectFileRange = (fileItem) => {
+			//REQUIRED: fileItem
+			
+			let last = selectedFileItems[selectedFileItems.length - 1];
+			
+			if (last !== undefined && fileItem !== last) {
+				
+				let from;
+				let to;
+				
+				if (fileItem.getTop() < last.getTop()) {
+					from = fileItem;
+					to = last;
+				} else {
+					from = last;
+					to = fileItem;
+				}
+				
+				selectedFileItems = [];
+				
+				selectMultipleFile(from);
+				
+				let f = (fileItems) => {
+					
+					EACH(fileItems, (fileItem) => {
+						
+						if (from.getTop() < fileItem.getTop() && fileItem.getTop() < to.getTop()) {
+							selectMultipleFile(fileItem);
+						}
+						
+						if (fileItem.checkIsInstanceOf(DasomEditor.Folder) === true) {
+							f(fileItem.getAllItems());
+						}
+					});
+				};
+				
+				f(fileTree.getAllItems());
+				
+				selectMultipleFile(to);
+			}
+		};
+		
 		let getSelectedFileItems = self.getSelectedFileItems = () => {
 			return selectedFileItems;
 		}
