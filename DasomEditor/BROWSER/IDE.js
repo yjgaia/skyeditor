@@ -324,7 +324,13 @@ DasomEditor.IDE = OBJECT({
 						})
 					}), SkyDesktop.Tab({
 						size : 77,
-						c : editorGroup = SkyDesktop.TabGroup()
+						c : editorGroup = SkyDesktop.TabGroup({
+							on : {
+								tap : () => {
+									unselectAllFiles();
+								}
+							}
+						})
 					})]
 				})
 			})
@@ -469,8 +475,7 @@ DasomEditor.IDE = OBJECT({
 			fileItem.select();
 		};
 		
-		let selectFile = self.selectFile = (fileItem) => {
-			//REQUIRED: fileItem
+		let unselectAllFiles = () => {
 			
 			EACH(selectedFileItems, (selectedFileItem) => {
 				if (selectedFileItem.checkIsShowing() === true) {
@@ -478,7 +483,15 @@ DasomEditor.IDE = OBJECT({
 				}
 			});
 			
-			selectedFileItems = [fileItem];
+			selectedFileItems = [];
+		};
+		
+		let selectFile = self.selectFile = (fileItem) => {
+			//REQUIRED: fileItem
+			
+			unselectAllFiles();
+			
+			selectedFileItems.push(fileItem);
 			
 			fileItem.select();
 		};
@@ -528,5 +541,91 @@ DasomEditor.IDE = OBJECT({
 		let getSelectedFileItems = self.getSelectedFileItems = () => {
 			return selectedFileItems;
 		}
+		
+		let isControlMode;
+		
+		EVENT('keydown', (e) => {
+			
+			if (isControlMode === true) {
+				
+				let key = e.getKey().toLowerCase();
+				
+				// 새 파일
+				if (key === 'n') {
+					
+					openEditor(DasomEditor.TextEditor({
+						title : '제목 없음'
+					}));
+				}
+				
+				// 복사
+				else if (key === 'c') {
+					
+					let paths = [];
+					
+					EACH(selectedFileItems, (selectedFileItem) => {
+						paths.push(selectedFileItem.getPath());
+					});
+					
+					DasomEditor.IDE.copy(paths);
+				}
+				
+				// 붙혀넣기
+				else if (key === 'v') {
+					if (selectedFileItems.length > 0) {
+						DasomEditor.IDE.paste(selectedFileItems[selectedFileItems.length - 1].getFolderPath());
+					}
+				}
+				
+				// 현재 탭 종료
+				else if (key === 'w') {
+					
+					if (editorGroup.getActiveTab() !== undefined) {
+						editorGroup.getActiveTab().remove();
+					}
+				}
+			}
+			
+			if (e.getKey() === 'Control') {
+				isControlMode = true;
+			}
+			
+			// 삭제
+			if (e.getKey() === 'Delete') {
+				
+				if (selectedFileItems.length > 0) {
+					
+					SkyDesktop.Confirm({
+						msg : '정말 삭제 하시겠습니까?'
+					}, () => {
+						
+						EACH(selectedFileItems, (selectedFileItem) => {
+							DasomEditor.IDE.remove(selectedFileItem.getPath());
+						});
+					});
+				}
+			}
+			
+			// 열기
+			if (e.getKey() === 'Enter') {
+				
+				if (selectedFileItems.length > 0) {
+					
+					EACH(selectedFileItems, (selectedFileItem) => {
+						if (selectedFileItem.checkIsInstanceOf(DasomEditor.Folder) === true) {
+							selectedFileItem.open();
+						} else if (selectedFileItem.checkIsInstanceOf(DasomEditor.File) === true) {
+							selectedFileItem.fireEvent('doubletap');
+						}
+					});
+				}
+			}
+		});
+		
+		EVENT('keyup', (e) => {
+			if (e.getKey() === 'Control') {
+				isControlMode = false;
+			}
+		});
 	}
 });

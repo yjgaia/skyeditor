@@ -6,6 +6,13 @@ DasomEditor.Folder = CLASS({
 
 	init : (inner, self) => {
 		
+		let path = self.getPath();
+		let folderPath = self.getPath();
+		
+		let getFolderPath = self.getFolderPath = () => {
+			return folderPath;
+		};
+		
 		let isControlMode;
 		let isShiftMode;
 		
@@ -29,8 +36,8 @@ DasomEditor.Folder = CLASS({
 			}
 			
 			DasomEditor.FileContextMenu({
-				path : self.getPath(),
-				folderPath : self.getPath(),
+				path : path,
+				folderPath : folderPath,
 				e : e
 			});
 			

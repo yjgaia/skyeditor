@@ -10,9 +10,14 @@ DasomEditor.File = CLASS({
 		
 		let title = params.title;
 		
-		let extname = title.substring(title.lastIndexOf('.') + 1).toLowerCase();
+		let path = self.getPath();
+		let folderPath = path.substring(0, path.lastIndexOf('/'));
 		
-		let Editor = DasomEditor.IDE.getEditor(extname);
+		let getFolderPath = self.getFolderPath = () => {
+			return folderPath;
+		};
+		
+		let Editor = DasomEditor.IDE.getEditor(title.substring(title.lastIndexOf('.') + 1).toLowerCase());
 		
 		if (Editor !== undefined) {
 			self.setIcon(Editor.getIcon());
@@ -40,11 +45,9 @@ DasomEditor.File = CLASS({
 				DasomEditor.IDE.selectFile(self);
 			}
 			
-			let path = self.getPath();
-			
 			DasomEditor.FileContextMenu({
 				path : path,
-				folderPath : path.substring(0, path.lastIndexOf('/')),
+				folderPath : folderPath,
 				e : e
 			});
 			

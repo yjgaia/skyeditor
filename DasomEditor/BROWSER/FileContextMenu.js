@@ -39,10 +39,13 @@ DasomEditor.FileContextMenu = CLASS({
 					
 					SkyDesktop.Prompt('파일명을 입력해주시기 바랍니다.', (fileName) => {
 						
-						DasomEditor.IDE.save(DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-							title : fileName,
-							path : folderPath + '/' + fileName
-						})));
+						if (fileName.trim() !== '') {
+							
+							DasomEditor.IDE.save(DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+								title : fileName,
+								path : folderPath + '/' + fileName
+							})));
+						}
 					});
 					
 					self.remove();
