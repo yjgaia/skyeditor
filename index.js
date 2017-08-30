@@ -54,7 +54,7 @@ RUN(() => {
 			READ_FILE(path, {
 				error : handlers.error,
 				success : (buffer) => {
-					handlers.success(path, buffer.toString());
+					handlers.success(buffer.toString());
 				}
 			});
 		},

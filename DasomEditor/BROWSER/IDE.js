@@ -276,7 +276,7 @@ DasomEditor.IDE = OBJECT({
 					editorOpenedStore.remove(path);
 				},
 				
-				success : (path, content) => {
+				success : (content) => {
 					
 					let fileName = path.substring(path.lastIndexOf('/') + 1);
 					
