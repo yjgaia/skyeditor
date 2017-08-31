@@ -141,5 +141,29 @@ DasomEditor.Folder = CLASS({
 			checkControlKeyupEvent.remove();
 			checkControlKeyupEvent = undefined;
 		});
+		
+		let getItem;
+		OVERRIDE(self.getItem, (origin) => {
+			
+			getItem = self.getItem = (path) => {
+				//REQUIRED: path
+				
+				let selectedItem = origin(path);
+				
+				if (selectedItem === undefined) {
+					EACH(self.getItems(), (item) => {
+						if (item.checkIsInstanceOf(SkyDesktop.Folder) === true) {
+							let _item = item.getItem(path);
+							if (_item !== undefined) {
+								selectedItem = _item;
+								return false;
+							}
+						}
+					});
+				}
+				
+				return selectedItem;
+			};
+		});
 	}
 });

@@ -608,4 +608,27 @@ RUN(() => {
 			}
 		});
 	});
+	
+	EVENT('dragover', (e) => {
+		e.stop();
+	});
+	
+	EVENT('drop', (e) => {
+		
+		EACH(e.getFiles(), (file) => {
+			
+			let reader = new FileReader();
+			reader.onload = (e) => {
+				
+				DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(file.name.substring(file.name.lastIndexOf('.') + 1).toLowerCase())({
+					title : file.name,
+					path : fixPath(file.path),
+					content : e.target.result
+				}));
+			};
+			reader.readAsText(file);
+		});
+		
+		e.stop();
+	});
 });

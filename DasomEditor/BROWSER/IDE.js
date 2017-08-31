@@ -447,6 +447,24 @@ DasomEditor.IDE = OBJECT({
 						openedEditor.setPath(to);
 						openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
 					}
+					
+					let selectedItem = fileTree.getItem(to);
+					
+					if (selectedItem === undefined) {
+						EACH(fileTree.getItems(), (item) => {
+							if (item.checkIsInstanceOf(SkyDesktop.Folder) === true) {
+								let _item = item.getItem(to);
+								if (_item !== undefined) {
+									selectedItem = _item;
+									return false;
+								}
+							}
+						});
+					}
+					
+					if (selectedItem !== undefined) {
+						selectedItem.select();
+					}
 				});
 			}
 		};
