@@ -114,9 +114,11 @@ DasomEditor.FileContextMenu = CLASS({
 							value : path.substring(path.lastIndexOf('/') + 1)
 						}, (newName) => {
 							
-							DasomEditor.IDE.rename({
-								path : path,
-								newName : newName
+							DasomEditor.IDE.deselectFiles();
+							
+							DasomEditor.IDE.move({
+								from : path,
+								to : path.substring(0, path.lastIndexOf('/')) + '/' + newName
 							});
 						});
 						

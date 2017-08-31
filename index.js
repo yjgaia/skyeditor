@@ -229,11 +229,12 @@ RUN(() => {
 			});
 		},
 		
-		rename : (path, newName) => {
+		move : (from, to, callback) => {
+			
 			MOVE_FILE({
-				from : path,
-				to : path.substring(0, path.lastIndexOf('/')) + '/' + newName
-			});
+				from : from,
+				to : to
+			}, callback);
 		},
 		
 		getInfo : (path, callback) => {
@@ -279,6 +280,9 @@ RUN(() => {
 						}
 						
 						else {
+							
+							folderOpenedStore.remove(path + '/' + fileName);
+							
 							removeItem(path + '/' + fileName);
 							
 							let opendEditor = DasomEditor.IDE.getOpenedEditor(path + '/' + fileName);

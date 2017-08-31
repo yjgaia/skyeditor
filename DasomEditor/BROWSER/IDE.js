@@ -22,12 +22,14 @@ DasomEditor.IDE = OBJECT({
 		let copyHandler;
 		let pasteHandler;
 		let removeHandler;
-		let renameHandler;
+		let moveHandler;
 		let getInfoHandler;
 		
 		let editorMap = {};
 		let editorSettingStore = DasomEditor.STORE('editorSettingStore');
 		let editorOpenedStore = DasomEditor.STORE('editorOpenedStore');
+		
+		let draggingShadow;
 		
 		let addEditor = self.addEditor = (params) => {
 			//REQUIRED: params
@@ -327,7 +329,7 @@ DasomEditor.IDE = OBJECT({
 						c : editorGroup = SkyDesktop.TabGroup({
 							on : {
 								tap : () => {
-									unselectAllFiles();
+									deselectFiles();
 								}
 							}
 						})
@@ -376,7 +378,7 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params.copy
 			//REQUIRED: params.paste
 			//REQUIRED: params.remove
-			//REQUIRED: params.rename
+			//REQUIRED: params.move
 			
 			showHomeHandler = params.showHome;
 			loadHandler = params.load;
@@ -384,7 +386,7 @@ DasomEditor.IDE = OBJECT({
 			copyHandler = params.copy;
 			pasteHandler = params.paste;
 			removeHandler = params.remove;
-			renameHandler = params.rename;
+			moveHandler = params.move;
 			getInfoHandler = params.getInfo;
 			
 			self.appendTo(BODY);
@@ -420,23 +422,33 @@ DasomEditor.IDE = OBJECT({
 		let remove = self.remove = (path) => {
 			//REQUIRED: path
 			
-			let opendEditor = getOpenedEditor(path);
-			if (opendEditor !== undefined) {
-				opendEditor.remove();
+			let openedEditor = getOpenedEditor(path);
+			if (openedEditor !== undefined) {
+				openedEditor.remove();
 			}
 			
 			removeHandler(path);
 		};
 		
-		let rename = self.rename = (params) => {
+		let move = self.move = (params) => {
 			//REQUIRED: params
-			//REQUIRED: params.path
-			//REQUIRED: params.newName
+			//REQUIRED: params.from
+			//REQUIRED: params.to
 			
-			let path = params.path;
-			let newName = params.newName;
+			let from = params.from;
+			let to = params.to;
 			
-			renameHandler(path, newName);
+			if (to.indexOf(from) === -1) {
+				
+				moveHandler(from, to, () => {
+					
+					let openedEditor = getOpenedEditor(from);
+					if (openedEditor !== undefined) {
+						openedEditor.setPath(to);
+						openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
+					}
+				});
+			}
 		};
 		
 		let getInfo = self.getInfo = (path, callback) => {
@@ -475,11 +487,11 @@ DasomEditor.IDE = OBJECT({
 			fileItem.select();
 		};
 		
-		let unselectAllFiles = () => {
+		let deselectFiles = self.deselectFiles = () => {
 			
 			EACH(selectedFileItems, (selectedFileItem) => {
 				if (selectedFileItem.checkIsShowing() === true) {
-					selectedFileItem.unselect();
+					selectedFileItem.deselect();
 				}
 			});
 			
@@ -489,7 +501,7 @@ DasomEditor.IDE = OBJECT({
 		let selectFile = self.selectFile = (fileItem) => {
 			//REQUIRED: fileItem
 			
-			unselectAllFiles();
+			deselectFiles();
 			
 			selectedFileItems.push(fileItem);
 			
@@ -527,12 +539,12 @@ DasomEditor.IDE = OBJECT({
 						}
 						
 						if (fileItem.checkIsInstanceOf(DasomEditor.Folder) === true) {
-							f(fileItem.getAllItems());
+							f(fileItem.getItems());
 						}
 					});
 				};
 				
-				f(fileTree.getAllItems());
+				f(fileTree.getItems());
 				
 				selectMultipleFile(to);
 			}
@@ -584,6 +596,14 @@ DasomEditor.IDE = OBJECT({
 						editorGroup.getActiveTab().remove();
 					}
 				}
+				
+				// 현재 탭 저장
+				else if (key === 's') {
+					
+					if (editorGroup.getActiveTab() !== undefined) {
+						save(editorGroup.getActiveTab());
+					}
+				}
 			}
 			
 			if (e.getKey() === 'Control') {
@@ -620,12 +640,63 @@ DasomEditor.IDE = OBJECT({
 					});
 				}
 			}
+			
+			// 파일명 변경
+			if (e.getKey() === 'F2') {
+				
+				if (selectedFileItems.length === 1) {
+					
+					let selectedFileItem = selectedFileItems[0];
+					let path = selectedFileItem.getPath();
+					
+					SkyDesktop.Prompt({
+						msg : '새 이름을 입력해주시기 바랍니다.',
+						value : path.substring(path.lastIndexOf('/') + 1)
+					}, (newName) => {
+						
+						deselectFiles();
+						
+						move({
+							from : path,
+							to : path.substring(0, path.lastIndexOf('/')) + '/' + newName
+						});
+					});
+				}
+			}
 		});
 		
 		EVENT('keyup', (e) => {
 			if (e.getKey() === 'Control') {
 				isControlMode = false;
 			}
+		});
+		
+		let setDraggingShadow = self.setDraggingShadow = (_draggingShadow) => {
+			//REQUIRED: draggingShadow
+			
+			draggingShadow = _draggingShadow;
+		};
+		
+		let getDraggingShadow = self.getDraggingShadow = () => {
+			return draggingShadow;
+		};
+		
+		EVENT('touchmove', (e) => {
+			if (draggingShadow !== undefined) {
+				draggingShadow.addStyle({
+					left : e.getLeft() + 10,
+					top : e.getTop() + 10
+				});
+			}
+		});
+		
+		EVENT('touchend', () => {
+			DELAY(() => {
+				if (draggingShadow !== undefined) {
+					draggingShadow.remove();
+					draggingShadow = undefined;
+				}
+			});
 		});
 	}
 });
