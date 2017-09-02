@@ -6,7 +6,7 @@ DasomEditor.FileContextMenu = CLASS({
 
 	init : (inner, self, params) => {
 		//REQUIRED: params
-		//REQUIRED: params.path
+		//OPTIONAL: params.path
 		//REQUIRED: params.folderPath
 		
 		let path = params.path;
@@ -14,23 +14,26 @@ DasomEditor.FileContextMenu = CLASS({
 		
 		let selectedFileItems = DasomEditor.IDE.getSelectedFileItems();
 		
-		self.append(SkyDesktop.ContextMenuItem({
-			title : '열기',
-			on : {
-				tap : () => {
-					
-					EACH(selectedFileItems, (selectedFileItem) => {
-						if (selectedFileItem.checkIsInstanceOf(DasomEditor.Folder) === true) {
-							selectedFileItem.open();
-						} else if (selectedFileItem.checkIsInstanceOf(DasomEditor.File) === true) {
-							selectedFileItem.fireEvent('doubletap');
-						}
-					});
-					
-					self.remove();
+		if (selectedFileItems.length > 0) {
+			
+			self.append(SkyDesktop.ContextMenuItem({
+				title : '열기',
+				on : {
+					tap : () => {
+						
+						EACH(selectedFileItems, (selectedFileItem) => {
+							if (selectedFileItem.checkIsInstanceOf(DasomEditor.Folder) === true) {
+								selectedFileItem.open();
+							} else if (selectedFileItem.checkIsInstanceOf(DasomEditor.File) === true) {
+								selectedFileItem.fireEvent('doubletap');
+							}
+						});
+						
+						self.remove();
+					}
 				}
-			}
-		}))
+			}))
+		}
 		
 		self.append(SkyDesktop.ContextMenuItem({
 			title : '새 파일',
@@ -53,23 +56,26 @@ DasomEditor.FileContextMenu = CLASS({
 			}
 		}))
 		
-		self.append(SkyDesktop.ContextMenuItem({
-			title : '복사',
-			on : {
-				tap : () => {
+		if (selectedFileItems.length > 0) {
+			
+			self.append(SkyDesktop.ContextMenuItem({
+				title : '복사',
+				on : {
+					tap : () => {
+						
+						let paths = [];
+						
+						EACH(selectedFileItems, (selectedFileItem) => {
+							paths.push(selectedFileItem.getPath());
+						});
+						
+						DasomEditor.IDE.copy(paths);
 					
-					let paths = [];
-					
-					EACH(selectedFileItems, (selectedFileItem) => {
-						paths.push(selectedFileItem.getPath());
-					});
-					
-					DasomEditor.IDE.copy(paths);
-				
-					self.remove();
+						self.remove();
+					}
 				}
-			}
-		}));
+			}));
+		}
 		
 		self.append(SkyDesktop.ContextMenuItem({
 			title : '붙여넣기',
@@ -83,26 +89,29 @@ DasomEditor.FileContextMenu = CLASS({
 			}
 		}));
 		
-		self.append(SkyDesktop.ContextMenuItem({
-			title : '삭제',
-			on : {
-				tap : () => {
-					
-					SkyDesktop.Confirm({
-						msg : '정말 삭제 하시겠습니까?'
-					}, () => {
+		if (selectedFileItems.length > 0) {
+			
+			self.append(SkyDesktop.ContextMenuItem({
+				title : '삭제',
+				on : {
+					tap : () => {
 						
-						EACH(selectedFileItems, (selectedFileItem) => {
-							DasomEditor.IDE.remove(selectedFileItem.getPath());
+						SkyDesktop.Confirm({
+							msg : '정말 삭제 하시겠습니까?'
+						}, () => {
+							
+							EACH(selectedFileItems, (selectedFileItem) => {
+								DasomEditor.IDE.remove(selectedFileItem.getPath());
+							});
 						});
-					});
-					
-					self.remove();
+						
+						self.remove();
+					}
 				}
-			}
-		}));
+			}));
+		}
 		
-		if (selectedFileItems.length === 1) {
+		if (path !== undefined && selectedFileItems.length === 1) {
 			
 			self.append(SkyDesktop.ContextMenuItem({
 				title : '이름 변경',

@@ -110,9 +110,9 @@ RUN(() => {
 								
 								console.log('저장 시 명령을 실행합니다: ' + command);
 								
-								exec(command, (error) => {
+								exec(command, (error, stdout) => {
 									if (error !== TO_DELETE) {
-										SHOW_ERROR('저장 시 명령 실행', error.toString());
+										SHOW_ERROR('저장 시 명령 실행', stdout);
 									}
 								});
 							});
@@ -369,6 +369,8 @@ RUN(() => {
 			workspacePath = 'workspace';
 		}
 		
+		DasomEditor.IDE.setWorkspacePath(workspacePath);
+		
 		loadFiles(workspacePath, DasomEditor.IDE.addItem);
 		
 		if (workspaceFileWatcher !== undefined) {
@@ -557,10 +559,14 @@ RUN(() => {
 					
 					if (fileInput.getEl().files[0] !== undefined) {
 						
+						let workspacePath = fixPath(fileInput.getEl().files[0].path);
+						
 						editorStore.save({
 							name : 'workspacePath',
-							value : fixPath(fileInput.getEl().files[0].path)
+							value : workspacePath
 						});
+						
+						DasomEditor.IDE.setWorkspacePath(workspacePath);
 						
 						DasomEditor.IDE.closeAllEditors();
 						
@@ -588,7 +594,7 @@ RUN(() => {
 		
 			init : (inner, self, params) => {
 				//REQUIRED: params
-				//REQUIRED: params.path
+				//OPTIONAL: params.path
 				//REQUIRED: params.folderPath
 				
 				let path = params.path;
@@ -599,7 +605,7 @@ RUN(() => {
 					on : {
 						tap : () => {
 							
-							shell.showItemInFolder(path);
+							shell.showItemInFolder(path === undefined ? DasomEditor.IDE.getWorkspacePath() : path);
 							
 							self.remove();
 						}

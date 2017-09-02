@@ -31,5 +31,10 @@ DasomEditor.MAIN = METHOD({
 			extname : 'erl',
 			editor : DasomEditor.ErlangEditor
 		});
+		
+		DasomEditor.IDE.addEditor({
+			extname : 'md',
+			editor : DasomEditor.MarkdownEditor
+		});
 	}
 });

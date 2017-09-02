@@ -25,6 +25,8 @@ DasomEditor.IDE = OBJECT({
 		let moveHandler;
 		let getInfoHandler;
 		
+		let workspacePath;
+		
 		let editorMap = {};
 		let editorSettingStore = DasomEditor.STORE('editorSettingStore');
 		let editorOpenedStore = DasomEditor.STORE('editorOpenedStore');
@@ -314,7 +316,18 @@ DasomEditor.IDE = OBJECT({
 									src : DasomEditor.R('icon/workspace.png')
 								}),
 								title : '작업 폴더',
-								c : fileTree = SkyDesktop.FileTree(loadAndOpenEditor)
+								c : fileTree = SkyDesktop.FileTree(loadAndOpenEditor),
+								on : {
+									contextmenu : (e) => {
+										
+										DasomEditor.FileContextMenu({
+											folderPath : workspacePath,
+											e : e
+										});
+										
+										e.stop();
+									}
+								}
 							}), SkyDesktop.Tab({
 								isCannotClose : true,
 								icon : IMG({
@@ -427,6 +440,12 @@ DasomEditor.IDE = OBJECT({
 				openedEditor.remove();
 			}
 			
+			let selectedItem = fileTree.getItem(path);
+			
+			if (selectedItem !== undefined) {
+				deselectFile(selectedItem);
+			}
+			
 			removeHandler(path);
 		};
 		
@@ -524,6 +543,17 @@ DasomEditor.IDE = OBJECT({
 			selectedFileItems.push(fileItem);
 			
 			fileItem.select();
+		};
+		
+		let deselectFile = self.deselectFile = (fileItem) => {
+			//REQUIRED: fileItem
+			
+			REMOVE({
+				array : selectedFileItems,
+				value : fileItem
+			});
+			
+			fileItem.deselect();
 		};
 		
 		let selectFileRange = self.selectFileRange = (fileItem) => {
@@ -716,5 +746,15 @@ DasomEditor.IDE = OBJECT({
 				}
 			});
 		});
+		
+		let setWorkspacePath = self.setWorkspacePath = (_workspacePath) => {
+			//REQUIRED: workspacePath
+			
+			workspacePath = _workspacePath;
+		};
+		
+		let getWorkspacePath = self.getWorkspacePath = () => {
+			return workspacePath;
+		};
 	}
 });

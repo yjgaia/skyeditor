@@ -21,12 +21,9 @@ DasomEditor.Folder = CLASS({
 		let startDraggingTop;
 		
 		self.on('touchstart', (e) => {
-			
 			isDragging = true;
 			startDraggingLeft = e.getLeft();
 			startDraggingTop = e.getTop();
-			
-			e.stop();
 		});
 		
 		let touchmoveEvent = EVENT('touchmove', (e) => {
