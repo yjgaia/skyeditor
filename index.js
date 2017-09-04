@@ -49,16 +49,6 @@ RUN(() => {
 			}));
 		},
 		
-		load : (path, handlers) => {
-			
-			READ_FILE(path, {
-				error : handlers.error,
-				success : (buffer) => {
-					handlers.success(buffer.toString());
-				}
-			});
-		},
-		
 		save : (activeTab) => {
 			
 			NEXT([(next) => {
@@ -120,6 +110,62 @@ RUN(() => {
 					});
 				};
 			}]);
+		},
+		
+		load : (path, handlers) => {
+			
+			READ_FILE(path, {
+				error : handlers.error,
+				success : (buffer) => {
+					handlers.success(buffer.toString());
+				}
+			});
+		},
+		
+		getInfo : (path, callback) => {
+			GET_FILE_INFO(path, callback);
+		},
+		
+		move : (from, to, callback) => {
+			
+			MOVE_FILE({
+				from : from,
+				to : to
+			}, callback);
+		},
+		
+		remove : (path) => {
+			
+			CHECK_IS_FOLDER(path, (isFolder) => {
+				
+				if (isFolder === true) {
+					REMOVE_FOLDER(path);
+				}
+				
+				else {
+					REMOVE_FILE(path);
+				}
+			});
+		},
+		
+		ftpSave : (activeTab) => {
+			
+		},
+		
+		ftpLoad : (path, handlers) => {
+			
+		},
+		
+		ftpGetInfo : (path, callback) => {
+			
+		},
+		
+		ftpMove : (from, to, callback) => {
+			
+		},
+		
+		ftpRemove : (path) => {
+			
 		},
 		
 		copy : (paths) => {
@@ -213,32 +259,6 @@ RUN(() => {
 					});
 				});
 			});
-		},
-		
-		remove : (path) => {
-			
-			CHECK_IS_FOLDER(path, (isFolder) => {
-				
-				if (isFolder === true) {
-					REMOVE_FOLDER(path);
-				}
-				
-				else {
-					REMOVE_FILE(path);
-				}
-			});
-		},
-		
-		move : (from, to, callback) => {
-			
-			MOVE_FILE({
-				from : from,
-				to : to
-			}, callback);
-		},
-		
-		getInfo : (path, callback) => {
-			GET_FILE_INFO(path, callback);
 		}
 	});
 	

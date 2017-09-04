@@ -302,6 +302,8 @@ DasomEditor.IDE = OBJECT({
 		};
 		
 		let fileTree;
+		let ftpFileTree;
+		
 		let editorGroup;
 		self.append(TR({
 			c : TD({
@@ -334,7 +336,191 @@ DasomEditor.IDE = OBJECT({
 									src : DasomEditor.R('icon/ftp.png')
 								}),
 								title : 'FTP',
-								c : 'test'
+								c : [UUI.BUTTON_H({
+									style : {
+										position : 'relative',
+										marginLeft : 20,
+										padding : '2px 5px'
+									},
+									icon : IMG({
+										src : DasomEditor.R('icon/ftp.png')
+									}),
+									title : '새 FTP 연결',
+									spacing : 5,
+									c : UUI.ICON_BUTTON({
+										style : {
+											position : 'absolute',
+											left : -12,
+											top : 3,
+											color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
+										},
+										icon : FontAwesome.GetIcon('plus'),
+										on : {
+											mouseover : (e, self) => {
+												self.addStyle({
+													color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
+												});
+												e.stop();
+											},
+											mouseout : (e, self) => {
+												self.addStyle({
+													color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
+												});
+												e.stop();
+											}
+										}
+									}),
+									on : {
+										tap : (e) => {
+											
+											let form;
+											let privateKeyInput;
+											
+											SkyDesktop.Confirm({
+												okButtonTitle : '저장',
+												msg : form = UUI.VALID_FORM({
+													errorMsgs : {
+														name : {
+															notEmpty : '사이트 이름을 입력해주세요.'
+														},
+														host : {
+															notEmpty : '호스트를 입력해주세요.'
+														},
+														username : {
+															notEmpty : '아이디를 입력해주세요.'
+														}
+													},
+													errorMsgStyle : {
+														color : 'red'
+													},
+													c : [INPUT({
+														style : {
+															width : 222,
+															padding : 8,
+															border : '1px solid #999',
+															borderRadius : 4
+														},
+														name : 'name',
+														placeholder : '사이트 이름'
+													}), SELECT({
+														style : {
+															marginTop : 10,
+															width : 240,
+															padding : 8,
+															border : '1px solid #999',
+															borderRadius : 4
+														},
+														name : 'protocol',
+														c : [OPTION({
+												            value : 'ftp',
+												            c : 'FTP'
+												        }), OPTION({
+												            value : 'sftp',
+												            c : 'SFTP'
+												        })],
+												        on : {
+												        	change : (e, select) => {
+												        		if (select.getValue() === 'sftp') {
+												        			privateKeyInput.show();
+												        		} else {
+												        			privateKeyInput.hide();
+												        		}
+												        	}
+												        }
+													}), INPUT({
+														style : {
+															marginTop : 10,
+															width : 222,
+															padding : 8,
+															border : '1px solid #999',
+															borderRadius : 4
+														},
+														name : 'host',
+														placeholder : '호스트'
+													}), INPUT({
+														style : {
+															marginTop : 10,
+															width : 222,
+															padding : 8,
+															border : '1px solid #999',
+															borderRadius : 4
+														},
+														name : 'username',
+														placeholder : '로그인 아이디'
+													}), INPUT({
+														style : {
+															marginTop : 10,
+															width : 222,
+															padding : 8,
+															border : '1px solid #999',
+															borderRadius : 4
+														},
+														name : 'password',
+														placeholder : '비밀번호'
+													}), privateKeyInput = DIV({
+														style : {
+															display : 'none',
+															marginTop : 10
+														},
+														c : [H3({
+															c : 'Private Key'
+														}), INPUT({
+															style : {
+																marginTop : 5,
+																width : 222,
+																padding : 8,
+																border : '1px solid #999',
+																borderRadius : 4
+															},
+															name : 'privateKey',
+															type : 'file'
+														})]
+													})]
+												})
+											}, () => {
+												
+												let data = form.getData();
+												
+												if (VALID.notEmpty(data.password) !== true && VALID.notEmpty(data.privateKey) !== true) {
+													
+													SkyDesktop.Alert({
+														msg : '비밀번호를 입력해주세요.'
+													});
+													
+													return false;
+												}
+												
+												else {
+													
+													let valid = VALID({
+														name : {
+															notEmpty : true
+														},
+														host : {
+															notEmpty : true
+														},
+														username : {
+															notEmpty : true
+														}
+													});
+													
+													let validResult = valid.check(data);
+													
+													if (validResult.checkHasError() === true) {
+														form.showErrors(validResult.getErrors());
+														return false;
+													}
+													
+													else {
+														
+													}
+												}
+											});
+											
+											e.stop();
+										}
+									}
+								}), ftpFileTree = SkyDesktop.FileTree(loadAndOpenEditor)]
 							})]
 						})
 					}), SkyDesktop.Tab({
