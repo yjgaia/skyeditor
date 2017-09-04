@@ -55,6 +55,7 @@ DasomEditor.AceEditor = CLASS({
 				});
 			}
 		});
+		aceEditor.setValue(content, -1);
 		
 		let getScrollTop;
 		OVERRIDE(self.getScrollTop, (origin) => {
