@@ -897,6 +897,116 @@ DasomEditor.IDE = OBJECT({
 					});
 				}
 			}
+			
+			// 아래 키, 위 키
+			if (selectedFileItems.length > 0) {
+				
+				if (e.getKey() === 'ArrowUp') {
+					
+					let select = (lastItem) => {
+						
+						let brothers = lastItem.getParent().getChildren();
+						
+						let key = FIND({
+							array : brothers,
+							value : lastItem
+						});
+						
+						if (key === 0) {
+							
+							if (lastItem.getParent() !== fileTree && (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true || lastItem.checkIsInstanceOf(DasomEditor.File) === true)) {
+								deselectFile(lastItem);
+							}
+							
+							select(lastItem.getParent());
+						}
+						
+						else {
+							
+							if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true || lastItem.checkIsInstanceOf(DasomEditor.File) === true) {
+								deselectFile(lastItem);
+							}
+							
+							for (let i = key - 1; i >= 0; i -= 1) {
+								
+								if (brothers[i].checkIsInstanceOf(DasomEditor.Folder) === true || brothers[i].checkIsInstanceOf(DasomEditor.File) === true) {
+									
+									if (brothers[i].checkIsInstanceOf(DasomEditor.Folder) === true && COUNT_PROPERTIES(brothers[i].getItems()) > 0) {
+										
+										let children = brothers[i + 1].getChildren();
+										
+										if (i !== key - 1 && children[children.length - 1].checkIsInstanceOf(DasomEditor.File) === true) {
+											selectFile(children[children.length - 1]);
+										} else {
+											select(children[children.length - 1]);
+										}
+									}
+									
+									else {
+										selectFile(brothers[i]);
+									}
+									
+									break;
+								}
+							}
+						}
+					};
+					
+					select(selectedFileItems[selectedFileItems.length - 1]);
+					
+					e.stopDefault();
+				}
+				
+				else if (e.getKey() === 'ArrowDown') {
+					
+					let select = (lastItem) => {
+						
+						let brothers = lastItem.getParent().getChildren();
+						
+						let key = FIND({
+							array : brothers,
+							value : lastItem
+						});
+						
+						if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true && COUNT_PROPERTIES(lastItem.getItems()) > 0) {
+							
+							deselectFile(lastItem);
+							
+							selectFile(brothers[key + 1].getChildren()[0]);
+						}
+						
+						else {
+							
+							if (key === brothers.length - 1 || (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true && key === brothers.length - 2)) {
+								
+								if (lastItem.getParent() !== fileTree && (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true || lastItem.checkIsInstanceOf(DasomEditor.File) === true)) {
+									deselectFile(lastItem);
+								}
+								
+								select(lastItem.getParent());
+							}
+							
+							else {
+								
+								if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true || lastItem.checkIsInstanceOf(DasomEditor.File) === true) {
+									deselectFile(lastItem);
+								}
+								
+								for (let i = key + 1; i < brothers.length; i += 1) {
+									if (brothers[i].checkIsInstanceOf(DasomEditor.Folder) === true || brothers[i].checkIsInstanceOf(DasomEditor.File) === true) {
+										selectFile(brothers[i]);
+										break;
+									}
+								}
+							}
+						}
+					};
+					
+					select(selectedFileItems[selectedFileItems.length - 1]);
+					
+					e.stopDefault();
+				}
+			}
 		});
 		
 		EVENT('keyup', (e) => {
