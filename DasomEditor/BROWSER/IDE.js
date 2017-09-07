@@ -903,106 +903,181 @@ DasomEditor.IDE = OBJECT({
 				
 				if (e.getKey() === 'ArrowUp') {
 					
-					let select = (lastItem) => {
-						
-						let brothers = lastItem.getParent().getChildren();
-						
-						let key = FIND({
-							array : brothers,
-							value : lastItem
-						});
-						
-						if (key === 0) {
-							
-							if (lastItem.getParent() !== fileTree && (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true || lastItem.checkIsInstanceOf(DasomEditor.File) === true)) {
-								deselectFile(lastItem);
+					let lastItem = selectedFileItems[selectedFileItems.length - 1];
+					
+					let brotherItem;
+					EACH(lastItem.getParent().getChildren(), (item) => {
+						if (item.checkIsInstanceOf(DasomEditor.File) === true || item.checkIsInstanceOf(DasomEditor.Folder) === true) {
+							if (item === lastItem) {
+								return false;
 							}
+							brotherItem = item;
+						}
+					});
+					
+					items = undefined;
+					
+					if (brotherItem === undefined) {
+						
+						if (lastItem.getParent() !== fileTree) {
 							
-							select(lastItem.getParent());
+							let folder;
+							EACH(lastItem.getParent().getParent().getChildren(), (child) => {
+								if (child === lastItem.getParent()) {
+									return false;
+								}
+								folder = child;
+							});
+								
+							if (folder !== undefined) {
+								
+								deselectFile(lastItem);
+								
+								selectFile(folder);
+							}
+						}
+					}
+					
+					else {
+						
+						deselectFile(lastItem);
+						
+						if (brotherItem.checkIsInstanceOf(DasomEditor.Folder) === true && COUNT_PROPERTIES(brotherItem.getItems()) > 0) {
+							
+							EACH(brotherItem.getItems(), (item) => {
+								REVERSE_EACH(item.getParent().getChildren(), (item) => {
+									if (item.checkIsInstanceOf(DasomEditor.File) === true || item.checkIsInstanceOf(DasomEditor.Folder) === true) {
+										selectFile(item);
+										return false;
+									}
+								});
+								return false;
+							});
 						}
 						
 						else {
-							
-							if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true || lastItem.checkIsInstanceOf(DasomEditor.File) === true) {
-								deselectFile(lastItem);
-							}
-							
-							for (let i = key - 1; i >= 0; i -= 1) {
-								
-								if (brothers[i].checkIsInstanceOf(DasomEditor.Folder) === true || brothers[i].checkIsInstanceOf(DasomEditor.File) === true) {
-									
-									if (brothers[i].checkIsInstanceOf(DasomEditor.Folder) === true && COUNT_PROPERTIES(brothers[i].getItems()) > 0) {
-										
-										let children = brothers[i + 1].getChildren();
-										
-										if (i !== key - 1 && children[children.length - 1].checkIsInstanceOf(DasomEditor.File) === true) {
-											selectFile(children[children.length - 1]);
-										} else {
-											select(children[children.length - 1]);
-										}
-									}
-									
-									else {
-										selectFile(brothers[i]);
-									}
-									
-									break;
-								}
-							}
+							selectFile(brotherItem);
 						}
-					};
-					
-					select(selectedFileItems[selectedFileItems.length - 1]);
+					}
 					
 					e.stopDefault();
 				}
 				
 				else if (e.getKey() === 'ArrowDown') {
 					
-					let select = (lastItem) => {
+					let lastItem = selectedFileItems[selectedFileItems.length - 1];
+					
+					// 폴더고 열려 있을 때
+					if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true && COUNT_PROPERTIES(lastItem.getItems()) > 0) {
 						
-						let brothers = lastItem.getParent().getChildren();
+						EACH(lastItem.getItems(), (item) => {
+							EACH(item.getParent().getChildren(), (item) => {
+								if (item.checkIsInstanceOf(DasomEditor.File) === true || item.checkIsInstanceOf(DasomEditor.Folder) === true) {
+									selectFile(item);
+									return false;
+								}
+							});
+							return false;
+						});
+					}
+					
+					else {
 						
-						let key = FIND({
-							array : brothers,
-							value : lastItem
+						let brotherItem;
+						REVERSE_EACH(lastItem.getParent().getChildren(), (item) => {
+							if (item.checkIsInstanceOf(DasomEditor.File) === true || item.checkIsInstanceOf(DasomEditor.Folder) === true) {
+								if (item === lastItem) {
+									return false;
+								}
+								brotherItem = item;
+							}
 						});
 						
-						if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true && COUNT_PROPERTIES(lastItem.getItems()) > 0) {
+						items = undefined;
+						
+						if (brotherItem === undefined) {
 							
-							deselectFile(lastItem);
-							
-							selectFile(brothers[key + 1].getChildren()[0]);
+							if (lastItem.getParent() !== fileTree) {
+								
+								let folder;
+								REVERSE_EACH(lastItem.getParent().getParent().getChildren(), (child) => {
+									if (child === lastItem.getParent()) {
+										return false;
+									}
+									folder = child;
+								});
+								
+								if (folder !== undefined) {
+									
+									deselectFile(lastItem);
+									
+									selectFile(folder);
+								}
+							}
 						}
 						
 						else {
 							
-							if (key === brothers.length - 1 || (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true && key === brothers.length - 2)) {
-								
-								if (lastItem.getParent() !== fileTree && (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true || lastItem.checkIsInstanceOf(DasomEditor.File) === true)) {
-									deselectFile(lastItem);
-								}
-								
-								select(lastItem.getParent());
-							}
+							deselectFile(lastItem);
 							
-							else {
-								
-								if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true || lastItem.checkIsInstanceOf(DasomEditor.File) === true) {
-									deselectFile(lastItem);
-								}
-								
-								for (let i = key + 1; i < brothers.length; i += 1) {
-									if (brothers[i].checkIsInstanceOf(DasomEditor.Folder) === true || brothers[i].checkIsInstanceOf(DasomEditor.File) === true) {
-										selectFile(brothers[i]);
-										break;
-									}
-								}
-							}
+							selectFile(brotherItem);
 						}
-					};
+					}
 					
-					select(selectedFileItems[selectedFileItems.length - 1]);
+					e.stopDefault();
+				}
+				
+				else if (e.getKey() === 'ArrowLeft') {
+					
+					let lastItem = selectedFileItems[selectedFileItems.length - 1];
+					
+					// 폴더고 열려 있을 때
+					if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true && COUNT_PROPERTIES(lastItem.getItems()) > 0) {
+						lastItem.fireEvent('doubletap');
+					}
+					
+					else {
+						
+						let folder;
+						EACH(lastItem.getParent().getParent().getChildren(), (child) => {
+							if (child === lastItem.getParent()) {
+								return false;
+							}
+							folder = child;
+						});
+						
+						if (folder !== undefined) {
+							
+							deselectFile(lastItem);
+							
+							selectFile(folder);
+						}
+					}
+					
+					e.stopDefault();
+				}
+				
+				else if (e.getKey() === 'ArrowRight') {
+					
+					let lastItem = selectedFileItems[selectedFileItems.length - 1];
+					
+					// 폴더고 열려 있을 때
+					if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true && COUNT_PROPERTIES(lastItem.getItems()) > 0) {
+						
+						EACH(lastItem.getItems(), (item) => {
+							EACH(item.getParent().getChildren(), (item) => {
+								if (item.checkIsInstanceOf(DasomEditor.File) === true || item.checkIsInstanceOf(DasomEditor.Folder) === true) {
+									selectFile(item);
+									return false;
+								}
+							});
+							return false;
+						});
+					}
+					
+					else if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true) {
+						lastItem.fireEvent('doubletap');
+					}
 					
 					e.stopDefault();
 				}
