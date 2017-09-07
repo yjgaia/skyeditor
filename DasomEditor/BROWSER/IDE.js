@@ -250,7 +250,7 @@ DasomEditor.IDE = OBJECT({
 			
 			editorGroup.addTab(tab);
 			
-			if (tab.checkIsInstanceOf(DasomEditor.Editor) === true) {
+			if (tab.checkIsInstanceOf(DasomEditor.Editor) === true && tab.checkIsInstanceOf(DasomEditor.CompareEditor) !== true) {
 				
 				tab.on('scroll', RAR((e) => {
 					
@@ -274,29 +274,22 @@ DasomEditor.IDE = OBJECT({
 		
 		let loadAndOpenEditor = (path, scrollTop, next) => {
 			
-			loadHandler(path, {
+			load(path, (content) => {
 				
-				error : () => {
-					editorOpenedStore.remove(path);
-				},
+				let fileName = path.substring(path.lastIndexOf('/') + 1);
 				
-				success : (content) => {
-					
-					let fileName = path.substring(path.lastIndexOf('/') + 1);
-					
-					let editor = openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-						title : fileName,
-						path : path,
-						content : content
-					}));
-					
-					if (scrollTop !== undefined) {
-						editor.setScrollTop(scrollTop);
-					}
-					
-					if (next !== undefined) {
-						next();
-					}
+				let editor = openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+					title : fileName,
+					path : path,
+					content : content
+				}));
+				
+				if (scrollTop !== undefined) {
+					editor.setScrollTop(scrollTop);
+				}
+				
+				if (next !== undefined) {
+					next();
 				}
 			});
 		};
@@ -598,6 +591,22 @@ DasomEditor.IDE = OBJECT({
 					loadAndOpenEditor(editorOpenedInfo.path, editorOpenedInfo.scrollTop, next);
 				});
 			}
+		};
+		
+		let load = self.load = (path, callback) => {
+			//REQUIRED: path
+			//REQUIRED: callback
+			
+			loadHandler(path, {
+				
+				error : () => {
+					editorOpenedStore.remove(path);
+				},
+				
+				success : (content) => {
+					callback(content);
+				}
+			});
 		};
 		
 		let save = self.save = (activeTab) => {

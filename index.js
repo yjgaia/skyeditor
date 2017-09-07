@@ -51,65 +51,100 @@ RUN(() => {
 		
 		save : (activeTab) => {
 			
-			NEXT([(next) => {
+			let runCommand = (path) => {
 				
-				if (activeTab.getPath() === undefined) {
+				let fileName = path.substring(path.lastIndexOf('/') + 1);
+				
+				let extname = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+				
+				let command = saveCommandStore.get(extname);
+				
+				if (command !== undefined) {
 					
-					dialog.showSaveDialog((path) => {
-						if (path !== undefined) {
-							next(path);
-						}
+					command = command.replace(/\{\{folder\}\}/g, path.substring(0, path.lastIndexOf('/')));
+					command = command.replace(/\{\{path\}\}/g, path);
+					
+					EACH(command.split('\n'), (command) => {
+						
+						console.log('저장 시 명령을 실행합니다: ' + command);
+						
+						exec(command, (error, stdout) => {
+							if (error !== TO_DELETE) {
+								SHOW_ERROR('저장 시 명령 실행', stdout);
+							}
+						});
 					});
 				}
-				
-				else {
-					next(activeTab.getPath());
-				}
-			},
+			};
 			
-			() => {
-				return (path) => {
+			if (activeTab.checkIsInstanceOf(DasomEditor.CompareEditor) === true) {
+				
+				let path1 = activeTab.getPath1();
+				let path2 = activeTab.getPath2();
+				
+				WRITE_FILE({
+					path : path1,
+					content : activeTab.getContent1()
+				}, () => {
 					
 					WRITE_FILE({
-						path : path,
-						content : activeTab.getContent()
+						path : path2,
+						content : activeTab.getContent2()
 					}, () => {
-						
-						activeTab.setPath(path);
 						
 						SkyDesktop.Noti('저장하였습니다.');
 						
-						let fileName = path.substring(path.lastIndexOf('/') + 1);
-						activeTab.setTitle(fileName);
-						
-						let extname = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
-						
-						let Editor = DasomEditor.IDE.getEditor(extname);
-						if (Editor !== undefined) {
-							activeTab.setIcon(Editor.getIcon());
-						}
-						
-						let command = saveCommandStore.get(extname);
-						
-						if (command !== undefined) {
-							
-							command = command.replace(/\{\{folder\}\}/g, path.substring(0, path.lastIndexOf('/')));
-							command = command.replace(/\{\{path\}\}/g, path);
-							
-							EACH(command.split('\n'), (command) => {
-								
-								console.log('저장 시 명령을 실행합니다: ' + command);
-								
-								exec(command, (error, stdout) => {
-									if (error !== TO_DELETE) {
-										SHOW_ERROR('저장 시 명령 실행', stdout);
-									}
-								});
-							});
-						}
+						runCommand(path1);
+						runCommand(path2);
 					});
-				};
-			}]);
+				});
+			}
+			
+			else {
+				
+				NEXT([(next) => {
+					
+					if (activeTab.getPath() === undefined) {
+						
+						dialog.showSaveDialog((path) => {
+							if (path !== undefined) {
+								next(path);
+							}
+						});
+					}
+					
+					else {
+						next(activeTab.getPath());
+					}
+				},
+				
+				() => {
+					return (path) => {
+						
+						WRITE_FILE({
+							path : path,
+							content : activeTab.getContent()
+						}, () => {
+							
+							activeTab.setPath(path);
+							
+							SkyDesktop.Noti('저장하였습니다.');
+							
+							let fileName = path.substring(path.lastIndexOf('/') + 1);
+							activeTab.setTitle(fileName);
+							
+							let extname = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+							
+							let Editor = DasomEditor.IDE.getEditor(extname);
+							if (Editor !== undefined) {
+								activeTab.setIcon(Editor.getIcon());
+							}
+							
+							runCommand(path);
+						});
+					};
+				}]);
+			}
 		},
 		
 		load : (path, handlers) => {

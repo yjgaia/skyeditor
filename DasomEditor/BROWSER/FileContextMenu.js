@@ -229,5 +229,54 @@ DasomEditor.FileContextMenu = CLASS({
 				}
 			}));
 		}
+		
+		if (selectedFileItems.length >= 2) {
+			
+			let item1;
+			let item2;
+			
+			EACH(selectedFileItems, (item) => {
+				if (item.checkIsInstanceOf(DasomEditor.File) === true) {
+					if (item1 === undefined) {
+						item1 = item;
+					} else {
+						item2 = item;
+						return false;
+					}
+				}
+			});
+			
+			if (item2 !== undefined) {
+				
+				self.append(SkyDesktop.ContextMenuItem({
+					title : '두 파일 비교',
+					on : {
+						tap : () => {
+							
+							let path1 = item1.getPath();
+							let path2 = item2.getPath();
+							
+							DasomEditor.IDE.load(path1, (content1) => {
+								DasomEditor.IDE.load(path2, (content2) => {
+									
+									let fileName1 = path1.substring(path1.lastIndexOf('/') + 1);
+									let fileName2 = path2.substring(path2.lastIndexOf('/') + 1);
+									
+									DasomEditor.IDE.openEditor(DasomEditor.CompareEditor({
+										title : '두 파일 비교 (' + fileName1 + ' - ' + fileName2 + ')',
+										path1 : path1,
+										content1 : content1,
+										path2 : path2,
+										content2 : content2
+									}));
+								});
+							});
+							
+							self.remove();
+						}
+					}
+				}));
+			}
+		}
 	}
 });
