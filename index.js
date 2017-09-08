@@ -33,17 +33,32 @@ RUN(() => {
 					style : {
 						padding : 10
 					},
-					c : ['좋은 에디터 ', A({
-						style : {
-							color : '#59A7FD',
-							textDecoration : 'underline'
-						},
-						c : '다솜 에디터',
-						on : {
-							tap : () => {
-								shell.openExternal('https://github.com/Hanul/DasomEditor');
+					c : [P({
+						c : ['좋은 에디터 ', A({
+							style : {
+								color : '#59A7FD',
+								textDecoration : 'underline'
+							},
+							c : '다솜 에디터',
+							on : {
+								tap : () => {
+									shell.openExternal('https://github.com/Hanul/DasomEditor');
+								}
 							}
-						}
+						})]
+					}), P({
+						c : ['문제 발생 시 ', A({
+							style : {
+								color : '#59A7FD',
+								textDecoration : 'underline'
+							},
+							c : 'Issue',
+							on : {
+								tap : () => {
+									shell.openExternal('https://github.com/Hanul/DasomEditor/issues');
+								}
+							}
+						}), '남겨주세요.']
 					})]
 				})
 			}));

@@ -230,6 +230,21 @@ DasomEditor.FileContextMenu = CLASS({
 			}));
 		}
 		
+		if (selectedFileItems.length > 0) {
+			
+			self.append(SkyDesktop.ContextMenuItem({
+				title : '검색',
+				on : {
+					tap : () => {
+						
+						DasomEditor.IDE.search();
+						
+						self.remove();
+					}
+				}
+			}));
+		}
+		
 		if (selectedFileItems.length >= 2) {
 			
 			let item1;

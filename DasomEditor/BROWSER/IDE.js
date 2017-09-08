@@ -296,6 +296,7 @@ DasomEditor.IDE = OBJECT({
 		
 		let fileTree;
 		let ftpFileTree;
+		let tabList;
 		
 		let editorGroup;
 		self.append(TR({
@@ -518,12 +519,17 @@ DasomEditor.IDE = OBJECT({
 						})
 					}), SkyDesktop.Tab({
 						size : 77,
-						c : editorGroup = SkyDesktop.TabGroup({
-							on : {
-								tap : () => {
-									deselectFiles();
-								}
-							}
+						c : tabList = SkyDesktop.VerticalTabList({
+							tabs : [SkyDesktop.Tab({
+								size : 70,
+								c : editorGroup = SkyDesktop.TabGroup({
+									on : {
+										tap : () => {
+											deselectFiles();
+										}
+									}
+								})
+							})]
 						})
 					})]
 				})
@@ -847,6 +853,13 @@ DasomEditor.IDE = OBJECT({
 						save(editorGroup.getActiveTab());
 					}
 				}
+				
+				// 검색
+				else if (key === 'h') {
+					if (selectedFileItems.length > 0) {
+						search();
+					}
+				}
 			}
 			
 			if (e.getKey() === 'Control') {
@@ -1135,6 +1148,126 @@ DasomEditor.IDE = OBJECT({
 		
 		let getWorkspacePath = self.getWorkspacePath = () => {
 			return workspacePath;
+		};
+		
+		let addTab = self.addTab = (tab) => {
+			//REQUIRED: tab
+			
+			tabList.addTab(tab);
+		};
+		
+		let search = self.search = () => {
+			
+			SkyDesktop.Prompt({
+				msg : '검색할 문자열을 입력해주세요.'
+			}, (text) => {
+				
+				if (text !== '') {
+					
+					let tab;
+					let fileTree;
+					
+					DasomEditor.IDE.addTab(tab = SkyDesktop.Tab({
+						style : {
+							position : 'relative'
+						},
+						size : 30,
+						c : [UUI.ICON_BUTTON({
+							style : {
+								position : 'absolute',
+								right : 10,
+								top : 8,
+								color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
+								zIndex : 999
+							},
+							icon : FontAwesome.GetIcon('times'),
+							on : {
+								mouseover : (e, self) => {
+									self.addStyle({
+										color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
+									});
+								},
+								mouseout : (e, self) => {
+									self.addStyle({
+										color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
+									});
+								},
+								tap : () => {
+									tab.remove();
+								}
+							}
+						}), fileTree = SkyDesktop.FileTree(loadAndOpenEditor)]
+					}));
+					
+					let isFirst = true;
+					
+					let search = (items) => {
+						
+						EACH(items, (item) => {
+							
+							if (item.checkIsInstanceOf(DasomEditor.Folder) === true) {
+								search(item.getItems());
+							}
+							
+							else if (item.checkIsInstanceOf(DasomEditor.File) === true) {
+								
+								let path = item.getPath();
+								
+								DasomEditor.IDE.load(path, (content) => {
+									
+									let foundLineInfos = [];
+									
+									EACH(content.split('\n'), (line, lineNumber) => {
+										lineNumber += 1;
+										
+										if (line.indexOf(text) !== -1) {
+											foundLineInfos.push({
+												lineNumber : lineNumber,
+												line : line
+											});
+										}
+									});
+									
+									if (foundLineInfos.length > 0) {
+										
+										let foundFile;
+										
+										fileTree.addItem({
+											key : path,
+											item : foundFile = DasomEditor.FoundFile({
+												path : path,
+												title : path.substring(path.lastIndexOf('/') + 1),
+												isOpened : isFirst
+											})
+										});
+										
+										isFirst = false;
+										
+										EACH(foundLineInfos, (info) => {
+											foundFile.addItem({
+												key : path + ':' + info.lineNumber,
+												item : DasomEditor.FoundLine({
+													path : path,
+													text : text,
+													lineNumber : info.lineNumber,
+													line : info.line.trim(),
+													on : {
+														doubletap : () => {
+															loadAndOpenEditor(path, (info.lineNumber - 1) * 17);
+														}
+													}
+												})
+											});
+										});
+									}
+								});
+							}
+						});
+					};
+					
+					search(selectedFileItems);
+				}
+			});
 		};
 	}
 });
