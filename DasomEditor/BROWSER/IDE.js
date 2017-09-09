@@ -113,7 +113,7 @@ DasomEditor.IDE = OBJECT({
 								let activeTab = editorGroup.getActiveTab();
 								
 								if (activeTab.checkIsInstanceOf(DasomEditor.Editor) === true) {
-									saveHandler(activeTab);
+									save(activeTab);
 								}
 							}
 						}
@@ -618,7 +618,34 @@ DasomEditor.IDE = OBJECT({
 		let save = self.save = (activeTab) => {
 			//REQUIRED: activeTab
 			
-			saveHandler(activeTab);
+			if (activeTab.checkIsInstanceOf(DasomEditor.CompareEditor) === true) {
+				
+				saveHandler(activeTab.getPath1(), activeTab.getContent1(), () => {
+					saveHandler(activeTab.getPath2(), activeTab.getContent2(), () => {
+						SkyDesktop.Noti('저장하였습니다.');
+					});
+				});
+			}
+			
+			else {
+				
+				saveHandler(activeTab.getPath(), activeTab.getContent(), (path) => {
+					
+					activeTab.setPath(path);
+					
+					let fileName = path.substring(path.lastIndexOf('/') + 1);
+					activeTab.setTitle(fileName);
+					
+					let extname = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+					
+					let Editor = DasomEditor.IDE.getEditor(extname);
+					if (Editor !== undefined) {
+						activeTab.setIcon(Editor.getIcon());
+					}
+					
+					SkyDesktop.Noti('저장하였습니다.');
+				});
+			}
 		};
 		
 		let copy = self.copy = (paths) => {
@@ -850,7 +877,10 @@ DasomEditor.IDE = OBJECT({
 				else if (key === 's') {
 					
 					if (editorGroup.getActiveTab() !== undefined) {
-						save(editorGroup.getActiveTab());
+						
+						let activeTab = editorGroup.getActiveTab();
+						
+						save(activeTab);
 					}
 				}
 				
@@ -1167,6 +1197,8 @@ DasomEditor.IDE = OBJECT({
 					let tab;
 					let fileTree;
 					
+					let foundInfos = [];
+					
 					DasomEditor.IDE.addTab(tab = SkyDesktop.Tab({
 						style : {
 							position : 'relative'
@@ -1196,6 +1228,49 @@ DasomEditor.IDE = OBJECT({
 									tab.remove();
 								}
 							}
+						}), A({
+							style : {
+								position : 'absolute',
+								right : 30,
+								top : 7,
+								color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#ccc',
+								zIndex : 999
+							},
+							c : '전체 변경',
+							on : {
+								mouseover : (e, self) => {
+									self.addStyle({
+										color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#999' : '#999'
+									});
+								},
+								mouseout : (e, self) => {
+									self.addStyle({
+										color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#ccc'
+									});
+								},
+								tap : () => {
+									
+									SkyDesktop.Prompt({
+										msg : '변경할 문자열을 입력해주세요.'
+									}, (changeText) => {
+										
+										let loadingBar = SkyDesktop.LoadingBar('lime');
+										
+										NEXT(foundInfos, [(info, next) => {
+											saveHandler(info.path, info.content.replace(new RegExp(text, 'g'), changeText), () => {
+												next();
+											});
+										}, () => {
+											return () => {
+												SkyDesktop.Noti('모두 저장하였습니다.');
+												loadingBar.done();
+											};
+										}]);
+										
+										tab.remove();
+									});
+								}
+							}
 						}), fileTree = SkyDesktop.FileTree(loadAndOpenEditor)]
 					}));
 					
@@ -1213,7 +1288,12 @@ DasomEditor.IDE = OBJECT({
 								
 								let path = item.getPath();
 								
-								DasomEditor.IDE.load(path, (content) => {
+								load(path, (content) => {
+									
+									foundInfos.push({
+										path : path,
+										content : content
+									});
 									
 									let foundLineInfos = [];
 									
