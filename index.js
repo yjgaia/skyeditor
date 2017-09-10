@@ -129,6 +129,17 @@ RUN(() => {
 			});
 		},
 		
+		loadFiles : (path, callback) => {
+			
+			FIND_FOLDER_NAMES(path, (folderNames) => {
+				
+				FIND_FILE_NAMES(path, (fileNames) => {
+					
+					callback(folderNames, fileNames);
+				});
+			});
+		},
+		
 		getInfo : (path, callback) => {
 			GET_FILE_INFO(path, callback);
 		},
@@ -160,6 +171,10 @@ RUN(() => {
 		},
 		
 		ftpLoad : (path, handlers) => {
+			
+		},
+		
+		ftpLoadFiles : (path, callback) => {
 			
 		},
 		
@@ -364,28 +379,25 @@ RUN(() => {
 		
 		let loadFiles = (path, addItem) => {
 			
-			EACH(FIND_FOLDER_NAMES({
-				path : path,
-				isSync : true
-			}), (folderName) => {
+			DasomEditor.IDE.loadFiles(path, (folderNames, fileNames) => {
 				
-				addItem({
-					key : path + '/' + folderName,
-					item : createFolderItem(path + '/' + folderName, folderName)
+				EACH(folderNames, (folderName) => {
+					
+					addItem({
+						key : path + '/' + folderName,
+						item : createFolderItem(path + '/' + folderName, folderName)
+					});
 				});
-			});
-			
-			EACH(FIND_FILE_NAMES({
-				path : path,
-				isSync : true
-			}), (fileName) => {
 				
-				addItem({
-					key : path + '/' + fileName,
-					item : DasomEditor.File({
-						path : path + '/' + fileName,
-						title : fileName
-					})
+				EACH(fileNames, (fileName) => {
+					
+					addItem({
+						key : path + '/' + fileName,
+						item : DasomEditor.File({
+							path : path + '/' + fileName,
+							title : fileName
+						})
+					});
 				});
 			});
 		};

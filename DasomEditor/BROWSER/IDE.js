@@ -18,6 +18,7 @@ DasomEditor.IDE = OBJECT({
 		
 		let showHomeHandler;
 		let loadHandler;
+		let loadFilesHandler;
 		let saveHandler;
 		let copyHandler;
 		let pasteHandler;
@@ -30,6 +31,7 @@ DasomEditor.IDE = OBJECT({
 		let editorMap = {};
 		let editorSettingStore = DasomEditor.STORE('editorSettingStore');
 		let editorOpenedStore = DasomEditor.STORE('editorOpenedStore');
+		let localHistoryStore = DasomEditor.STORE('localHistoryStore');
 		
 		let draggingShadow;
 		
@@ -572,6 +574,7 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params
 			//REQUIRED: params.showHome
 			//REQUIRED: params.load
+			//REQUIRED: params.loadFiles
 			//REQUIRED: params.save
 			//REQUIRED: params.copy
 			//REQUIRED: params.paste
@@ -580,6 +583,7 @@ DasomEditor.IDE = OBJECT({
 			
 			showHomeHandler = params.showHome;
 			loadHandler = params.load;
+			loadFilesHandler = params.loadFiles;
 			saveHandler = params.save;
 			copyHandler = params.copy;
 			pasteHandler = params.paste;
@@ -615,21 +619,82 @@ DasomEditor.IDE = OBJECT({
 			});
 		};
 		
+		let loadFiles = self.loadFiles = (path, callback) => {
+			//REQUIRED: path
+			//REQUIRED: callback
+			
+			let loadingBar = SkyDesktop.LoadingBar('lime');
+			
+			loadFilesHandler(path, (folderNames, fileNames) => {
+				
+				loadingBar.done();
+				
+				callback(folderNames, fileNames);
+			});
+		};
+		
+		let getLocalHistory = self.getLocalHistory = (path) => {
+			//REQUIRED: path
+			
+			return localHistoryStore.get(path);
+		};
+		
+		let innerSave = (path, content, callback) => {
+			
+			// 로컬 히스토리 저장
+			// 파일의 용량이 1mb 미만인 경우에만 저장, 최대 100개
+			if (content.length < 1024 * 1024) {
+				
+				let history = getLocalHistory(path);
+				
+				if (history === undefined) {
+					history = [];
+				}
+				
+				if (history[history.length - 1].content !== content) {
+					
+					history.push({
+						time : new Date(),
+						content : content
+					});
+					
+					if (history.length > 100) {
+						history.splice(0, 1);
+					}
+					
+					localHistoryStore.save({
+						name : path,
+						value : history
+					});
+				}
+			}
+			
+			saveHandler(path, content, callback);
+		};
+		
 		let save = self.save = (activeTab) => {
 			//REQUIRED: activeTab
 			
 			if (activeTab.checkIsInstanceOf(DasomEditor.CompareEditor) === true) {
 				
-				saveHandler(activeTab.getPath1(), activeTab.getContent1(), () => {
-					saveHandler(activeTab.getPath2(), activeTab.getContent2(), () => {
+				innerSave(activeTab.getPath1(), activeTab.getContent1(), () => {
+					
+					if (activeTab.getPath2() !== undefined) {
+						
+						innerSave(activeTab.getPath2(), activeTab.getContent2(), () => {
+							SkyDesktop.Noti('저장하였습니다.');
+						});
+					}
+					
+					else {
 						SkyDesktop.Noti('저장하였습니다.');
-					});
+					}
 				});
 			}
 			
 			else {
 				
-				saveHandler(activeTab.getPath(), activeTab.getContent(), (path) => {
+				innerSave(activeTab.getPath(), activeTab.getContent(), (path) => {
 					
 					activeTab.setPath(path);
 					
@@ -1199,7 +1264,7 @@ DasomEditor.IDE = OBJECT({
 					
 					let foundInfos = [];
 					
-					DasomEditor.IDE.addTab(tab = SkyDesktop.Tab({
+					addTab(tab = SkyDesktop.Tab({
 						style : {
 							position : 'relative'
 						},
@@ -1257,7 +1322,7 @@ DasomEditor.IDE = OBJECT({
 										let loadingBar = SkyDesktop.LoadingBar('lime');
 										
 										NEXT(foundInfos, [(info, next) => {
-											saveHandler(info.path, info.content.replace(new RegExp(text, 'g'), changeText), () => {
+											innerSave(info.path, info.content.replace(new RegExp(text, 'g'), changeText), () => {
 												next();
 											});
 										}, () => {
@@ -1276,76 +1341,86 @@ DasomEditor.IDE = OBJECT({
 					
 					let isFirst = true;
 					
-					let search = (items) => {
+					let search = (folderPath, folderNames, fileNames) => {
 						
-						EACH(items, (item) => {
+						EACH(folderNames, (folderName) => {
+							loadFiles(folderPath + '/' + folderName, (folderNames, fileNames) => {
+								search(folderPath + '/' + folderName, folderNames, fileNames)
+							});
+						});
+						
+						EACH(fileNames, (fileName) => {
 							
-							if (item.checkIsInstanceOf(DasomEditor.Folder) === true) {
-								search(item.getItems());
-							}
+							let path = folderPath + '/' + fileName;
 							
-							else if (item.checkIsInstanceOf(DasomEditor.File) === true) {
+							load(path, (content) => {
 								
-								let path = item.getPath();
+								foundInfos.push({
+									path : path,
+									content : content
+								});
 								
-								load(path, (content) => {
+								let foundLineInfos = [];
+								
+								EACH(content.split('\n'), (line, lineNumber) => {
+									lineNumber += 1;
 									
-									foundInfos.push({
-										path : path,
-										content : content
-									});
-									
-									let foundLineInfos = [];
-									
-									EACH(content.split('\n'), (line, lineNumber) => {
-										lineNumber += 1;
-										
-										if (line.indexOf(text) !== -1) {
-											foundLineInfos.push({
-												lineNumber : lineNumber,
-												line : line
-											});
-										}
-									});
-									
-									if (foundLineInfos.length > 0) {
-										
-										let foundFile;
-										
-										fileTree.addItem({
-											key : path,
-											item : foundFile = DasomEditor.FoundFile({
-												path : path,
-												title : path.substring(path.lastIndexOf('/') + 1),
-												isOpened : isFirst
-											})
-										});
-										
-										isFirst = false;
-										
-										EACH(foundLineInfos, (info) => {
-											foundFile.addItem({
-												key : path + ':' + info.lineNumber,
-												item : DasomEditor.FoundLine({
-													path : path,
-													text : text,
-													lineNumber : info.lineNumber,
-													line : info.line.trim(),
-													on : {
-														doubletap : () => {
-															loadAndOpenEditor(path, (info.lineNumber - 1) * 17);
-														}
-													}
-												})
-											});
+									if (line.indexOf(text) !== -1) {
+										foundLineInfos.push({
+											lineNumber : lineNumber,
+											line : line
 										});
 									}
 								});
-							}
+								
+								if (foundLineInfos.length > 0) {
+									
+									let foundFile;
+									
+									fileTree.addItem({
+										key : path,
+										item : foundFile = DasomEditor.FoundFile({
+											path : path,
+											title : path.substring(path.lastIndexOf('/') + 1),
+											isOpened : isFirst
+										})
+									});
+									
+									isFirst = false;
+									
+									EACH(foundLineInfos, (info) => {
+										foundFile.addItem({
+											key : path + ':' + info.lineNumber,
+											item : DasomEditor.FoundLine({
+												path : path,
+												text : text,
+												lineNumber : info.lineNumber,
+												line : info.line.trim(),
+												on : {
+													doubletap : () => {
+														loadAndOpenEditor(path, (info.lineNumber - 1) * 17);
+													}
+												}
+											})
+										});
+									});
+								}
+							});
 						});
 					};
 					
-					search(selectedFileItems);
+					EACH(selectedFileItems, (item) => {
+						
+						if (item.checkIsInstanceOf(DasomEditor.Folder) === true) {
+							loadFiles(item.getPath(), (folderNames, fileNames) => {
+								search(item.getPath(), folderNames, fileNames)
+							});
+						}
+						
+						else if (item.checkIsInstanceOf(DasomEditor.File) === true) {
+							search(item.getFolderPath(), [], [item.getTitle()]);
+						}
+					});
 				}
 			});
 		};

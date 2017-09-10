@@ -228,6 +228,80 @@ DasomEditor.FileContextMenu = CLASS({
 					}
 				}
 			}));
+			
+			if (selectedFileItems[0].checkIsInstanceOf(DasomEditor.File) === true) {
+				
+				self.append(SkyDesktop.ContextMenuItem({
+					title : '로컬 저장 기록 보기',
+					on : {
+						tap : () => {
+							
+							let tab;
+							let historyList;
+							
+							DasomEditor.IDE.addTab(tab = SkyDesktop.Tab({
+								style : {
+									position : 'relative'
+								},
+								size : 30,
+								c : [UUI.ICON_BUTTON({
+									style : {
+										position : 'absolute',
+										right : 10,
+										top : 8,
+										color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
+										zIndex : 999
+									},
+									icon : FontAwesome.GetIcon('times'),
+									on : {
+										mouseover : (e, self) => {
+											self.addStyle({
+												color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
+											});
+										},
+										mouseout : (e, self) => {
+											self.addStyle({
+												color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
+											});
+										},
+										tap : () => {
+											tab.remove();
+										}
+									}
+								}), historyList = DIV()]
+							}));
+							
+							let history = DasomEditor.IDE.getLocalHistory(path);
+							
+							REVERSE_EACH(history, (info) => {
+								
+								let cal = CALENDAR(info.time);
+								let title = cal.getYear() + '-' + cal.getMonth(true) + '-' + cal.getDate(true) + ' ' + cal.getHour(true) + ':' + cal.getMinute(true);
+								
+								historyList.append(DasomEditor.HistoryItem({
+									title : title,
+									on : {
+										doubletap : () => {
+											
+											DasomEditor.IDE.load(path, (content) => {
+												
+												DasomEditor.IDE.openEditor(DasomEditor.CompareEditor({
+													title : '로컬 저장 기록 비교 (현재 - ' + title + ')',
+													path1 : path,
+													content1 : content,
+													content2 : info.content
+												}));
+											});
+										}
+									}
+								}));
+							});
+							
+							self.remove();
+						}
+					}
+				}));
+			}
 		}
 		
 		if (selectedFileItems.length > 0) {
