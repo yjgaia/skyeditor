@@ -17,14 +17,26 @@ DasomEditor.IDE = OBJECT({
 	init : (inner, self) => {
 		
 		let showHomeHandler;
+		
 		let loadHandler;
 		let loadFilesHandler;
 		let saveHandler;
-		let copyHandler;
-		let pasteHandler;
 		let removeHandler;
 		let moveHandler;
 		let getInfoHandler;
+		
+		let ftpNewHandler;
+		let ftpListHandler;
+		let ftpConnectHandler;
+		let ftpLoadHandler;
+		let ftpLoadFilesHandler;
+		let ftpSaveHandler;
+		let ftpRemoveHandler;
+		let ftpMoveHandler;
+		let ftpGetInfoHandler;
+		
+		let copyHandler;
+		let pasteHandler;
 		
 		let workspacePath;
 		
@@ -370,13 +382,14 @@ DasomEditor.IDE = OBJECT({
 										tap : (e) => {
 											
 											let form;
+											let privateKey;
 											let privateKeyInput;
 											
 											SkyDesktop.Confirm({
 												okButtonTitle : '저장',
 												msg : form = UUI.VALID_FORM({
 													errorMsgs : {
-														name : {
+														title : {
 															notEmpty : '사이트 이름을 입력해주세요.'
 														},
 														host : {
@@ -396,8 +409,28 @@ DasomEditor.IDE = OBJECT({
 															border : '1px solid #999',
 															borderRadius : 4
 														},
-														name : 'name',
+														name : 'title',
 														placeholder : '사이트 이름'
+													}), INPUT({
+														style : {
+															marginTop : 10,
+															width : 222,
+															padding : 8,
+															border : '1px solid #999',
+															borderRadius : 4
+														},
+														name : 'host',
+														placeholder : '호스트'
+													}), INPUT({
+														style : {
+															marginTop : 10,
+															width : 222,
+															padding : 8,
+															border : '1px solid #999',
+															borderRadius : 4
+														},
+														name : 'port',
+														placeholder : '포트 번호'
 													}), SELECT({
 														style : {
 															marginTop : 10,
@@ -431,16 +464,6 @@ DasomEditor.IDE = OBJECT({
 															border : '1px solid #999',
 															borderRadius : 4
 														},
-														name : 'host',
-														placeholder : '호스트'
-													}), INPUT({
-														style : {
-															marginTop : 10,
-															width : 222,
-															padding : 8,
-															border : '1px solid #999',
-															borderRadius : 4
-														},
 														name : 'username',
 														placeholder : '로그인 아이디'
 													}), INPUT({
@@ -451,6 +474,7 @@ DasomEditor.IDE = OBJECT({
 															border : '1px solid #999',
 															borderRadius : 4
 														},
+														type : 'password',
 														name : 'password',
 														placeholder : '비밀번호'
 													}), privateKeyInput = DIV({
@@ -469,7 +493,17 @@ DasomEditor.IDE = OBJECT({
 																borderRadius : 4
 															},
 															name : 'privateKey',
-															type : 'file'
+															type : 'file',
+															on : {
+																change : (e) => {
+																	
+																	let fileReader = new FileReader();
+																	fr.readAsText(e.getFiles()[0]);
+																	fileReader.onload = (e) => {
+																		privateKey = e.target.result;
+																	};
+																}
+															}
 														})]
 													})]
 												})
@@ -477,7 +511,7 @@ DasomEditor.IDE = OBJECT({
 												
 												let data = form.getData();
 												
-												if (VALID.notEmpty(data.password) !== true && VALID.notEmpty(data.privateKey) !== true) {
+												if (VALID.notEmpty(data.password) !== true && privateKey === undefined) {
 													
 													SkyDesktop.Alert({
 														msg : '비밀번호를 입력해주세요.'
@@ -488,8 +522,10 @@ DasomEditor.IDE = OBJECT({
 												
 												else {
 													
+													data.privateKey = privateKey;
+													
 													let valid = VALID({
-														name : {
+														title : {
 															notEmpty : true
 														},
 														host : {
@@ -508,7 +544,9 @@ DasomEditor.IDE = OBJECT({
 													}
 													
 													else {
-														
+														ftpNewHandler(data, () => {
+															addFTPItem(data);
+														});
 													}
 												}
 											});
@@ -516,7 +554,7 @@ DasomEditor.IDE = OBJECT({
 											e.stop();
 										}
 									}
-								}), ftpFileTree = SkyDesktop.FileTree(loadAndOpenEditor)]
+								}), ftpFileTree = SkyDesktop.FileTree()]
 							})]
 						})
 					}), SkyDesktop.Tab({
@@ -544,6 +582,32 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params.item
 			
 			fileTree.addItem(params);
+		};
+		
+		let addFTPItem = self.addFTPItem = (info) => {
+			//REQUIRED: info
+			
+			let item;
+			
+			ftpFileTree.addItem({
+				key : COUNT_PROPERTIES(ftpFileTree.getItems()),
+				item : item = DasomEditor.FTPItem(info)
+			});
+			
+			item.on('open', () => {
+				
+				ftpConnectHandler(info, () => {
+					
+					let loadingBar = SkyDesktop.LoadingBar('lime');
+					
+					ftpLoadFilesHandler(info, '.', (folderNames, fileNames) => {
+						
+						loadingBar.done();
+						
+						console.log(folderNames, fileNames);
+					});
+				});
+			});
 		};
 		
 		let getItem = self.getItem = (key) => {
@@ -576,20 +640,39 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params.load
 			//REQUIRED: params.loadFiles
 			//REQUIRED: params.save
-			//REQUIRED: params.copy
-			//REQUIRED: params.paste
 			//REQUIRED: params.remove
 			//REQUIRED: params.move
+			//REQUIRED: params.ftpNew
+			//REQUIRED: params.ftpList
+			//REQUIRED: params.ftpLoad
+			//REQUIRED: params.ftpLoadFiles
+			//REQUIRED: params.ftpSave
+			//REQUIRED: params.ftpRemove
+			//REQUIRED: params.ftpMove
+			//REQUIRED: params.copy
+			//REQUIRED: params.paste
 			
 			showHomeHandler = params.showHome;
+			
 			loadHandler = params.load;
 			loadFilesHandler = params.loadFiles;
 			saveHandler = params.save;
-			copyHandler = params.copy;
-			pasteHandler = params.paste;
 			removeHandler = params.remove;
 			moveHandler = params.move;
 			getInfoHandler = params.getInfo;
+			
+			ftpNewHandler = params.ftpNew;
+			ftpListHandler = params.ftpList;
+			ftpConnectHandler = params.ftpConnect;
+			ftpLoadHandler = params.ftpLoad;
+			ftpLoadFilesHandler = params.ftpLoadFiles;
+			ftpSaveHandler = params.ftpSave;
+			ftpRemoveHandler = params.ftpRemove;
+			ftpMoveHandler = params.ftpMove;
+			ftpGetInfoHandler = params.ftpGetInfo;
+			
+			copyHandler = params.copy;
+			pasteHandler = params.paste;
 			
 			self.appendTo(BODY);
 			

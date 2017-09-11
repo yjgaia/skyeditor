@@ -9,8 +9,11 @@ RUN(() => {
 	let exec = require('child_process').exec;
 	
 	let editorStore = STORE('editorStore');
-	let folderOpenedStore = STORE('folderOpened');
+	let folderOpenedStore = STORE('folderOpenedStore');
+	let ftpInfoStore = STORE('ftpInfoStore');
 	let saveCommandStore = STORE('saveCommandStore');
+	
+	let ftpConnectors = {};
 	
 	let fixPath = (path) => {
 		if (SEP !== '/') {
@@ -166,28 +169,93 @@ RUN(() => {
 			});
 		},
 		
-		ftpSave : (activeTab) => {
+		ftpNew : (info, callback) => {
 			
+			let infos = ftpInfoStore.get('infos');
+			
+			if (infos === undefined) {
+				infos = []
+			}
+			
+			infos.push(info);
+			
+			ftpInfoStore.save({
+				name : 'infos',
+				value : infos
+			});
+			
+			callback();
 		},
 		
-		ftpLoad : (path, handlers) => {
+		ftpConnect : (ftpInfo, callback) => {
 			
+			let ftpConnector = ftpConnectors[ftpInfo.host];
+			
+			if (ftpConnector === undefined) {
+				ftpConnector = ftpConnectors[ftpInfo.host] = DasomEditor.FTPConnector(ftpInfo, callback);
+			} else {
+				callback();
+			}
 		},
 		
-		ftpLoadFiles : (path, callback) => {
+		ftpSave : (ftpInfo, path, content, callback) => {
 			
+			let ftpConnector = ftpConnectors[ftpInfo.host];
+			
+			if (ftpConnector !== undefined) {
+				
+				
+			}
 		},
 		
-		ftpGetInfo : (path, callback) => {
+		ftpLoad : (ftpInfo, path, handlers) => {
 			
+			let ftpConnector = ftpConnectors[ftpInfo.host];
+			
+			if (ftpConnector !== undefined) {
+				
+				
+			}
 		},
 		
-		ftpMove : (from, to, callback) => {
+		ftpLoadFiles : (ftpInfo, path, callback) => {
 			
+			let ftpConnector = ftpConnectors[ftpInfo.host];
+			
+			if (ftpConnector !== undefined) {
+				
+				ftpConnector.loadFiles(path, callback);
+			}
 		},
 		
-		ftpRemove : (path) => {
+		ftpGetInfo : (ftpInfo, path, callback) => {
 			
+			let ftpConnector = ftpConnectors[ftpInfo.host];
+			
+			if (ftpConnector !== undefined) {
+				
+				
+			}
+		},
+		
+		ftpMove : (ftpInfo, from, to, callback) => {
+			
+			let ftpConnector = ftpConnectors[ftpInfo.host];
+			
+			if (ftpConnector !== undefined) {
+				
+				
+			}
+		},
+		
+		ftpRemove : (ftpInfo, path) => {
+			
+			let ftpConnector = ftpConnectors[ftpInfo.host];
+			
+			if (ftpConnector !== undefined) {
+				
+				
+			}
 		},
 		
 		copy : (paths) => {
@@ -676,4 +744,12 @@ RUN(() => {
 		
 		e.stop();
 	});
+	
+	let infos = ftpInfoStore.get('infos');
+	
+	if (infos !== undefined) {
+		EACH(infos, (info) => {
+			DasomEditor.IDE.addFTPItem(info);
+		});
+	}
 });
