@@ -18,6 +18,9 @@ DasomEditor.FileContextMenu = CLASS({
 			
 			self.append(SkyDesktop.ContextMenuItem({
 				title : '열기',
+				icon : IMG({
+					src : DasomEditor.R('icon/open.png')
+				}),
 				on : {
 					tap : () => {
 						
@@ -32,11 +35,14 @@ DasomEditor.FileContextMenu = CLASS({
 						self.remove();
 					}
 				}
-			}))
+			}));
 		}
 		
 		self.append(SkyDesktop.ContextMenuItem({
 			title : '새 파일',
+			icon : IMG({
+				src : SkyDesktop.R('file.png')
+			}),
 			on : {
 				tap : () => {
 					
@@ -54,12 +60,36 @@ DasomEditor.FileContextMenu = CLASS({
 					self.remove();
 				}
 			}
-		}))
+		}));
+		
+		self.append(SkyDesktop.ContextMenuItem({
+			title : '새 폴더',
+			icon : IMG({
+				src : SkyDesktop.R('folder.png')
+			}),
+			on : {
+				tap : () => {
+					
+					SkyDesktop.Prompt('폴더명을 입력해주시기 바랍니다.', (folderName) => {
+						
+						if (folderName.trim() !== '') {
+							
+							DasomEditor.IDE.createFolder(folderPath + '/' + folderName);
+						}
+					});
+					
+					self.remove();
+				}
+			}
+		}));
 		
 		if (selectedFileItems.length > 0) {
 			
 			self.append(SkyDesktop.ContextMenuItem({
 				title : '복사',
+				icon : IMG({
+					src : DasomEditor.R('icon/copy.png')
+				}),
 				on : {
 					tap : () => {
 						
@@ -79,6 +109,9 @@ DasomEditor.FileContextMenu = CLASS({
 		
 		self.append(SkyDesktop.ContextMenuItem({
 			title : '붙여넣기',
+			icon : IMG({
+				src : DasomEditor.R('icon/paste.png')
+			}),
 			on : {
 				tap : () => {
 					
@@ -93,6 +126,9 @@ DasomEditor.FileContextMenu = CLASS({
 			
 			self.append(SkyDesktop.ContextMenuItem({
 				title : '삭제',
+				icon : IMG({
+					src : DasomEditor.R('icon/delete.png')
+				}),
 				on : {
 					tap : () => {
 						
@@ -115,6 +151,9 @@ DasomEditor.FileContextMenu = CLASS({
 			
 			self.append(SkyDesktop.ContextMenuItem({
 				title : '이름 변경',
+				icon : IMG({
+					src : DasomEditor.R('icon/rename.png')
+				}),
 				on : {
 					tap : () => {
 						
@@ -138,6 +177,9 @@ DasomEditor.FileContextMenu = CLASS({
 			
 			self.append(SkyDesktop.ContextMenuItem({
 				title : '파일 정보',
+				icon : IMG({
+					src : DasomEditor.R('icon/info.png')
+				}),
 				on : {
 					tap : () => {
 						
@@ -233,6 +275,9 @@ DasomEditor.FileContextMenu = CLASS({
 				
 				self.append(SkyDesktop.ContextMenuItem({
 					title : '로컬 저장 기록 보기',
+					icon : IMG({
+						src : DasomEditor.R('icon/history.png')
+					}),
 					on : {
 						tap : () => {
 							
@@ -308,6 +353,9 @@ DasomEditor.FileContextMenu = CLASS({
 			
 			self.append(SkyDesktop.ContextMenuItem({
 				title : '검색',
+				icon : IMG({
+					src : DasomEditor.R('icon/search.png')
+				}),
 				on : {
 					tap : () => {
 						
@@ -339,6 +387,9 @@ DasomEditor.FileContextMenu = CLASS({
 				
 				self.append(SkyDesktop.ContextMenuItem({
 					title : '두 파일 비교',
+					icon : IMG({
+						src : DasomEditor.R('icon/compare.png')
+					}),
 					on : {
 						tap : () => {
 							

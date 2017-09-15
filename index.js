@@ -99,18 +99,75 @@ RUN(() => {
 						
 						let command = saveCommandStore.get(extname);
 						
-						if (command !== undefined) {
+						if (command !== undefined && VALID.notEmpty(content) === true) {
 							
-							command = command.replace(/\{\{folder\}\}/g, path.substring(0, path.lastIndexOf('/')));
+							let folderPath = path.substring(0, path.lastIndexOf('/'));
+							
+							command = command.replace(/\{\{workspace\}\}/g, DasomEditor.IDE.getWorkspacePath());
+							command = command.replace(/\{\{folder\}\}/g, folderPath);
 							command = command.replace(/\{\{path\}\}/g, path);
 							
 							EACH(command.split('\n'), (command) => {
 								
 								console.log('저장 시 명령을 실행합니다: ' + command);
 								
-								exec(command, (error, stdout) => {
+								exec(command, {
+									cwd : folderPath
+								}, (error, stdout, stderr) => {
 									if (error !== TO_DELETE) {
-										SHOW_ERROR('저장 시 명령 실행', stdout);
+										
+										let message = stdout;
+										if (message === '') {
+											message = stderr;
+										}
+										
+										SHOW_ERROR('저장 시 명령 실행', message);
+										
+										let tab;
+										
+										DasomEditor.IDE.addTab(tab = SkyDesktop.Tab({
+											style : {
+												position : 'relative'
+											},
+											size : 30,
+											c : [UUI.ICON_BUTTON({
+												style : {
+													position : 'absolute',
+													right : 10,
+													top : 8,
+													color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
+													zIndex : 999
+												},
+												icon : FontAwesome.GetIcon('times'),
+												on : {
+													mouseover : (e, self) => {
+														self.addStyle({
+															color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
+														});
+													},
+													mouseout : (e, self) => {
+														self.addStyle({
+															color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
+														});
+													},
+													tap : () => {
+														tab.remove();
+													}
+												}
+											}), H2({
+												style : {
+													padding : 10
+												},
+												c : '저장 시 명령 실행'
+											}), P({
+												style : {
+													padding : 10,
+													paddingTop : 0,
+													color : 'red'
+												},
+												c : '오류가 발생했습니다. 오류 메시지: ' + message
+											})]
+										}));
 									}
 								});
 							});
@@ -120,6 +177,11 @@ RUN(() => {
 					});
 				};
 			}]);
+		},
+		
+		createFolder : (path) => {
+			
+			CREATE_FOLDER(path);
 		},
 		
 		load : (path, handlers) => {
@@ -709,6 +771,9 @@ RUN(() => {
 				
 				self.append(SkyDesktop.ContextMenuItem({
 					title : '탐색기에서 보기',
+					icon : IMG({
+						src : DasomEditor.R('icon/explorer.png')
+					}),
 					on : {
 						tap : () => {
 							

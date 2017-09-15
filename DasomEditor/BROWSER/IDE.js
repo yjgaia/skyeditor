@@ -21,6 +21,7 @@ DasomEditor.IDE = OBJECT({
 		let loadHandler;
 		let loadFilesHandler;
 		let saveHandler;
+		let createFolderHandler;
 		let removeHandler;
 		let moveHandler;
 		let getInfoHandler;
@@ -31,6 +32,7 @@ DasomEditor.IDE = OBJECT({
 		let ftpLoadHandler;
 		let ftpLoadFilesHandler;
 		let ftpSaveHandler;
+		let fptCreateFolderHandler;
 		let ftpRemoveHandler;
 		let ftpMoveHandler;
 		let ftpGetInfoHandler;
@@ -640,6 +642,7 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params.load
 			//REQUIRED: params.loadFiles
 			//REQUIRED: params.save
+			//REQUIRED: params.createFolder
 			//REQUIRED: params.remove
 			//REQUIRED: params.move
 			//REQUIRED: params.ftpNew
@@ -647,6 +650,7 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params.ftpLoad
 			//REQUIRED: params.ftpLoadFiles
 			//REQUIRED: params.ftpSave
+			//REQUIRED: params.ftpCreateFolder
 			//REQUIRED: params.ftpRemove
 			//REQUIRED: params.ftpMove
 			//REQUIRED: params.copy
@@ -657,6 +661,7 @@ DasomEditor.IDE = OBJECT({
 			loadHandler = params.load;
 			loadFilesHandler = params.loadFiles;
 			saveHandler = params.save;
+			createFolderHandler = params.createFolder;
 			removeHandler = params.remove;
 			moveHandler = params.move;
 			getInfoHandler = params.getInfo;
@@ -667,6 +672,7 @@ DasomEditor.IDE = OBJECT({
 			ftpLoadHandler = params.ftpLoad;
 			ftpLoadFilesHandler = params.ftpLoadFiles;
 			ftpSaveHandler = params.ftpSave;
+			ftpCreateFolderHandler = params.ftpCreateFolder;
 			ftpRemoveHandler = params.ftpRemove;
 			ftpMoveHandler = params.ftpMove;
 			ftpGetInfoHandler = params.ftpGetInfo;
@@ -734,7 +740,7 @@ DasomEditor.IDE = OBJECT({
 					history = [];
 				}
 				
-				if (history[history.length - 1].content !== content) {
+				if (history.length > 0 && history[history.length - 1].content !== content) {
 					
 					history.push({
 						time : new Date(),
@@ -796,6 +802,12 @@ DasomEditor.IDE = OBJECT({
 			}
 		};
 		
+		let createFolder = self.createFolder = (path) => {
+			//REQUIRED: path
+			
+			createFolderHandler(path);
+		};
+		
 		let copy = self.copy = (paths) => {
 			//REQUIRED: paths
 			
@@ -833,35 +845,32 @@ DasomEditor.IDE = OBJECT({
 			let from = params.from;
 			let to = params.to;
 			
-			if (to.indexOf(from) === -1) {
+			moveHandler(from, to, () => {
 				
-				moveHandler(from, to, () => {
-					
-					let openedEditor = getOpenedEditor(from);
-					if (openedEditor !== undefined) {
-						openedEditor.setPath(to);
-						openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
-					}
-					
-					let selectedItem = fileTree.getItem(to);
-					
-					if (selectedItem === undefined) {
-						EACH(fileTree.getItems(), (item) => {
-							if (item.checkIsInstanceOf(SkyDesktop.Folder) === true) {
-								let _item = item.getItem(to);
-								if (_item !== undefined) {
-									selectedItem = _item;
-									return false;
-								}
+				let openedEditor = getOpenedEditor(from);
+				if (openedEditor !== undefined) {
+					openedEditor.setPath(to);
+					openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
+				}
+				
+				let selectedItem = fileTree.getItem(to);
+				
+				if (selectedItem === undefined) {
+					EACH(fileTree.getItems(), (item) => {
+						if (item.checkIsInstanceOf(SkyDesktop.Folder) === true) {
+							let _item = item.getItem(to);
+							if (_item !== undefined) {
+								selectedItem = _item;
+								return false;
 							}
-						});
-					}
-					
-					if (selectedItem !== undefined) {
-						selectedItem.select();
-					}
-				});
-			}
+						}
+					});
+				}
+				
+				if (selectedItem !== undefined) {
+					selectedItem.select();
+				}
+			});
 		};
 		
 		let getInfo = self.getInfo = (path, callback) => {
@@ -1063,7 +1072,7 @@ DasomEditor.IDE = OBJECT({
 			// 열기
 			if (e.getKey() === 'Enter') {
 				
-				if (selectedFileItems.length > 0) {
+				if (UUI.CONFIRM.getCount() === 0 && selectedFileItems.length > 0) {
 					
 					EACH(selectedFileItems, (selectedFileItem) => {
 						if (selectedFileItem.checkIsInstanceOf(DasomEditor.Folder) === true) {
