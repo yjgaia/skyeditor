@@ -1,78 +1,86 @@
 DasomEditor.FTPConnector = CLASS({
 
-	init : (inner, self, info, callback) => {
-		//REQUIRED: info
-		//REQUIRED: info.title
-		//REQUIRED: info.host
-		//REQUIRED: info.port
-		//REQUIRED: info.protocol
-		//REQUIRED: info.username
-		//REQUIRED: info.password
-		//REQUIRED: info.privateKey
-		//REQUIRED: callback
+	init : (inner, self, ftpInfo, handlers) => {
+		//REQUIRED: ftpInfo
+		//REQUIRED: ftpInfo.title
+		//REQUIRED: ftpInfo.host
+		//REQUIRED: ftpInfo.port
+		//REQUIRED: ftpInfo.protocol
+		//REQUIRED: ftpInfo.username
+		//REQUIRED: ftpInfo.password
+		//REQUIRED: ftpInfo.privateKey
+		//REQUIRED: handlers
+		//REQUIRED: handlers.error
+		//REQUIRED: handlers.suceess
 		
-		let title = info.title;
-		let protocol = info.protocol;
+		let title = ftpInfo.title;
+		let protocol = ftpInfo.protocol;
+		
+		let errorHandler = handlers.error;
+		let callback = handlers.success;
+		
 		let ftp;
 		
-		let loadingBar = SkyDesktop.LoadingBar('lime');
-		
-		let connectionErrorHandler = () => {
-			
-			loadingBar.done();
-			
-			SkyDesktop.Alert({
-				msg : title + ' 접속에 실패하였습니다.'
-			});
-		};
-		
 		if (protocol === 'sftp') {
-			ftp = UFTP.SFTP(info, {
-				error : connectionErrorHandler,
+			ftp = UFTP.SFTP(ftpInfo, {
+				error : errorHandler,
 				success : () => {
-					loadingBar.done();
 					callback();
 				}
 			});
 		}
 		
 		else {
-			ftp = UFTP.FTP(info, {
-				error : connectionErrorHandler,
+			ftp = UFTP.FTP(ftpInfo, {
+				error : errorHandler,
 				success : () => {
-					loadingBar.done();
 					callback();
 				}
 			});
 		}
 		
-		let loadErrorHandler = (path) => {
+		let loadFiles = self.loadFiles = (path, handlers) => {
+			//REQUIRED: path
+			//REQUIRED: handlers
+			//REQUIRED: handlers.error
+			//REQUIRED: handlers.suceess
 			
-			SkyDesktop.Alert({
-				msg : path + '를 불러오는데 실패하였습니다.'
-			});
-		};
-		
-		let loadFiles = self.loadFiles = (path, callback) => {
-			
-			let loadingBar = SkyDesktop.LoadingBar('lime');
+			let errorHandler = handlers.error;
+			let callback = handlers.success;
 			
 			ftp.findFolderNames(path, {
 				error : () => {
-					loadingBar.done();
-					loadErrorHandler();
+					errorHandler();
 				},
 				success : (folderNames) => {
 					
 					ftp.findFileNames(path, {
 						error : () => {
-							loadingBar.done();
-							loadErrorHandler();
+							errorHandler();
 						},
 						success : (fileNames) => {
 							callback(folderNames, fileNames);
 						}
 					});
+				}
+			});
+		};
+		
+		let load = self.load = (path, handlers) => {
+			//REQUIRED: path
+			//REQUIRED: handlers
+			//REQUIRED: handlers.error
+			//REQUIRED: handlers.suceess
+			
+			let errorHandler = handlers.error;
+			let callback = handlers.success;
+			
+			ftp.readFile(path, {
+				error : () => {
+					errorHandler();
+				},
+				success : (buffer) => {
+					callback(buffer.toString());
 				}
 			});
 		};

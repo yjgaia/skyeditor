@@ -586,28 +586,35 @@ DasomEditor.IDE = OBJECT({
 			fileTree.addItem(params);
 		};
 		
-		let addFTPItem = self.addFTPItem = (info) => {
-			//REQUIRED: info
+		let addFTPItem = self.addFTPItem = (ftpInfo) => {
+			//REQUIRED: ftpInfo
 			
 			let item;
 			
 			ftpFileTree.addItem({
 				key : COUNT_PROPERTIES(ftpFileTree.getItems()),
-				item : item = DasomEditor.FTPItem(info)
+				item : item = DasomEditor.FTPItem(ftpInfo)
 			});
 			
 			item.on('open', () => {
 				
-				ftpConnectHandler(info, () => {
-					
-					let loadingBar = SkyDesktop.LoadingBar('lime');
-					
-					ftpLoadFilesHandler(info, '.', (folderNames, fileNames) => {
-						
+				let loadingBar = SkyDesktop.LoadingBar('lime');
+				
+				ftpConnectHandler(ftpInfo, {
+					error : () => {
 						loadingBar.done();
 						
-						console.log(folderNames, fileNames);
-					});
+						SkyDesktop.Alert({
+							msg : ftpInfo.title + ' 접속에 실패하였습니다.'
+						});
+						
+						item.close();
+					},
+					success : () => {
+						loadingBar.done();
+						
+						ftpLoadFiles(ftpInfo, item, '.');
+					}
 				});
 			});
 		};
@@ -878,6 +885,80 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: callback
 			
 			getInfoHandler(path, callback);
+		};
+		
+		let ftpLoadFiles = (ftpInfo, parentItem, path) => {
+			
+			let loadingBar = SkyDesktop.LoadingBar('lime');
+			
+			ftpLoadFilesHandler(ftpInfo, path, {
+				error : () => {
+					loadingBar.done();
+					
+					SkyDesktop.Alert({
+						msg : path + '를 불러오는데 실패하였습니다.'
+					});
+				},
+				success : (folderNames, fileNames) => {
+					loadingBar.done();
+					
+					EACH(folderNames, (folderName) => {
+						
+						let item;
+						
+						parentItem.addItem({
+							key : path + '/' + folderName,
+							item : item = DasomEditor.Folder({
+								path : path,
+								title : folderName,
+								on : {
+									open : () => {
+										ftpLoadFiles(ftpInfo, item, path + '/' + folderName);
+									}
+								}
+							})
+						});
+					});
+					
+					EACH(fileNames, (fileName) => {
+						
+						parentItem.addItem({
+							key : path + '/' + fileName,
+							item : DasomEditor.File({
+								path : path + '/' + fileName,
+								title : fileName,
+								on : {
+									doubletap : () => {
+										
+										let loadingBar = SkyDesktop.LoadingBar('lime');
+										
+										ftpLoadHandler(ftpInfo, path + '/' + fileName, {
+											
+											error : () => {
+												loadingBar.done();
+												
+												SkyDesktop.Alert({
+													msg : fileName + '를 여는데 실패하였습니다.'
+												});
+											},
+											
+											success : (content) => {
+												loadingBar.done();
+												
+												openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+													title : fileName,
+													path : path + '/' + fileName,
+													content : content
+												}));
+											}
+										});
+									}
+								}
+							})
+						});
+					});
+				}
+			});
 		};
 		
 		let getOpenedEditor = self.getOpenedEditor = (path) => {

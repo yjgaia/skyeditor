@@ -20,8 +20,8 @@ DasomEditor.FTPItem = CLASS({
 		};
 	},
 	
-	init : (inner, self, info) => {
-		//REQUIRED: info
+	init : (inner, self, ftpInfo) => {
+		//REQUIRED: ftpInfo
 		
 		let openListButton;
 		self.append(openListButton = UUI.ICON_BUTTON({
@@ -56,7 +56,7 @@ DasomEditor.FTPItem = CLASS({
 			}
 		}));
 		
-		let list = SkyDesktop.FileTree({
+		let list = UUI.LIST({
 			style : {
 				marginLeft : 20
 			}

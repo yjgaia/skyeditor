@@ -6,11 +6,17 @@ DasomEditor.Editor = CLASS({
 
 	init : (inner, self, params) => {
 		//REQUIRED: params
+		//OPTIONAL: params.isForFTP
 		//REQUIRED: params.path
 		//OPTIONAL: params.content
 		
+		let isForFTP = params.isForFTP;
 		let path = params.path;
 		let content = params.content;
+		
+		let checkIsForFTP = self.checkIsForFTP = () => {
+			return isForFTP;
+		};
 		
 		let getPath = self.getPath = () => {
 			return path;

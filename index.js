@@ -231,7 +231,7 @@ RUN(() => {
 			});
 		},
 		
-		ftpNew : (info, callback) => {
+		ftpNew : (ftpInfo, callback) => {
 			
 			let infos = ftpInfoStore.get('infos');
 			
@@ -239,7 +239,7 @@ RUN(() => {
 				infos = []
 			}
 			
-			infos.push(info);
+			infos.push(ftpInfo);
 			
 			ftpInfoStore.save({
 				name : 'infos',
@@ -249,14 +249,16 @@ RUN(() => {
 			callback();
 		},
 		
-		ftpConnect : (ftpInfo, callback) => {
+		ftpConnect : (ftpInfo, handlers) => {
 			
 			let ftpConnector = ftpConnectors[ftpInfo.host];
 			
 			if (ftpConnector === undefined) {
-				ftpConnector = ftpConnectors[ftpInfo.host] = DasomEditor.FTPConnector(ftpInfo, callback);
-			} else {
-				callback();
+				ftpConnector = ftpConnectors[ftpInfo.host] = DasomEditor.FTPConnector(ftpInfo, handlers);
+			}
+			
+			else {
+				handlers.success();
 			}
 		},
 		
@@ -276,17 +278,17 @@ RUN(() => {
 			
 			if (ftpConnector !== undefined) {
 				
-				
+				ftpConnector.load(path, handlers);
 			}
 		},
 		
-		ftpLoadFiles : (ftpInfo, path, callback) => {
+		ftpLoadFiles : (ftpInfo, path, handlers) => {
 			
 			let ftpConnector = ftpConnectors[ftpInfo.host];
 			
 			if (ftpConnector !== undefined) {
 				
-				ftpConnector.loadFiles(path, callback);
+				ftpConnector.loadFiles(path, handlers);
 			}
 		},
 		
