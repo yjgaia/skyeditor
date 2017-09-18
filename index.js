@@ -502,6 +502,8 @@ RUN(() => {
 						folderOpenedStore.remove(path);
 						
 						fileWatcher.close();
+						
+						folder.removeAllItems();
 					}
 				}
 			});

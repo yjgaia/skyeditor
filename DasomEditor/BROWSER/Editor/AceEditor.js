@@ -56,6 +56,10 @@ DasomEditor.AceEditor = CLASS({
 			}
 		});
 		
+		self.on('active', () => {
+		    aceEditor.focus();
+		});
+		
 		if (content !== undefined) {
 			aceEditor.setValue(content, -1);
 		}
