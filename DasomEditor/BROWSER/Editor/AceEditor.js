@@ -27,6 +27,7 @@ DasomEditor.AceEditor = CLASS({
 		if (mode !== undefined) {
 			aceEditor.getSession().setMode('ace/mode/' + mode);
 		}
+		aceEditor.getSession().setUseSoftTabs(false);
 		aceEditor.getSession().setUseWrapMode(true);
 		aceEditor.getSession().on('changeScrollTop', () => {
 			self.fireEvent('scroll');
