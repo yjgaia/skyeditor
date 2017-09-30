@@ -28,9 +28,11 @@ DasomEditor.AceEditor = CLASS({
 			aceEditor.getSession().setMode('ace/mode/' + mode);
 		}
 		aceEditor.getSession().setUseSoftTabs(false);
-		aceEditor.getSession().setUseWrapMode(true);
 		aceEditor.getSession().on('changeScrollTop', () => {
 			self.fireEvent('scroll');
+		});
+		aceEditor.getSession().on('change', () => {
+			self.fireEvent('change');
 		});
 		aceEditor.renderer.setScrollMargin(0, 300);
 		aceEditor.commands.addCommand({
@@ -47,7 +49,7 @@ DasomEditor.AceEditor = CLASS({
 					
 					let kb = editor.searchBox.$searchBarKb;
 					
-					let command = kb.commands['Ctrl-f|Command-f|Ctrl-H|Command-Option-F'];
+					let command = kb.commands['Ctrl-f|Commasnd-f|Ctrl-H|Command-Option-F'];
 					
 					if (command.bindKey.indexOf('Ctrl-R') === -1) {
 						command.bindKey += '|Ctrl-R';

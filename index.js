@@ -2,6 +2,7 @@ RUN(() => {
 	
 	const {shell, clipboard} = require('electron');
 	const {dialog} = require('electron').remote;
+	const ipcRenderer = require('electron').ipcRenderer;
 	
 	const FS = require('fs');
 	const SEP = require('path').sep;
@@ -461,7 +462,7 @@ RUN(() => {
 							
 							let opendEditor = DasomEditor.IDE.getOpenedEditor(path + '/' + fileName);
 							if (opendEditor !== undefined) {
-								//TODO: 저장되지 않은 에디터로 설정
+								opendEditor.remove();
 							}
 						}
 					});
@@ -751,6 +752,22 @@ RUN(() => {
 				
 				// 폴더 선택 가능하도록
 				fileInput.getEl().setAttribute('webkitDirectory', 'webkitDirectory');
+			}
+		}
+	}));
+	
+	DasomEditor.IDE.addToolbarButton(SkyDesktop.ToolbarButton({
+		icon : IMG({
+			src : DasomEditor.R('icon/devtool.png')
+		}),
+		title : '개발자 도구',
+		on : {
+			tap : () => {
+				ipcRenderer.send('toggleDevTool');
+				
+				DELAY(0.2, () => {
+					window.dispatchEvent(new Event('resize'));
+				});
 			}
 		}
 	}));

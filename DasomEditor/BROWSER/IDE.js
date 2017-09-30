@@ -269,7 +269,6 @@ DasomEditor.IDE = OBJECT({
 			if (tab.checkIsInstanceOf(DasomEditor.Editor) === true && tab.checkIsInstanceOf(DasomEditor.CompareEditor) !== true) {
 				
 				tab.on('scroll', RAR((e) => {
-					
 					editorOpenedStore.save({
 						name : tab.getPath(),
 						value : tab.getScrollTop()
@@ -812,7 +811,6 @@ DasomEditor.IDE = OBJECT({
 					activeTab.setPath(path);
 					
 					let fileName = path.substring(path.lastIndexOf('/') + 1);
-					activeTab.setTitle(fileName);
 					
 					let extname = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
 					
@@ -822,6 +820,14 @@ DasomEditor.IDE = OBJECT({
 					}
 					
 					SkyDesktop.Noti('저장하였습니다.');
+					
+					activeTab.setOriginContent(activeTab.getContent());
+					activeTab.setTitle(fileName);
+					
+					editorOpenedStore.save({
+						name : activeTab.getPath(),
+						value : activeTab.getScrollTop()
+					});
 				});
 			}
 		};
@@ -1124,7 +1130,9 @@ DasomEditor.IDE = OBJECT({
 				else if (key === 'w') {
 					
 					if (editorGroup.getActiveTab() !== undefined) {
-						editorGroup.getActiveTab().remove();
+						if (editorGroup.getActiveTab().fireEvent('close') !== false) {
+							editorGroup.getActiveTab().remove();
+						}
 					}
 				}
 				
@@ -1143,6 +1151,22 @@ DasomEditor.IDE = OBJECT({
 				else if (key === 'h') {
 					if (selectedFileItems.length > 0) {
 						search();
+					}
+				}
+				
+				// 좌측 탭으로 이동
+				else if (e.getKey() === 'ArrowLeft') {
+					let activeTabIndex = editorGroup.getActiveTabIndex();
+					if (activeTabIndex > 0) {
+						editorGroup.activeTab(activeTabIndex - 1);
+					}
+				}
+				
+				// 우측 탭으로 이동
+				else if (e.getKey() === 'ArrowRight') {
+					let activeTabIndex = editorGroup.getActiveTabIndex();
+					if (activeTabIndex < editorGroup.getAllTabs().length - 1) {
+						editorGroup.activeTab(activeTabIndex + 1);
 					}
 				}
 			}
@@ -1456,7 +1480,8 @@ DasomEditor.IDE = OBJECT({
 					
 					addTab(tab = SkyDesktop.Tab({
 						style : {
-							position : 'relative'
+							position : 'relative',
+							overflow : 'hidden'
 						},
 						size : 30,
 						c : [UUI.ICON_BUTTON({
@@ -1481,6 +1506,8 @@ DasomEditor.IDE = OBJECT({
 								},
 								tap : () => {
 									tab.remove();
+									
+									window.dispatchEvent(new Event('resize'));
 								}
 							}
 						}), A({
@@ -1528,6 +1555,12 @@ DasomEditor.IDE = OBJECT({
 							}
 						}), fileTree = SkyDesktop.FileTree(loadAndOpenEditor)]
 					}));
+					
+					fileTree.addStyle({
+						height : '100%',
+						overflowY : 'scroll',
+						paddingBottom : 0
+					});
 					
 					let isFirst = true;
 					
@@ -1588,7 +1621,7 @@ DasomEditor.IDE = OBJECT({
 												line : info.line.trim(),
 												on : {
 													doubletap : () => {
-														loadAndOpenEditor(path, (info.lineNumber - 1) * 17);
+														loadAndOpenEditor(path, (info.lineNumber - 1) * 16);
 													}
 												}
 											})

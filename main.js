@@ -1,8 +1,10 @@
 require('uppercase-core');
 
 const {app, BrowserWindow} = require('electron');
-const path = require('path');
-const url = require('url');
+const ipcMain = require('electron').ipcMain;
+
+const Path = require('path');
+const URL = require('url');
 
 // 윈도우 객체를 전역에 유지합니다. 만약 이렇게 하지 않으면 자바스크립트 GC가 일어날 때 창이 멋대로 닫혀버립니다.
 let win;
@@ -32,23 +34,26 @@ createWindow = () => {
 		icon : __dirname + '/DasomEditor/R/favicon.ico'
 	});
 	
+	ipcMain.on('toggleDevTool', () => {
+		if (win.webContents.isDevToolsOpened() !== true) {
+			win.webContents.openDevTools();
+		} else {
+			win.webContents.closeDevTools();
+		}
+	});
+	
 	if (config.isMaximized === true) {
 		win.maximize();
 	}
 
 	// 그리고 현재 디렉터리의 index.html을 로드합니다.
-	win.loadURL(url.format({
-		pathname : path.join(__dirname, 'index.html'),
+	win.loadURL(URL.format({
+		pathname : Path.join(__dirname, 'index.html'),
 		protocol : 'file:',
 		slashes : true
 	}));
 	
 	win.setMenu(null);
-	
-	// 개발자 도구를 엽니다.
-	if (config.isDevMode === true) {
-		win.webContents.openDevTools();
-	}
 	
 	let setConfig = () => {
 		
