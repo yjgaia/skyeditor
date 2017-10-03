@@ -6,10 +6,6 @@ DasomEditorServer.Home = CLASS({
 
 	init : (inner, self) => {
 		
-		let ide = DasomEditor.IDE().appendTo(BODY);
-		
-		inner.on('close', () => {
-			ide.remove();
-		});
+		DasomEditor.IDE.init({});
 	}
 });

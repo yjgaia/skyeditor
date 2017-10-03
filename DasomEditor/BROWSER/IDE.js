@@ -32,7 +32,7 @@ DasomEditor.IDE = OBJECT({
 		let ftpLoadHandler;
 		let ftpLoadFilesHandler;
 		let ftpSaveHandler;
-		let fptCreateFolderHandler;
+		let ftpCreateFolderHandler;
 		let ftpRemoveHandler;
 		let ftpMoveHandler;
 		let ftpGetInfoHandler;
@@ -314,6 +314,7 @@ DasomEditor.IDE = OBJECT({
 		let tabList;
 		
 		let leftTab;
+		let fileTreeTab;
 		let editorGroup;
 		self.append(TR({
 			c : TD({
@@ -322,15 +323,7 @@ DasomEditor.IDE = OBJECT({
 						size : 23,
 						c : SkyDesktop.TabGroup({
 							activeTabIndex : 0,
-							tabs : [SkyDesktop.Tab({
-                                style : {
-                                    onDisplayResize : () => {
-                                        return leftTab !== undefined ? {
-                                            width : leftTab.getWidth() - 1,
-                                            overflowX : 'auto'
-                                        } : {};
-                                    }
-                                },
+							tabs : [fileTreeTab = SkyDesktop.Tab({
 								isCannotClose : true,
 								icon : IMG({
 									src : DasomEditor.R('icon/workspace.png')
@@ -593,6 +586,15 @@ DasomEditor.IDE = OBJECT({
 				})
 			})
 		}));
+		
+		EVENT('resize', () => {
+			DELAY(() => {
+				fileTreeTab.addStyle({
+					width : leftTab.getWidth() - 1,
+					overflowX : 'auto'
+				});
+			});
+		});
 		
 		let addItem = self.addItem = (params) => {
 			//REQUIRED: params

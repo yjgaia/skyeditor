@@ -10,7 +10,8 @@ DasomEditor.FoundLine = CLASS({
 			style : {
 				marginLeft : 20,
 				padding : '2px 5px',
-				cursor : 'default'
+				cursor : 'default',
+				whiteSpace : 'nowrap'
 			},
 			icon : IMG({
 				src : DasomEditor.R('icon/found-line.png')

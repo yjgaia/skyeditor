@@ -43,7 +43,7 @@ DasomEditor.AceEditor = CLASS({
 			},
 			exec : (editor) => {
 				
-				require('ace/config').loadModule('ace/ext/searchbox', (e) => {
+				ace.config.loadModule('ace/ext/searchbox', (e) => {
 					
 					e.Search(editor, true);
 					
@@ -51,13 +51,14 @@ DasomEditor.AceEditor = CLASS({
 					
 					let command = kb.commands['Ctrl-f|Commasnd-f|Ctrl-H|Command-Option-F'];
 					
-					if (command.bindKey.indexOf('Ctrl-R') === -1) {
+					if (command !== undefined && command.bindKey.indexOf('Ctrl-R') === -1) {
 						command.bindKey += '|Ctrl-R';
 						kb.addCommand(command);
 					}
 				});
 			}
 		});
+		aceEditor.$blockScrolling = Infinity;
 		
 		self.on('active', () => {
 		    aceEditor.focus();
@@ -95,6 +96,10 @@ DasomEditor.AceEditor = CLASS({
 		
 		let getEditor = inner.getEditor = () => {
 			return editor;
+		};
+		
+		let getAceEditor = inner.getAceEditor = () => {
+			return aceEditor;
 		};
 	}
 });
