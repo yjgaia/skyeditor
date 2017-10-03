@@ -174,7 +174,7 @@ DasomEditor.IDE = OBJECT({
 											borderRadius : 4,
 											textAlign : 'left',
 											onDisplayResize : (width, height) => {
-							
+												
 												if (height > 500) {
 													return {
 														height : 300

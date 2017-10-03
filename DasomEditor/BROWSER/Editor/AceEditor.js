@@ -92,5 +92,9 @@ DasomEditor.AceEditor = CLASS({
 				return aceEditor.getValue();
 			};
 		});
+		
+		let getEditor = inner.getEditor = () => {
+			return editor;
+		};
 	}
 });

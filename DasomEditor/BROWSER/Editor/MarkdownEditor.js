@@ -21,6 +21,23 @@ DasomEditor.MarkdownEditor = CLASS((cls) => {
 				mode : 'markdown',
 				icon : getIcon()
 			}
+		},
+		
+		init : (inner, self) => {
+			
+			let editor = inner.getEditor();
+			
+			editor.addStyle({
+				width : '50%'
+			});
+			
+			let preview;
+			
+			self.append(preview = DIV({
+				style : {
+					width : '50%'
+				}
+			}));
 		}
 	};
 });
