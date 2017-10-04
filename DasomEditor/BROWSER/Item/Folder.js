@@ -162,5 +162,9 @@ DasomEditor.Folder = CLASS({
 				return selectedItem;
 			};
 		});
+		
+		UANI.FADE_IN({
+			node : self
+		});
 	}
 });

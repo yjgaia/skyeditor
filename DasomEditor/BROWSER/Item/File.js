@@ -148,5 +148,9 @@ DasomEditor.File = CLASS({
 			checkControlKeyupEvent.remove();
 			checkControlKeyupEvent = undefined;
 		});
+		
+		UANI.FADE_IN({
+			node : self
+		});
 	}
 });
