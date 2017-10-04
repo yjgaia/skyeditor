@@ -323,16 +323,16 @@ RUN(() => {
 			}
 		},
 		
-		copy : (paths) => {
+		copy : (pathInfos) => {
 			
 			clipboard.writeText(STRINGIFY({
-				paths : paths
+				pathInfos : pathInfos
 			}));
 		},
 		
-		paste : (folderPath) => {
+		paste : (ftpInfo, folderPath) => {
 			
-			let clipboardPaths;
+			let clipboardPathInfos;
 			let clipboardPath = clipboard.read('public.file-url');
 			
 			if (VALID.notEmpty(clipboardPath) !== true) {
@@ -343,77 +343,93 @@ RUN(() => {
 			}
 			
 			if (VALID.notEmpty(clipboardPath) === true) {
-				clipboardPaths = [clipboardPath];
+				clipboardPathInfos = [{
+					path : clipboardPath
+				}];
 			}
 			
 			else {
 				let info = PARSE_STR(clipboard.readText());
-				if (info !== undefined && info.paths !== undefined) {
-					clipboardPaths = info.paths;
+				if (info !== undefined && info.pathInfos !== undefined) {
+					clipboardPathInfos = info.pathInfos;
 				}
 			}
 			
-			EACH(clipboardPaths, (clipboardPath) => {
+			if (ftpInfo !== undefined) {
 				
-				clipboardPath = fixPath(clipboardPath);
+			}
+			
+			else {
 				
-				let fileName = clipboardPath.substring(clipboardPath.lastIndexOf('/') + 1);
-				
-				RUN((f) => {
+				EACH(clipboardPathInfos, (clipboardPathInfo) => {
 					
-					CHECK_FILE_EXISTS(folderPath + '/' + fileName, (isExists) => {
+					if (clipboardPathInfo.ftpInfo !== undefined) {
 						
-						if (isExists === true) {
-							
-							let extname = '';
-							let index = fileName.lastIndexOf('.');
-							
-							if (index !== -1) {
-								extname = fileName.substring(index);
-								fileName = fileName.substring(0, index);
-							}
-							
-							fileName = fileName + ' (2)' + extname;
-							
-							f();
-						}
+					}
+					
+					else {
 						
-						else {
+						let path = fixPath(clipboardPathInfo.path);
+						
+						let fileName = path.substring(path.lastIndexOf('/') + 1);
+						
+						RUN((f) => {
 							
-							CHECK_IS_FOLDER(clipboardPath, (isFolder) => {
+							CHECK_FILE_EXISTS(folderPath + '/' + fileName, (isExists) => {
 								
-								// 폴더 복사
-								if (isFolder === true) {
+								if (isExists === true) {
 									
-									COPY_FOLDER({
-										from : clipboardPath,
-										to : folderPath + '/' + fileName
-									});
+									let extname = '';
+									let index = fileName.lastIndexOf('.');
+									
+									if (index !== -1) {
+										extname = fileName.substring(index);
+										fileName = fileName.substring(0, index);
+									}
+									
+									fileName = fileName + ' (2)' + extname;
+									
+									f();
 								}
 								
-								// 파일 복사
 								else {
 									
-									READ_FILE(clipboardPath, {
-										notExists : () => {
-											// ignore.
-										},
-										success : (buffer) => {
+									CHECK_IS_FOLDER(path, (isFolder) => {
+										
+										// 폴더 복사
+										if (isFolder === true) {
 											
-											let content = buffer.toString();
+											COPY_FOLDER({
+												from : path,
+												to : folderPath + '/' + fileName
+											});
+										}
+										
+										// 파일 복사
+										else {
 											
-											WRITE_FILE({
-												path : folderPath + '/' + fileName,
-												content : content
+											READ_FILE(path, {
+												notExists : () => {
+													// ignore.
+												},
+												success : (buffer) => {
+													
+													let content = buffer.toString();
+													
+													WRITE_FILE({
+														path : folderPath + '/' + fileName,
+														content : content
+													});
+												}
 											});
 										}
 									});
 								}
 							});
-						}
-					});
+						});
+					}
 				});
-			});
+			}
 		}
 	});
 	

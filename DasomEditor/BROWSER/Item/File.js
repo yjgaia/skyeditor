@@ -6,7 +6,10 @@ DasomEditor.File = CLASS({
 
 	init : (inner, self, params) => {
 		//REQUIRED: params
+		//OPTIONAL: params.ftpInfo
 		//REQUIRED: params.title
+		
+		let ftpInfo = params.ftpInfo;
 		
 		let title = params.title;
 		
@@ -134,6 +137,10 @@ DasomEditor.File = CLASS({
 			}
 		});
 		
+		let getFTPInfo = self.getFTPInfo = () => {
+			return ftpInfo;
+		};
+		
 		self.on('remove', () => {
 			
 			touchmoveEvent.remove();
@@ -147,10 +154,6 @@ DasomEditor.File = CLASS({
 			
 			checkControlKeyupEvent.remove();
 			checkControlKeyupEvent = undefined;
-		});
-		
-		UANI.FADE_IN({
-			node : self
 		});
 	}
 });

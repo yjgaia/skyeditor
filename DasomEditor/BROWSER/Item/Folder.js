@@ -4,7 +4,11 @@ DasomEditor.Folder = CLASS({
 		return SkyDesktop.Folder;
 	},
 
-	init : (inner, self) => {
+	init : (inner, self, params) => {
+		//REQUIRED: params
+		//OPTIONAL: params.ftpInfo
+		
+		let ftpInfo = params.ftpInfo;
 		
 		let path = self.getPath();
 		let folderPath = self.getPath();
@@ -163,8 +167,8 @@ DasomEditor.Folder = CLASS({
 			};
 		});
 		
-		UANI.FADE_IN({
-			node : self
-		});
+		let getFTPInfo = self.getFTPInfo = () => {
+			return ftpInfo;
+		};
 	}
 });

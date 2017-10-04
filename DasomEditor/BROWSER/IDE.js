@@ -129,7 +129,9 @@ DasomEditor.IDE = OBJECT({
 								let activeTab = editorGroup.getActiveTab();
 								
 								if (activeTab.checkIsInstanceOf(DasomEditor.Editor) === true) {
-									save(activeTab);
+									save({
+										activeTab : activeTab
+									});
 								}
 							}
 						}
@@ -289,7 +291,9 @@ DasomEditor.IDE = OBJECT({
 		
 		let loadAndOpenEditor = (path, scrollTop, next) => {
 			
-			load(path, (content) => {
+			load({
+				path : path
+			}, (content) => {
 				
 				let fileName = path.substring(path.lastIndexOf('/') + 1);
 				
@@ -717,43 +721,35 @@ DasomEditor.IDE = OBJECT({
 			}
 		};
 		
-		let load = self.load = (path, callback) => {
-			//REQUIRED: path
+		let load = self.load = (params, callback) => {
+			//REQUIRED: params
+			//OPTIONAL: params.ftpInfo
+			//REQUIRED: params.path
 			//REQUIRED: callback
 			
-			loadHandler(path, {
+			let ftpInfo = params.ftpInfo;
+			let path = params.path;
+			
+			if (ftpInfo !== undefined) {
 				
-				error : () => {
-					editorOpenedStore.remove(path);
-				},
+			}
+			
+			else {
 				
-				success : (content) => {
-					callback(content);
-				}
-			});
+				loadHandler(path, {
+					
+					error : () => {
+						editorOpenedStore.remove(path);
+					},
+					
+					success : (content) => {
+						callback(content);
+					}
+				});
+			}
 		};
 		
-		let loadFiles = self.loadFiles = (path, callback) => {
-			//REQUIRED: path
-			//REQUIRED: callback
-			
-			let loadingBar = SkyDesktop.LoadingBar('lime');
-			
-			loadFilesHandler(path, (folderNames, fileNames) => {
-				
-				loadingBar.done();
-				
-				callback(folderNames, fileNames);
-			});
-		};
-		
-		let getLocalHistory = self.getLocalHistory = (path) => {
-			//REQUIRED: path
-			
-			return localHistoryStore.get(path);
-		};
-		
-		let innerSave = (path, content, callback) => {
+		let innerSave = (ftpInfo, path, content, callback) => {
 			
 			// 로컬 히스토리 저장
 			// 파일의 용량이 1mb 미만인 경우에만 저장, 최대 100개
@@ -786,16 +782,22 @@ DasomEditor.IDE = OBJECT({
 			saveHandler(path, content, callback);
 		};
 		
-		let save = self.save = (activeTab) => {
-			//REQUIRED: activeTab
+		let save = self.save = (params) => {
+			//REQUIRED: params
+			//OPTIONAL: params.ftpInfo
+			//REQUIRED: params.activeTab
+			//REQUIRED: callback
+			
+			let ftpInfo = params.ftpInfo;
+			let activeTab = params.activeTab;
 			
 			if (activeTab.checkIsInstanceOf(DasomEditor.CompareEditor) === true) {
 				
-				innerSave(activeTab.getPath1(), activeTab.getContent1(), () => {
+				innerSave(ftpInfo, activeTab.getPath1(), activeTab.getContent1(), () => {
 					
 					if (activeTab.getPath2() !== undefined) {
 						
-						innerSave(activeTab.getPath2(), activeTab.getContent2(), () => {
+						innerSave(ftpInfo, activeTab.getPath2(), activeTab.getContent2(), () => {
 							SkyDesktop.Noti('저장하였습니다.');
 						});
 					}
@@ -808,7 +810,7 @@ DasomEditor.IDE = OBJECT({
 			
 			else {
 				
-				innerSave(activeTab.getPath(), activeTab.getContent(), (path) => {
+				innerSave(ftpInfo, activeTab.getPath(), activeTab.getContent(), (path) => {
 					
 					activeTab.setPath(path);
 					
@@ -826,34 +828,61 @@ DasomEditor.IDE = OBJECT({
 					activeTab.setOriginContent(activeTab.getContent());
 					activeTab.setTitle(fileName);
 					
-					editorOpenedStore.save({
-						name : activeTab.getPath(),
-						value : activeTab.getScrollTop()
-					});
+					if (ftpInfo === undefined) {
+						
+						editorOpenedStore.save({
+							name : activeTab.getPath(),
+							value : activeTab.getScrollTop()
+						});
+					}
 				});
 			}
 		};
 		
-		let createFolder = self.createFolder = (path) => {
-			//REQUIRED: path
+		let createFolder = self.createFolder = (params) => {
+			//REQUIRED: params
+			//OPTIONAL: params.ftpInfo
+			//REQUIRED: params.path
+			//REQUIRED: callback
 			
-			createFolderHandler(path);
+			let ftpInfo = params.ftpInfo;
+			let path = params.path;
+			
+			if (ftpInfo !== undefined) {
+				
+			}
+			
+			else {
+				createFolderHandler(path);
+			}
 		};
 		
-		let copy = self.copy = (paths) => {
-			//REQUIRED: paths
+		let copy = self.copy = (pathInfos) => {
+			//REQUIRED: pathInfos
 			
-			copyHandler(paths);
+			copyHandler(pathInfos);
 		};
 		
-		let paste = self.paste = (folderPath) => {
-			//REQUIRED: folderPath
+		let paste = self.paste = (params) => {
+			//REQUIRED: params
+			//OPTIONAL: params.ftpInfo
+			//REQUIRED: params.folderPath
+			//REQUIRED: callback
 			
-			pasteHandler(folderPath);
+			let ftpInfo = params.ftpInfo;
+			let folderPath = params.folderPath;
+			
+			pasteHandler(ftpInfo, folderPath);
 		};
 		
-		let remove = self.remove = (path) => {
-			//REQUIRED: path
+		let remove = self.remove = (params) => {
+			//REQUIRED: params
+			//OPTIONAL: params.ftpInfo
+			//REQUIRED: params.path
+			//REQUIRED: callback
+			
+			let ftpInfo = params.ftpInfo;
+			let path = params.path;
 			
 			let openedEditor = getOpenedEditor(path);
 			if (openedEditor !== undefined) {
@@ -866,50 +895,99 @@ DasomEditor.IDE = OBJECT({
 				deselectFile(selectedItem);
 			}
 			
-			removeHandler(path);
+			if (ftpInfo !== undefined) {
+				
+			}
+			
+			else {
+				removeHandler(path);
+			}
 		};
 		
 		let move = self.move = (params) => {
 			//REQUIRED: params
+			//OPTIONAL: params.ftpInfo
 			//REQUIRED: params.from
 			//REQUIRED: params.to
 			
+			let ftpInfo = params.ftpInfo;
 			let from = params.from;
 			let to = params.to;
 			
-			moveHandler(from, to, () => {
+			if (ftpInfo !== undefined) {
 				
-				let openedEditor = getOpenedEditor(from);
-				if (openedEditor !== undefined) {
-					openedEditor.setPath(to);
-					openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
-				}
+			}
+			
+			else {
 				
-				let selectedItem = fileTree.getItem(to);
-				
-				if (selectedItem === undefined) {
-					EACH(fileTree.getItems(), (item) => {
-						if (item.checkIsInstanceOf(SkyDesktop.Folder) === true) {
-							let _item = item.getItem(to);
-							if (_item !== undefined) {
-								selectedItem = _item;
-								return false;
+				moveHandler(from, to, () => {
+					
+					let openedEditor = getOpenedEditor(from);
+					if (openedEditor !== undefined) {
+						openedEditor.setPath(to);
+						openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
+					}
+					
+					let selectedItem = fileTree.getItem(to);
+					
+					if (selectedItem === undefined) {
+						EACH(fileTree.getItems(), (item) => {
+							if (item.checkIsInstanceOf(SkyDesktop.Folder) === true) {
+								let _item = item.getItem(to);
+								if (_item !== undefined) {
+									selectedItem = _item;
+									return false;
+								}
 							}
-						}
-					});
-				}
-				
-				if (selectedItem !== undefined) {
-					selectedItem.select();
-				}
-			});
+						});
+					}
+					
+					if (selectedItem !== undefined) {
+						selectedItem.select();
+					}
+				});
+			}
 		};
 		
-		let getInfo = self.getInfo = (path, callback) => {
+		let getInfo = self.getInfo = (params, callback) => {
+			//REQUIRED: params
+			//OPTIONAL: params.ftpInfo
+			//REQUIRED: params.path
+			//REQUIRED: callback
+			
+			let ftpInfo = params.ftpInfo;
+			let path = params.path;
+			
+			if (ftpInfo !== undefined) {
+				
+			}
+			
+			else {
+				getInfoHandler(path, callback);
+			}
+		};
+		
+		let getLocalHistory = self.getLocalHistory = (params) => {
+			//REQUIRED: params
+			//OPTIONAL: params.ftpInfo
+			//REQUIRED: params.path
+			//REQUIRED: callback
+			
+			return localHistoryStore.get(STRINGIFY(params));
+		};
+		
+		let loadFiles = self.loadFiles = (path, callback) => {
 			//REQUIRED: path
 			//REQUIRED: callback
 			
-			getInfoHandler(path, callback);
+			let loadingBar = SkyDesktop.LoadingBar('lime');
+			
+			loadFilesHandler(path, (folderNames, fileNames) => {
+				
+				loadingBar.done();
+				
+				callback(folderNames, fileNames);
+			});
 		};
 		
 		let ftpLoadFiles = (ftpInfo, parentItem, path) => {
@@ -934,6 +1012,7 @@ DasomEditor.IDE = OBJECT({
 						parentItem.addItem({
 							key : path + '/' + folderName,
 							item : item = DasomEditor.Folder({
+								ftpInfo : ftpInfo,
 								path : path,
 								title : folderName,
 								on : {
@@ -950,6 +1029,7 @@ DasomEditor.IDE = OBJECT({
 						parentItem.addItem({
 							key : path + '/' + fileName,
 							item : DasomEditor.File({
+								ftpInfo : ftpInfo,
 								path : path + '/' + fileName,
 								title : fileName,
 								on : {
@@ -1112,19 +1192,24 @@ DasomEditor.IDE = OBJECT({
 				// 복사
 				else if (key === 'c') {
 					
-					let paths = [];
+					let pathInfos = [];
 					
 					EACH(selectedFileItems, (selectedFileItem) => {
-						paths.push(selectedFileItem.getPath());
+						pathInfos.push({
+							ftpInfo : selectedFileItem.getFTPInfo(),
+							path : selectedFileItem.getPath()
+						});
 					});
 					
-					DasomEditor.IDE.copy(paths);
+					copy(pathInfos);
 				}
 				
 				// 붙혀넣기
 				else if (key === 'v') {
 					if (selectedFileItems.length > 0) {
-						DasomEditor.IDE.paste(selectedFileItems[selectedFileItems.length - 1].getFolderPath());
+						paste({
+							folderPath : selectedFileItems[selectedFileItems.length - 1].getFolderPath()
+						});
 					}
 				}
 				
@@ -1145,7 +1230,9 @@ DasomEditor.IDE = OBJECT({
 						
 						let activeTab = editorGroup.getActiveTab();
 						
-						save(activeTab);
+						save({
+							activeTab : activeTab
+						});
 					}
 				}
 				
@@ -1187,7 +1274,9 @@ DasomEditor.IDE = OBJECT({
 					}, () => {
 						
 						EACH(selectedFileItems, (selectedFileItem) => {
-							DasomEditor.IDE.remove(selectedFileItem.getPath());
+							remove({
+								path : selectedFileItem.getPath()
+							});
 						});
 					});
 				}
@@ -1541,7 +1630,7 @@ DasomEditor.IDE = OBJECT({
 										let loadingBar = SkyDesktop.LoadingBar('lime');
 										
 										NEXT(foundInfos, [(info, next) => {
-											innerSave(info.path, info.content.replace(new RegExp(text, 'g'), changeText), () => {
+											innerSave(undefined, info.path, info.content.replace(new RegExp(text, 'g'), changeText), () => {
 												next();
 											});
 										}, () => {
@@ -1578,7 +1667,9 @@ DasomEditor.IDE = OBJECT({
 							
 							let path = folderPath + '/' + fileName;
 							
-							load(path, (content) => {
+							load({
+								path : path
+							}, (content) => {
 								
 								foundInfos.push({
 									path : path,

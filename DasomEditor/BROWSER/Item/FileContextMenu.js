@@ -6,8 +6,11 @@ DasomEditor.FileContextMenu = CLASS({
 
 	init : (inner, self, params) => {
 		//REQUIRED: params
+		//OPTIONAL: params.ftpInfo
 		//OPTIONAL: params.path
 		//REQUIRED: params.folderPath
+		
+		let ftpInfo = params.ftpInfo;
 		
 		let path = params.path;
 		let folderPath = params.folderPath;
@@ -50,10 +53,12 @@ DasomEditor.FileContextMenu = CLASS({
 						
 						if (fileName.trim() !== '') {
 							
-							DasomEditor.IDE.save(DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-								title : fileName,
-								path : folderPath + '/' + fileName
-							})));
+							DasomEditor.IDE.save({
+								activeTab : DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+									title : fileName,
+									path : folderPath + '/' + fileName
+								}))
+							});
 						}
 					});
 					
@@ -74,7 +79,9 @@ DasomEditor.FileContextMenu = CLASS({
 						
 						if (folderName.trim() !== '') {
 							
-							DasomEditor.IDE.createFolder(folderPath + '/' + folderName);
+							DasomEditor.IDE.createFolder({
+								path : folderPath + '/' + folderName
+							});
 						}
 					});
 					
@@ -93,13 +100,16 @@ DasomEditor.FileContextMenu = CLASS({
 				on : {
 					tap : () => {
 						
-						let paths = [];
+						let pathInfos = [];
 						
 						EACH(selectedFileItems, (selectedFileItem) => {
-							paths.push(selectedFileItem.getPath());
+							pathInfos.push({
+								ftpInfo : selectedFileItem.getFTPInfo(),
+								path : selectedFileItem.getPath()
+							});
 						});
 						
-						DasomEditor.IDE.copy(paths);
+						DasomEditor.IDE.copy(pathInfos);
 					
 						self.remove();
 					}
@@ -115,7 +125,9 @@ DasomEditor.FileContextMenu = CLASS({
 			on : {
 				tap : () => {
 					
-					DasomEditor.IDE.paste(folderPath);
+					DasomEditor.IDE.paste({
+						folderPath : folderPath
+					});
 					
 					self.remove();
 				}
@@ -137,7 +149,9 @@ DasomEditor.FileContextMenu = CLASS({
 						}, () => {
 							
 							EACH(selectedFileItems, (selectedFileItem) => {
-								DasomEditor.IDE.remove(selectedFileItem.getPath());
+								DasomEditor.IDE.remove({
+									path : selectedFileItem.getPath()
+								});
 							});
 						});
 						
@@ -183,7 +197,9 @@ DasomEditor.FileContextMenu = CLASS({
 				on : {
 					tap : () => {
 						
-						DasomEditor.IDE.getInfo(path, (info) => {
+						DasomEditor.IDE.getInfo({
+							path : path
+						}, (info) => {
 							
 							let createTimeCal = CALENDAR(info.createTime);
 							let lastUpdateTimeCal = CALENDAR(info.lastUpdateTime);
@@ -328,7 +344,9 @@ DasomEditor.FileContextMenu = CLASS({
 									on : {
 										doubletap : () => {
 											
-											DasomEditor.IDE.load(path, (content) => {
+											DasomEditor.IDE.load({
+												path : path
+											}, (content) => {
 												
 												DasomEditor.IDE.openEditor(DasomEditor.CompareEditor({
 													title : '로컬 저장 기록 비교 (현재 - ' + title + ')',
@@ -396,8 +414,13 @@ DasomEditor.FileContextMenu = CLASS({
 							let path1 = item1.getPath();
 							let path2 = item2.getPath();
 							
-							DasomEditor.IDE.load(path1, (content1) => {
-								DasomEditor.IDE.load(path2, (content2) => {
+							DasomEditor.IDE.load({
+								path : path1
+							}, (content1) => {
+								
+								DasomEditor.IDE.load({
+									path : path2
+								}, (content2) => {
 									
 									let fileName1 = path1.substring(path1.lastIndexOf('/') + 1);
 									let fileName2 = path2.substring(path2.lastIndexOf('/') + 1);
