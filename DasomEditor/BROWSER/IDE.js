@@ -755,13 +755,16 @@ DasomEditor.IDE = OBJECT({
 			// 파일의 용량이 1mb 미만인 경우에만 저장, 최대 100개
 			if (content.length < 1024 * 1024) {
 				
-				let history = getLocalHistory(path);
+				let history = getLocalHistory({
+					ftpInfo : ftpInfo,
+					path : path
+				});
 				
 				if (history === undefined) {
 					history = [];
 				}
 				
-				if (history.length > 0 && history[history.length - 1].content !== content) {
+				if (history.length === 0 || history[history.length - 1].content !== content) {
 					
 					history.push({
 						time : new Date(),
@@ -773,7 +776,10 @@ DasomEditor.IDE = OBJECT({
 					}
 					
 					localHistoryStore.save({
-						name : path,
+						name : STRINGIFY({
+							ftpInfo : ftpInfo,
+							path : path
+						}),
 						value : history
 					});
 				}
@@ -973,7 +979,13 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params.path
 			//REQUIRED: callback
 			
-			return localHistoryStore.get(STRINGIFY(params));
+			let ftpInfo = params.ftpInfo;
+			let path = params.path;
+			
+			return localHistoryStore.get(STRINGIFY({
+				ftpInfo : ftpInfo,
+				path : path
+			}));
 		};
 		
 		let loadFiles = self.loadFiles = (path, callback) => {
@@ -1597,8 +1609,6 @@ DasomEditor.IDE = OBJECT({
 								},
 								tap : () => {
 									tab.remove();
-									
-									window.dispatchEvent(new Event('resize'));
 								}
 							}
 						}), A({
@@ -1644,7 +1654,14 @@ DasomEditor.IDE = OBJECT({
 									});
 								}
 							}
-						}), fileTree = SkyDesktop.FileTree(loadAndOpenEditor)]
+						}), fileTree = SkyDesktop.FileTree(loadAndOpenEditor)],
+						on : {
+							remove : () => {
+								DELAY(0.1, () => {
+									window.dispatchEvent(new Event('resize'));
+								});
+							}
+						}
 					}));
 					
 					fileTree.addStyle({

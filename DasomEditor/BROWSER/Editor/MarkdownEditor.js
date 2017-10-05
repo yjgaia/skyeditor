@@ -40,10 +40,15 @@ DasomEditor.MarkdownEditor = CLASS((cls) => {
 			self.append(DIV({
 				style : {
 					flt : 'left',
-					width : '50%',
 					backgroundColor : '#fff',
 					color : '#000',
-					minHeight : '100%'
+					height : '100%',
+					overflow : 'scroll',
+					onDisplayResize : () => {
+						return {
+							width : editor.getWidth() - 1
+						};
+					}
 				},
 				c : preview = DIV({
 					style : {

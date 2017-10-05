@@ -414,11 +414,9 @@ RUN(() => {
 												},
 												success : (buffer) => {
 													
-													let content = buffer.toString();
-													
 													WRITE_FILE({
 														path : folderPath + '/' + fileName,
-														content : content
+														buffer : buffer
 													});
 												}
 											});

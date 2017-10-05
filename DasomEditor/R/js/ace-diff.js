@@ -193,16 +193,27 @@
       var oldDiv = this.editors.left.ace.container;
       var newDiv = oldDiv.cloneNode(false);
       newDiv.textContent = leftValue;
-      oldDiv.parentNode.replaceChild(newDiv, oldDiv);
+      if (oldDiv.parentNode !== null) {
+    	oldDiv.parentNode.replaceChild(newDiv, oldDiv);
+      }
 
       var rightValue = this.editors.right.ace.getValue();
       this.editors.right.ace.destroy();
       oldDiv = this.editors.right.ace.container;
       newDiv = oldDiv.cloneNode(false);
       newDiv.textContent = rightValue;
-      oldDiv.parentNode.replaceChild(newDiv, oldDiv);
-
-      document.getElementById(this.options.classes.gutterID).innerHTML = '';
+      if (oldDiv.parentNode !== null) {
+    	oldDiv.parentNode.replaceChild(newDiv, oldDiv);
+      }
+      
+      if (document.getElementById(this.options.classes.gutterID) !== null) {
+    	document.getElementById(this.options.classes.gutterID).innerHTML = '';
+      }
+      
+      if (onResize !== undefined) {
+        window.removeEventListener('resize', onResize);
+        onResize = undefined;
+      }
     }
   };
 
@@ -230,7 +241,7 @@
     return theme;
   }
 
-
+  var onResize;
   function addEventHandlers(acediff) {
     var leftLastScrollTime = new Date().getTime(),
         rightLastScrollTime = new Date().getTime(),
@@ -265,7 +276,11 @@
       });
     }
 
-    var onResize = debounce(function() {
+    if (onResize !== undefined) {
+      window.removeEventListener('resize', onResize);
+    }
+
+    onResize = debounce(function() {
       acediff.editors.availableHeight = document.getElementById(acediff.options.left.id).offsetHeight;
 
       // TODO this should re-init gutter

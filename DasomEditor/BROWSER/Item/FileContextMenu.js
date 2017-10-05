@@ -329,10 +329,20 @@ DasomEditor.FileContextMenu = CLASS({
 											tab.remove();
 										}
 									}
-								}), historyList = DIV()]
+								}), historyList = DIV()],
+								on : {
+									remove : () => {
+										DELAY(0.1, () => {
+											window.dispatchEvent(new Event('resize'));
+										});
+									}
+								}
 							}));
 							
-							let history = DasomEditor.IDE.getLocalHistory(path);
+							let history = DasomEditor.IDE.getLocalHistory({
+								ftpInfo : ftpInfo,
+								path : path
+							});
 							
 							REVERSE_EACH(history, (info) => {
 								

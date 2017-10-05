@@ -18,6 +18,11 @@ DasomEditor.MAIN = METHOD({
 		});
 		
 		DasomEditor.IDE.addEditor({
+			extname : 'css',
+			editor : DasomEditor.CSSEditor
+		});
+		
+		DasomEditor.IDE.addEditor({
 			extname : 'hx',
 			editor : DasomEditor.HaxeEditor
 		});

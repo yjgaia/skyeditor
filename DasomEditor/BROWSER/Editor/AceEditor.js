@@ -66,6 +66,7 @@ DasomEditor.AceEditor = CLASS({
 		
 		if (content !== undefined) {
 			aceEditor.setValue(content, -1);
+			aceEditor.getSession().setUndoManager(new ace.UndoManager());
 		}
 		
 		let getScrollTop;

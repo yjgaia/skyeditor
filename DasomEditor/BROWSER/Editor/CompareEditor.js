@@ -68,10 +68,11 @@ DasomEditor.CompareEditor = CLASS({
 		
 		self.append(CLEAR_BOTH());
 		
+		let differ;
+		
 		self.on('show', () => {
 			
-			let differ = new AceDiff({
-				theme : 'ace/theme/twilight',
+			differ = new AceDiff({
 				left : {
 					id : editor1Id,
 					content : content1
@@ -84,6 +85,57 @@ DasomEditor.CompareEditor = CLASS({
 					gutterID : gutterId
 				}
 			});
+			
+			let init = (aceEditor) => {
+				
+				aceEditor.setTheme('ace/theme/twilight');
+				aceEditor.setFontSize(14);
+				
+				differ.lineHeight = aceEditor.renderer.lineHeight;
+				
+				aceEditor.getSession().setUseSoftTabs(false);
+				aceEditor.getSession().on('changeScrollTop', () => {
+					self.fireEvent('scroll');
+				});
+				aceEditor.getSession().on('change', () => {
+					self.fireEvent('change');
+				});
+				aceEditor.renderer.setScrollMargin(0, 300);
+				aceEditor.commands.addCommand({
+					name : 'replace2',
+					bindKey : {
+						win : 'Ctrl-R',
+						mac : 'Command-Option-F'
+					},
+					exec : (editor) => {
+						
+						ace.config.loadModule('ace/ext/searchbox', (e) => {
+							
+							e.Search(editor, true);
+							
+							let kb = editor.searchBox.$searchBarKb;
+							
+							let command = kb.commands['Ctrl-f|Commasnd-f|Ctrl-H|Command-Option-F'];
+							
+							if (command !== undefined && command.bindKey.indexOf('Ctrl-R') === -1) {
+								command.bindKey += '|Ctrl-R';
+								kb.addCommand(command);
+							}
+						});
+					}
+				});
+				aceEditor.$blockScrolling = Infinity;
+			};
+			
+			init(differ.getEditors().left);
+			init(differ.getEditors().right);
+		});
+		
+		self.on('remove', () => {
+			
+			if (differ !== undefined) {
+				differ.destroy();
+			}
 		});
 		
 		let getPath1 = self.getPath1 = () => {
