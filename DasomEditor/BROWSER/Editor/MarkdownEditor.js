@@ -30,6 +30,8 @@ DasomEditor.MarkdownEditor = CLASS((cls) => {
 			let editor = inner.getEditor();
 			let aceEditor = inner.getAceEditor();
 			
+			aceEditor.getSession().setUseWrapMode(true);
+			
 			editor.addStyle({
 				flt : 'left',
 				width : '50%'

@@ -21,6 +21,10 @@ DasomEditor.TextEditor = CLASS((cls) => {
 				mode : 'text',
 				icon : getIcon()
 			}
+		},
+		
+		init : (inner, self) => {
+			inner.getAceEditor().getSession().setUseWrapMode(true);
 		}
 	};
 });
