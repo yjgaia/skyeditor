@@ -13,6 +13,11 @@ DasomEditor.MAIN = METHOD({
 		});
 		
 		DasomEditor.IDE.addEditor({
+			extname : 'json',
+			editor : DasomEditor.JSONEditor
+		});
+		
+		DasomEditor.IDE.addEditor({
 			extname : 'html',
 			editor : DasomEditor.HTMLEditor
 		});
