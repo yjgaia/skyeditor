@@ -532,9 +532,30 @@ RUN(() => {
 				
 				EACH(folderNames, (folderName) => {
 					
+					let folderItem = createFolderItem(path + '/' + folderName, folderName);
+					
+					if (path === workspacePath) {
+						
+						folderItem.setIcon(IMG({
+							src : DasomEditor.R('icon/project.png')
+						}));
+						
+						folderItem.on('open', () => {
+							folderItem.setIcon(IMG({
+								src : DasomEditor.R('icon/project-opened.png')
+							}));
+						});
+						
+						folderItem.on('close', () => {
+							folderItem.setIcon(IMG({
+								src : DasomEditor.R('icon/project.png')
+							}));
+						});
+					}
+					
 					addItem({
 						key : path + '/' + folderName,
-						item : createFolderItem(path + '/' + folderName, folderName)
+						item : folderItem
 					});
 				});
 				
