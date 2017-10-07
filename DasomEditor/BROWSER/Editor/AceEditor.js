@@ -64,6 +64,17 @@ DasomEditor.AceEditor = CLASS({
 		    aceEditor.focus();
 		});
 		
+		let resizeEvent = EVENT('resize', () => {
+			DELAY(() => {
+				aceEditor.resize();
+			});
+		});
+		
+		self.on('remove', () => {
+		    resizeEvent.remove();
+		    resizeEvent = undefined;
+		});
+		
 		if (content !== undefined) {
 			aceEditor.setValue(content, -1);
 			aceEditor.getSession().setUndoManager(new ace.UndoManager());

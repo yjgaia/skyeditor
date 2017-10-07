@@ -329,14 +329,7 @@ DasomEditor.FileContextMenu = CLASS({
 											tab.remove();
 										}
 									}
-								}), historyList = DIV()],
-								on : {
-									remove : () => {
-										DELAY(0.1, () => {
-											window.dispatchEvent(new Event('resize'));
-										});
-									}
-								}
+								}), historyList = DIV()]
 							}));
 							
 							let history = DasomEditor.IDE.getLocalHistory({

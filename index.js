@@ -821,10 +821,6 @@ RUN(() => {
 		on : {
 			tap : () => {
 				ipcRenderer.send('toggleDevTool');
-				
-				DELAY(0.2, () => {
-					window.dispatchEvent(new Event('resize'));
-				});
 			}
 		}
 	}));

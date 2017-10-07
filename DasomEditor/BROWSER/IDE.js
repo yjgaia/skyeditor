@@ -1654,14 +1654,7 @@ DasomEditor.IDE = OBJECT({
 									});
 								}
 							}
-						}), fileTree = SkyDesktop.FileTree(loadAndOpenEditor)],
-						on : {
-							remove : () => {
-								DELAY(0.1, () => {
-									window.dispatchEvent(new Event('resize'));
-								});
-							}
-						}
+						}), fileTree = SkyDesktop.FileTree(loadAndOpenEditor)]
 					}));
 					
 					fileTree.addStyle({
