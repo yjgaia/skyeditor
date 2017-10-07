@@ -450,9 +450,31 @@ RUN(() => {
 							CHECK_IS_FOLDER(path + '/' + fileName, (isFolder) => {
 								
 								if (isFolder === true) {
+									
+									let folderItem = createFolderItem(path + '/' + fileName, fileName);
+									
+									if (path === workspacePath) {
+										
+										folderItem.setIcon(IMG({
+											src : DasomEditor.R('icon/project.png')
+										}));
+										
+										folderItem.on('open', () => {
+											folderItem.setIcon(IMG({
+												src : DasomEditor.R('icon/project-opened.png')
+											}));
+										});
+										
+										folderItem.on('close', () => {
+											folderItem.setIcon(IMG({
+												src : DasomEditor.R('icon/project.png')
+											}));
+										});
+									}
+									
 									addItem({
 										key : path + '/' + fileName,
-										item : createFolderItem(path + '/' + fileName, fileName)
+										item : folderItem
 									});
 								}
 								
