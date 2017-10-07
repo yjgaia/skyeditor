@@ -65,7 +65,7 @@ DasomEditor.AceEditor = CLASS({
 		});
 		
 		let resizeEvent = EVENT('resize', () => {
-			DELAY(() => {
+			DELAY(0.1, () => {
 				aceEditor.resize();
 			});
 		});
