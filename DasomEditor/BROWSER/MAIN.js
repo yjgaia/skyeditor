@@ -46,5 +46,10 @@ DasomEditor.MAIN = METHOD({
 			extname : 'md',
 			editor : DasomEditor.MarkdownEditor
 		});
+		
+		DasomEditor.IDE.addEditor({
+			extname : 'gml',
+			editor : DasomEditor.GMLEditor
+		});
 	}
 });
