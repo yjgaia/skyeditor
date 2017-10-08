@@ -6,11 +6,11 @@ DasomEditor.Editor = CLASS({
 
 	init : (inner, self, params) => {
 		//REQUIRED: params
-		//OPTIONAL: params.isForFTP
+		//OPTIONAL: params.ftpInfo
 		//REQUIRED: params.path
 		//OPTIONAL: params.content
 		
-		let isForFTP = params.isForFTP;
+		let ftpInfo = params.ftpInfo;
 		let path = params.path;
 		let content = params.content;
 		
@@ -18,8 +18,8 @@ DasomEditor.Editor = CLASS({
 		
 		let title = self.getTitle();
 		
-		let checkIsForFTP = self.checkIsForFTP = () => {
-			return isForFTP;
+		let getFTPInfo = self.getFTPInfo = () => {
+			return ftpInfo;
 		};
 		
 		let getPath = self.getPath = () => {
@@ -29,16 +29,19 @@ DasomEditor.Editor = CLASS({
 		let setPath = self.setPath = (_path) => {
 			//REQUIRED: path
 			
-			let editorOpenedStore = DasomEditor.IDE.getEditorOpenedStore();
+			if (ftpInfo === undefined) {
 			
-			editorOpenedStore.remove(path);
+				let editorOpenedStore = DasomEditor.IDE.getEditorOpenedStore();
+				
+				editorOpenedStore.remove(path);
+				
+				editorOpenedStore.save({
+					name : _path,
+					value : true
+				});
+			}
 			
 			path = _path;
-			
-			editorOpenedStore.save({
-				name : path,
-				value : true
-			});
 		};
 		
 		let getContent = self.getContent = () => {

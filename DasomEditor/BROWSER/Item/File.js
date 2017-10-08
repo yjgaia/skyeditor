@@ -16,6 +16,10 @@ DasomEditor.File = CLASS({
 		let path = self.getPath();
 		let folderPath = path.substring(0, path.lastIndexOf('/'));
 		
+		let getFTPInfo = self.getFTPInfo = () => {
+			return ftpInfo;
+		};
+		
 		let getFolderPath = self.getFolderPath = () => {
 			return folderPath;
 		};
@@ -111,6 +115,7 @@ DasomEditor.File = CLASS({
 			}
 			
 			DasomEditor.FileContextMenu({
+				ftpInfo : ftpInfo,
 				path : path,
 				folderPath : folderPath,
 				e : e
@@ -136,10 +141,6 @@ DasomEditor.File = CLASS({
 				isShiftMode = false;
 			}
 		});
-		
-		let getFTPInfo = self.getFTPInfo = () => {
-			return ftpInfo;
-		};
 		
 		self.on('remove', () => {
 			

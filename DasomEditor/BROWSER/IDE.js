@@ -27,6 +27,7 @@ DasomEditor.IDE = OBJECT({
 		let getInfoHandler;
 		
 		let ftpNewHandler;
+		let ftpDestroyHandler;
 		let ftpListHandler;
 		let ftpConnectHandler;
 		let ftpLoadHandler;
@@ -129,9 +130,7 @@ DasomEditor.IDE = OBJECT({
 								let activeTab = editorGroup.getActiveTab();
 								
 								if (activeTab.checkIsInstanceOf(DasomEditor.Editor) === true) {
-									save({
-										activeTab : activeTab
-									});
+									save(activeTab);
 								}
 							}
 						}
@@ -268,7 +267,10 @@ DasomEditor.IDE = OBJECT({
 			
 			editorGroup.addTab(tab);
 			
-			if (tab.checkIsInstanceOf(DasomEditor.Editor) === true && tab.checkIsInstanceOf(DasomEditor.CompareEditor) !== true) {
+			if (
+			tab.checkIsInstanceOf(DasomEditor.Editor) === true &&
+			tab.checkIsInstanceOf(DasomEditor.CompareEditor) !== true &&
+			tab.getFTPInfo() === undefined) {
 				
 				tab.on('scroll', RAR((e) => {
 					editorOpenedStore.save({
@@ -559,8 +561,14 @@ DasomEditor.IDE = OBJECT({
 													}
 													
 													else {
-														ftpNewHandler(data, () => {
-															addFTPItem(data);
+														
+														let loadingBar = SkyDesktop.LoadingBar('lime');
+														
+														ftpNew(data, () => {
+															
+															addFTPItem(ftpInfo);
+															
+															loadingBar.done();
 														});
 													}
 												}
@@ -696,6 +704,7 @@ DasomEditor.IDE = OBJECT({
 			getInfoHandler = params.getInfo;
 			
 			ftpNewHandler = params.ftpNew;
+			ftpDestroyHandler = params.ftpDestroy;
 			ftpListHandler = params.ftpList;
 			ftpConnectHandler = params.ftpConnect;
 			ftpLoadHandler = params.ftpLoad;
@@ -739,7 +748,7 @@ DasomEditor.IDE = OBJECT({
 				loadHandler(path, {
 					
 					error : () => {
-						editorOpenedStore.remove(path);
+						SkyEngine.Alert('FTP로부터 파일을 불러오는데 실패하였습니니다.');
 					},
 					
 					success : (content) => {
@@ -785,25 +794,39 @@ DasomEditor.IDE = OBJECT({
 				}
 			}
 			
-			saveHandler(path, content, callback);
+			if (ftpInfo !== undefined) {
+				
+				let loadingBar = SkyDesktop.LoadingBar('lime');
+				
+				ftpSaveHandler(ftpInfo, path, content, {
+					
+					error : () => {
+						SkyEngine.Alert('FTP로 파일을 저장하는데 실패하였습니니다.');
+					},
+					
+					success : () => {
+						loadingBar.done();
+						callback(path);
+					}
+				});
+			}
+			
+			else {
+				saveHandler(path, content, callback);
+			}
 		};
 		
-		let save = self.save = (params) => {
-			//REQUIRED: params
-			//OPTIONAL: params.ftpInfo
-			//REQUIRED: params.activeTab
+		let save = self.save = (activeTab) => {
+			//REQUIRED: activeTab
 			//REQUIRED: callback
-			
-			let ftpInfo = params.ftpInfo;
-			let activeTab = params.activeTab;
 			
 			if (activeTab.checkIsInstanceOf(DasomEditor.CompareEditor) === true) {
 				
-				innerSave(ftpInfo, activeTab.getPath1(), activeTab.getContent1(), () => {
+				innerSave(activeTab.getFTPInfo(), activeTab.getPath1(), activeTab.getContent1(), () => {
 					
 					if (activeTab.getPath2() !== undefined) {
 						
-						innerSave(ftpInfo, activeTab.getPath2(), activeTab.getContent2(), () => {
+						innerSave(activeTab.getFTPInfo(), activeTab.getPath2(), activeTab.getContent2(), () => {
 							SkyDesktop.Noti('저장하였습니다.');
 						});
 					}
@@ -816,7 +839,7 @@ DasomEditor.IDE = OBJECT({
 			
 			else {
 				
-				innerSave(ftpInfo, activeTab.getPath(), activeTab.getContent(), (path) => {
+				innerSave(activeTab.getFTPInfo(), activeTab.getPath(), activeTab.getContent(), (path) => {
 					
 					activeTab.setPath(path);
 					
@@ -824,7 +847,7 @@ DasomEditor.IDE = OBJECT({
 					
 					let extname = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
 					
-					let Editor = DasomEditor.IDE.getEditor(extname);
+					let Editor = getEditor(extname);
 					if (Editor !== undefined) {
 						activeTab.setIcon(Editor.getIcon());
 					}
@@ -834,7 +857,7 @@ DasomEditor.IDE = OBJECT({
 					activeTab.setOriginContent(activeTab.getContent());
 					activeTab.setTitle(fileName);
 					
-					if (ftpInfo === undefined) {
+					if (activeTab.getFTPInfo() === undefined) {
 						
 						editorOpenedStore.save({
 							name : activeTab.getPath(),
@@ -1002,6 +1025,20 @@ DasomEditor.IDE = OBJECT({
 			});
 		};
 		
+		let ftpNew = self.ftpNew = (ftpInfo, callback) => {
+			//REQUIRED: ftpInfo
+			//REQUIRED: callback
+			
+			ftpNewHandler(ftpInfo, callback);
+		};
+		
+		let ftpDestroy = self.ftpDestroy = (ftpInfo, callback) => {
+			//REQUIRED: ftpInfo
+			//REQUIRED: callback
+			
+			ftpDestroyHandler(ftpInfo, callback);
+		};
+		
 		let ftpLoadFiles = (ftpInfo, parentItem, path) => {
 			
 			let loadingBar = SkyDesktop.LoadingBar('lime');
@@ -1063,6 +1100,7 @@ DasomEditor.IDE = OBJECT({
 												loadingBar.done();
 												
 												openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+													ftpInfo : ftpInfo,
 													title : fileName,
 													path : path + '/' + fileName,
 													content : content
@@ -1239,12 +1277,7 @@ DasomEditor.IDE = OBJECT({
 				else if (key === 's') {
 					
 					if (editorGroup.getActiveTab() !== undefined) {
-						
-						let activeTab = editorGroup.getActiveTab();
-						
-						save({
-							activeTab : activeTab
-						});
+						save(editorGroup.getActiveTab());
 					}
 				}
 				

@@ -53,12 +53,11 @@ DasomEditor.FileContextMenu = CLASS({
 						
 						if (fileName.trim() !== '') {
 							
-							DasomEditor.IDE.save({
-								activeTab : DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-									title : fileName,
-									path : folderPath + '/' + fileName
-								}))
-							});
+							DasomEditor.IDE.save(DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+								ftpInfo : ftpInfo,
+								title : fileName,
+								path : folderPath + '/' + fileName
+							})));
 						}
 					});
 					
@@ -80,6 +79,7 @@ DasomEditor.FileContextMenu = CLASS({
 						if (folderName.trim() !== '') {
 							
 							DasomEditor.IDE.createFolder({
+								ftpInfo : ftpInfo,
 								path : folderPath + '/' + folderName
 							});
 						}
@@ -150,6 +150,7 @@ DasomEditor.FileContextMenu = CLASS({
 							
 							EACH(selectedFileItems, (selectedFileItem) => {
 								DasomEditor.IDE.remove({
+									ftpInfo : ftpInfo,
 									path : selectedFileItem.getPath()
 								});
 							});
@@ -179,6 +180,7 @@ DasomEditor.FileContextMenu = CLASS({
 							DasomEditor.IDE.deselectFiles();
 							
 							DasomEditor.IDE.move({
+								ftpInfo : ftpInfo,
 								from : path,
 								to : path.substring(0, path.lastIndexOf('/')) + '/' + newName
 							});
@@ -198,6 +200,7 @@ DasomEditor.FileContextMenu = CLASS({
 					tap : () => {
 						
 						DasomEditor.IDE.getInfo({
+							ftpInfo : ftpInfo,
 							path : path
 						}, (info) => {
 							
@@ -418,10 +421,12 @@ DasomEditor.FileContextMenu = CLASS({
 							let path2 = item2.getPath();
 							
 							DasomEditor.IDE.load({
+								ftpInfo : item1.getFTPInfo(),
 								path : path1
 							}, (content1) => {
 								
 								DasomEditor.IDE.load({
+									ftpInfo : item2.getFTPInfo(),
 									path : path2
 								}, (content2) => {
 									

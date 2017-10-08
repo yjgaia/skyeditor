@@ -13,6 +13,10 @@ DasomEditor.Folder = CLASS({
 		let path = self.getPath();
 		let folderPath = self.getPath();
 		
+		let getFTPInfo = self.getFTPInfo = () => {
+			return ftpInfo;
+		};
+		
 		let getFolderPath = self.getFolderPath = () => {
 			return folderPath;
 		};
@@ -100,8 +104,9 @@ DasomEditor.Folder = CLASS({
 			}) !== true) {
 				DasomEditor.IDE.selectFile(self);
 			}
-			
+				
 			DasomEditor.FileContextMenu({
+				ftpInfo : ftpInfo,
 				path : path,
 				folderPath : folderPath,
 				e : e
@@ -166,9 +171,5 @@ DasomEditor.Folder = CLASS({
 				return selectedItem;
 			};
 		});
-		
-		let getFTPInfo = self.getFTPInfo = () => {
-			return ftpInfo;
-		};
 	}
 });

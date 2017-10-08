@@ -14,6 +14,11 @@ RUN(() => {
 	let ftpInfoStore = STORE('ftpInfoStore');
 	let saveCommandStore = STORE('saveCommandStore');
 	
+	let ftpInfos = ftpInfoStore.get('infos');
+	if (ftpInfos === undefined) {
+		ftpInfos = [];
+	}
+	
 	let ftpConnectors = {};
 	
 	let fixPath = (path) => {
@@ -234,17 +239,26 @@ RUN(() => {
 		
 		ftpNew : (ftpInfo, callback) => {
 			
-			let infos = ftpInfoStore.get('infos');
-			
-			if (infos === undefined) {
-				infos = []
-			}
-			
-			infos.push(ftpInfo);
+			ftpInfos.push(ftpInfo);
 			
 			ftpInfoStore.save({
 				name : 'infos',
-				value : infos
+				value : ftpInfos
+			});
+			
+			callback();
+		},
+		
+		ftpDestroy : (ftpInfo, callback) => {
+			
+			REMOVE({
+				array : ftpInfos,
+				value : ftpInfo
+			});
+			
+			ftpInfoStore.save({
+				name : 'infos',
+				value : ftpInfos
 			});
 			
 			callback();
@@ -263,13 +277,16 @@ RUN(() => {
 			}
 		},
 		
-		ftpSave : (ftpInfo, path, content, callback) => {
+		ftpSave : (ftpInfo, path, content, handlers) => {
 			
 			let ftpConnector = ftpConnectors[ftpInfo.host];
 			
 			if (ftpConnector !== undefined) {
 				
-				
+				ftpConnector.save({
+					path : path,
+					content : content
+				}, handlers);
 			}
 		},
 		
@@ -884,11 +901,7 @@ RUN(() => {
 		e.stop();
 	});
 	
-	let infos = ftpInfoStore.get('infos');
-	
-	if (infos !== undefined) {
-		EACH(infos, (info) => {
-			DasomEditor.IDE.addFTPItem(info);
-		});
-	}
+	EACH(ftpInfos, (ftpInfo) => {
+		DasomEditor.IDE.addFTPItem(ftpInfo);
+	});
 });

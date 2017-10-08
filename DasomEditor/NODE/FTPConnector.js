@@ -85,6 +85,33 @@ DasomEditor.FTPConnector = CLASS({
 			});
 		};
 		
+		let save = self.save = (params, handlers) => {
+			//REQUIRED: params
+			//REQUIRED: params.path
+			//REQUIRED: params.content
+			//REQUIRED: handlers
+			//REQUIRED: handlers.error
+			//REQUIRED: handlers.suceess
+			
+			let path = params.path;
+			let content = params.content;
+			
+			let errorHandler = handlers.error;
+			let callback = handlers.success;
+			
+			ftp.writeFile({
+				path : path,
+				content : content
+			}, {
+				error : () => {
+					errorHandler();
+				},
+				success : (buffer) => {
+					callback();
+				}
+			});
+		};
+		
 		let disconnect = self.disconnect = () => {
 			ftp.disconnect();
 		};
