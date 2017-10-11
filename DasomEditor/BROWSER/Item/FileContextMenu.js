@@ -10,6 +10,8 @@ DasomEditor.FileContextMenu = CLASS({
 		//OPTIONAL: params.path
 		//REQUIRED: params.folderPath
 		
+		console.log(params);
+		
 		let ftpInfo = params.ftpInfo;
 		
 		let path = params.path;
@@ -126,6 +128,7 @@ DasomEditor.FileContextMenu = CLASS({
 				tap : () => {
 					
 					DasomEditor.IDE.paste({
+						ftpInfo : ftpInfo,
 						folderPath : folderPath
 					});
 					
@@ -150,7 +153,7 @@ DasomEditor.FileContextMenu = CLASS({
 							
 							EACH(selectedFileItems, (selectedFileItem) => {
 								DasomEditor.IDE.remove({
-									ftpInfo : ftpInfo,
+									ftpInfo : selectedFileItem.getFTPInfo(),
 									path : selectedFileItem.getPath()
 								});
 							});
@@ -180,7 +183,8 @@ DasomEditor.FileContextMenu = CLASS({
 							DasomEditor.IDE.deselectFiles();
 							
 							DasomEditor.IDE.move({
-								ftpInfo : ftpInfo,
+								fromFTPInfo : ftpInfo,
+								toFTPInfo : ftpInfo,
 								from : path,
 								to : path.substring(0, path.lastIndexOf('/')) + '/' + newName
 							});
@@ -373,7 +377,7 @@ DasomEditor.FileContextMenu = CLASS({
 			}
 		}
 		
-		if (selectedFileItems.length > 0) {
+		if (ftpInfo === undefined && selectedFileItems.length > 0) {
 			
 			self.append(SkyDesktop.ContextMenuItem({
 				title : '검색',

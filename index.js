@@ -405,10 +405,9 @@ RUN(() => {
 			}
 		},
 		
-		ftpMove : (ftpInfo, from, to, errorHandler, callback) => {
+		ftpCreateFolder : (ftpInfo, path, errorHandler, callback) => {
 			//REQUIRED: ftpInfo
 			//REQUIRED: path
-			//REQUIRED: content
 			//REQUIRED: errorHandler
 			//REQUIRED: callback
 			
@@ -416,13 +415,61 @@ RUN(() => {
 			
 			if (ftpConnector !== undefined) {
 				
-				ftpConnector.move({
-					from : from,
-					to : to
-				}, {
+				ftpConnector.createFolder(path, {
 					error : errorHandler,
 					success : callback
 				});
+			}
+		},
+		
+		ftpMove : (fromFTPInfo, toFTPInfo, from, to, errorHandler, callback) => {
+			//REQUIRED: fromFTPInfo
+			//REQUIRED: toFTPInfo
+			//REQUIRED: from
+			//REQUIRED: to
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
+			
+			let fromFTPConnector = ftpConnectors[fromFTPInfo.host];
+			let toFTPConnector = ftpConnectors[toFTPInfo.host];
+			
+			if (fromFTPConnector !== undefined && toFTPConnector !== undefined) {
+				
+				if (fromFTPConnector === toFTPConnector) {
+					
+					toFTPConnector.move({
+						from : from,
+						to : to
+					}, {
+						error : errorHandler,
+						success : callback
+					});
+				}
+				
+				else {
+					
+					fromFTPConnector.load(from, {
+						error : errorHandler,
+						notExists : errorHandler,
+						success : (buffer) => {
+							
+							toFTPConnector.save({
+								path : to,
+								buffer : buffer
+							}, {
+								error : errorHandler,
+								success : () => {
+									
+									fromFTPConnector.remove(from, {
+										error : errorHandler,
+										notExists : errorHandler,
+										success : callback
+									});
+								}
+							});
+						}
+					});
+				}
 			}
 		},
 		
@@ -478,9 +525,9 @@ RUN(() => {
 			// -> FTP로
 			if (ftpInfo !== undefined) {
 				
-				let ftpConnector = ftpConnectors[ftpInfo.host];
+				let toFTPConnector = ftpConnectors[ftpInfo.host];
 				
-				if (ftpConnector !== undefined) {
+				if (toFTPConnector !== undefined) {
 					
 					NEXT(clipboardPathInfos, [
 					(clipboardPathInfo, next) => {
@@ -497,7 +544,7 @@ RUN(() => {
 							RUN((f) => {
 								
 								// 이미 존재하는가?
-								ftpConnector.checkExists(folderPath + '/' + fileName, (isExists) => {
+								toFTPConnector.checkExists(folderPath + '/' + fileName, (isExists) => {
 									
 									if (isExists === true) {
 										
@@ -523,9 +570,9 @@ RUN(() => {
 												// 폴더 복사
 												if (isFolder === true) {
 													
-													if (fromFTPConnector === ftpConnector) {
+													if (fromFTPConnector === toFTPConnector) {
 														
-														ftpConnector.copyFolder({
+														toFTPConnector.copyFolder({
 															from : path,
 															to : folderPath + '/' + fileName
 														}, {
@@ -544,9 +591,9 @@ RUN(() => {
 												// 파일 복사
 												else {
 													
-													if (fromFTPConnector === ftpConnector) {
+													if (fromFTPConnector === toFTPConnector) {
 														
-														ftpConnector.copyFile({
+														toFTPConnector.copyFile({
 															from : path,
 															to : folderPath + '/' + fileName
 														}, {
@@ -562,7 +609,7 @@ RUN(() => {
 															notExists : errorHandler,
 															success : (buffer) => {
 																
-																ftpConnector.save({
+																toFTPConnector.save({
 																	path : folderPath + '/' + fileName,
 																	buffer : buffer
 																}, {
@@ -586,7 +633,7 @@ RUN(() => {
 							RUN((f) => {
 								
 								// 이미 존재하는가?
-								ftpConnector.checkExists(folderPath + '/' + fileName, (isExists) => {
+								toFTPConnector.checkExists(folderPath + '/' + fileName, (isExists) => {
 									
 									if (isExists === true) {
 										
@@ -621,7 +668,7 @@ RUN(() => {
 													notExists : errorHandler,
 													success : (buffer) => {
 														
-														ftpConnector.save({
+														toFTPConnector.save({
 															path : folderPath + '/' + fileName,
 															buffer : buffer
 														}, {

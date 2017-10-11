@@ -118,6 +118,21 @@ DasomEditor.FTPConnector = CLASS({
 			});
 		};
 		
+		let createFolder = self.createFolder = (path, handlers) => {
+			//REQUIRED: path
+			//REQUIRED: handlers
+			//REQUIRED: handlers.error
+			//REQUIRED: handlers.suceess
+			
+			let errorHandler = handlers.error;
+			let callback = handlers.success;
+			
+			ftp.createFolder(path, {
+				error : errorHandler,
+				success : callback
+			});
+		};
+		
 		let move = self.move = (params, handlers) => {
 			//REQUIRED: params
 			//REQUIRED: params.from

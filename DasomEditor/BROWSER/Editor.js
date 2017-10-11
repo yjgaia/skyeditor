@@ -22,6 +22,12 @@ DasomEditor.Editor = CLASS({
 			return ftpInfo;
 		};
 		
+		let setFTPInfo = self.setFTPInfo = (_ftpInfo) => {
+			//REQUIRED: ftpInfo
+			
+			ftpInfo = _ftpInfo;
+		};
+		
 		let getPath = self.getPath = () => {
 			return path;
 		};
