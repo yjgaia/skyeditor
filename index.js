@@ -73,7 +73,54 @@ RUN(() => {
 			}));
 		},
 		
-		save : (path, content, callback) => {
+		loadFiles : (path, errorHandler, callback) => {
+			//REQUIRED: path
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
+			
+			FIND_FOLDER_NAMES(path, {
+				error : errorHandler,
+				success : (folderNames) => {
+					
+					FIND_FILE_NAMES(path, {
+						error : errorHandler,
+						success : (fileNames) => {
+							callback(folderNames, fileNames);
+						}
+					});
+				}
+			});
+		},
+		
+		load : (path, errorHandler, callback) => {
+			//REQUIRED: path
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
+			
+			READ_FILE(path, {
+				error : errorHandler,
+				success : (buffer) => {
+					callback(buffer.toString());
+				}
+			});
+		},
+		
+		getInfo : (path, errorHandler, callback) => {
+			//REQUIRED: path
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
+			
+			GET_FILE_INFO(path, {
+				error : errorHandler,
+				success : callback
+			});
+		},
+		
+		save : (path, content, errorHandler, callback) => {
+			//REQUIRED: path
+			//REQUIRED: content
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
 			
 			NEXT([(next) => {
 				
@@ -185,59 +232,59 @@ RUN(() => {
 			}]);
 		},
 		
-		createFolder : (path) => {
+		createFolder : (path, errorHandler, callback) => {
+			//REQUIRED: path
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
 			
-			CREATE_FOLDER(path);
-		},
-		
-		load : (path, handlers) => {
-			
-			READ_FILE(path, {
-				error : handlers.error,
-				success : (buffer) => {
-					handlers.success(buffer.toString());
-				}
+			CREATE_FOLDER(path, {
+				error : errorHandler,
+				success : callback
 			});
 		},
 		
-		loadFiles : (path, callback) => {
-			
-			FIND_FOLDER_NAMES(path, (folderNames) => {
-				
-				FIND_FILE_NAMES(path, (fileNames) => {
-					
-					callback(folderNames, fileNames);
-				});
-			});
-		},
-		
-		getInfo : (path, callback) => {
-			GET_FILE_INFO(path, callback);
-		},
-		
-		move : (from, to, callback) => {
+		move : (from, to, errorHandler, callback) => {
+			//REQUIRED: from
+			//REQUIRED: to
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
 			
 			MOVE_FILE({
 				from : from,
 				to : to
-			}, callback);
+			}, {
+				error : errorHandler,
+				success : callback
+			});
 		},
 		
-		remove : (path) => {
+		remove : (path, errorHandler, callback) => {
+			//REQUIRED: path
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
 			
 			CHECK_IS_FOLDER(path, (isFolder) => {
 				
 				if (isFolder === true) {
-					REMOVE_FOLDER(path);
+					REMOVE_FOLDER(path, {
+						error : errorHandler,
+						success : callback
+					});
 				}
 				
 				else {
-					REMOVE_FILE(path);
+					REMOVE_FILE(path, {
+						error : errorHandler,
+						success : callback
+					});
 				}
 			});
 		},
 		
-		ftpNew : (ftpInfo, callback) => {
+		ftpNew : (ftpInfo, errorHandler, callback) => {
+			//REQUIRED: ftpInfo
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
 			
 			ftpInfos.push(ftpInfo);
 			
@@ -249,7 +296,10 @@ RUN(() => {
 			callback();
 		},
 		
-		ftpDestroy : (ftpInfo, callback) => {
+		ftpDestroy : (ftpInfo, errorHandler, callback) => {
+			//REQUIRED: ftpInfo
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
 			
 			REMOVE({
 				array : ftpInfos,
@@ -264,20 +314,82 @@ RUN(() => {
 			callback();
 		},
 		
-		ftpConnect : (ftpInfo, handlers) => {
+		ftpConnect : (ftpInfo, errorHandler, callback) => {
+			//REQUIRED: ftpInfo
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
 			
 			let ftpConnector = ftpConnectors[ftpInfo.host];
 			
 			if (ftpConnector === undefined) {
-				ftpConnector = ftpConnectors[ftpInfo.host] = DasomEditor.FTPConnector(ftpInfo, handlers);
+				ftpConnector = ftpConnectors[ftpInfo.host] = DasomEditor.FTPConnector(ftpInfo, {
+					error : errorHandler,
+					success : callback
+				});
 			}
 			
 			else {
-				handlers.success();
+				callback();
 			}
 		},
 		
-		ftpSave : (ftpInfo, path, content, handlers) => {
+		ftpLoadFiles : (ftpInfo, path, errorHandler, callback) => {
+			//REQUIRED: ftpInfo
+			//REQUIRED: path
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
+			
+			let ftpConnector = ftpConnectors[ftpInfo.host];
+			
+			if (ftpConnector !== undefined) {
+				
+				ftpConnector.loadFiles(path, {
+					error : errorHandler,
+					success : callback
+				});
+			}
+		},
+		
+		ftpLoad : (ftpInfo, path, errorHandler, callback) => {
+			//REQUIRED: ftpInfo
+			//REQUIRED: path
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
+			
+			let ftpConnector = ftpConnectors[ftpInfo.host];
+			
+			if (ftpConnector !== undefined) {
+				
+				ftpConnector.load(path, {
+					error : errorHandler,
+					success : callback
+				});
+			}
+		},
+		
+		ftpGetInfo : (ftpInfo, path, errorHandler, callback) => {
+			//REQUIRED: ftpInfo
+			//REQUIRED: path
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
+			
+			let ftpConnector = ftpConnectors[ftpInfo.host];
+			
+			if (ftpConnector !== undefined) {
+				
+				ftpConnector.getInfo(path, {
+					error : errorHandler,
+					success : callback
+				});
+			}
+		},
+		
+		ftpSave : (ftpInfo, path, content, errorHandler, callback) => {
+			//REQUIRED: ftpInfo
+			//REQUIRED: path
+			//REQUIRED: content
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
 			
 			let ftpConnector = ftpConnectors[ftpInfo.host];
 			
@@ -286,57 +398,48 @@ RUN(() => {
 				ftpConnector.save({
 					path : path,
 					content : content
-				}, handlers);
+				}, {
+					error : errorHandler,
+					success : callback
+				});
 			}
 		},
 		
-		ftpLoad : (ftpInfo, path, handlers) => {
+		ftpMove : (ftpInfo, from, to, errorHandler, callback) => {
+			//REQUIRED: ftpInfo
+			//REQUIRED: path
+			//REQUIRED: content
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
 			
 			let ftpConnector = ftpConnectors[ftpInfo.host];
 			
 			if (ftpConnector !== undefined) {
 				
-				ftpConnector.load(path, handlers);
+				ftpConnector.move({
+					from : from,
+					to : to
+				}, {
+					error : errorHandler,
+					success : callback
+				});
 			}
 		},
 		
-		ftpLoadFiles : (ftpInfo, path, handlers) => {
+		ftpRemove : (ftpInfo, path, errorHandler, callback) => {
+			//REQUIRED: ftpInfo
+			//REQUIRED: path
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
 			
 			let ftpConnector = ftpConnectors[ftpInfo.host];
 			
 			if (ftpConnector !== undefined) {
 				
-				ftpConnector.loadFiles(path, handlers);
-			}
-		},
-		
-		ftpGetInfo : (ftpInfo, path, callback) => {
-			
-			let ftpConnector = ftpConnectors[ftpInfo.host];
-			
-			if (ftpConnector !== undefined) {
-				
-				
-			}
-		},
-		
-		ftpMove : (ftpInfo, from, to, callback) => {
-			
-			let ftpConnector = ftpConnectors[ftpInfo.host];
-			
-			if (ftpConnector !== undefined) {
-				
-				
-			}
-		},
-		
-		ftpRemove : (ftpInfo, path) => {
-			
-			let ftpConnector = ftpConnectors[ftpInfo.host];
-			
-			if (ftpConnector !== undefined) {
-				
-				
+				ftpConnector.remove(path, {
+					error : errorHandler,
+					success : callback
+				});
 			}
 		},
 		
@@ -347,7 +450,7 @@ RUN(() => {
 			}));
 		},
 		
-		paste : (ftpInfo, folderPath) => {
+		paste : (ftpInfo, folderPath, errorHandler, callback) => {
 			
 			let clipboardPathInfos;
 			let clipboardPath = clipboard.read('public.file-url');
@@ -372,26 +475,250 @@ RUN(() => {
 				}
 			}
 			
+			// -> FTP로
 			if (ftpInfo !== undefined) {
 				
-			}
-			
-			else {
+				let ftpConnector = ftpConnectors[ftpInfo.host];
 				
-				EACH(clipboardPathInfos, (clipboardPathInfo) => {
+				if (ftpConnector !== undefined) {
 					
-					if (clipboardPathInfo.ftpInfo !== undefined) {
-						
-					}
-					
-					else {
+					NEXT(clipboardPathInfos, [
+					(clipboardPathInfo, next) => {
 						
 						let path = fixPath(clipboardPathInfo.path);
 						
 						let fileName = path.substring(path.lastIndexOf('/') + 1);
 						
+						// FTP -> FTP
+						if (clipboardPathInfo.ftpInfo !== undefined) {
+							
+							let fromFTPConnector = ftpConnectors[clipboardPathInfo.ftpInfo.host];
+							
+							RUN((f) => {
+								
+								// 이미 존재하는가?
+								ftpConnector.checkExists(folderPath + '/' + fileName, (isExists) => {
+									
+									if (isExists === true) {
+										
+										let extname = '';
+										let index = fileName.lastIndexOf('.');
+										
+										if (index !== -1) {
+											extname = fileName.substring(index);
+											fileName = fileName.substring(0, index);
+										}
+										
+										fileName = fileName + ' (2)' + extname;
+										
+										f();
+									}
+									
+									else {
+										
+										fromFTPConnector.checkIsFolder(path, {
+											error : errorHandler,
+											success : (isFolder) => {
+												
+												// 폴더 복사
+												if (isFolder === true) {
+													
+													if (fromFTPConnector === ftpConnector) {
+														
+														ftpConnector.copyFolder({
+															from : path,
+															to : folderPath + '/' + fileName
+														}, {
+															error : errorHandler,
+															success : next
+														});
+													}
+													
+													else {
+														
+														// 다른 FTP 끼리는 폴더 복사 불가
+														next();
+													}
+												}
+												
+												// 파일 복사
+												else {
+													
+													if (fromFTPConnector === ftpConnector) {
+														
+														ftpConnector.copyFile({
+															from : path,
+															to : folderPath + '/' + fileName
+														}, {
+															error : errorHandler,
+															success : next
+														});
+													}
+													
+													else {
+														
+														fromFTPConnector.load(path, {
+															error : errorHandler,
+															notExists : errorHandler,
+															success : (buffer) => {
+																
+																ftpConnector.save({
+																	path : folderPath + '/' + fileName,
+																	buffer : buffer
+																}, {
+																	error : errorHandler,
+																	success : next
+																});
+															}
+														});
+													}
+												}
+											}
+										});
+									}
+								});
+							});
+						}
+						
+						// 로컬 -> FTP
+						else {
+							
+							RUN((f) => {
+								
+								// 이미 존재하는가?
+								ftpConnector.checkExists(folderPath + '/' + fileName, (isExists) => {
+									
+									if (isExists === true) {
+										
+										let extname = '';
+										let index = fileName.lastIndexOf('.');
+										
+										if (index !== -1) {
+											extname = fileName.substring(index);
+											fileName = fileName.substring(0, index);
+										}
+										
+										fileName = fileName + ' (2)' + extname;
+										
+										f();
+									}
+									
+									else {
+										
+										CHECK_IS_FOLDER(path, (isFolder) => {
+											
+											// 폴더 복사
+											if (isFolder === true) {
+												// 로컬 <-> FTP 간 폴더 복사 불가
+												next();
+											}
+											
+											// 파일 복사
+											else {
+												
+												READ_FILE(path, {
+													error : errorHandler,
+													notExists : errorHandler,
+													success : (buffer) => {
+														
+														ftpConnector.save({
+															path : folderPath + '/' + fileName,
+															buffer : buffer
+														}, {
+															error : errorHandler,
+															success : next
+														});
+													}
+												});
+											}
+										});
+									}
+								});
+							});
+						}
+					},
+					
+					() => {
+						callback();
+					}]);
+				}
+			}
+			
+			// -> 로컬로
+			else {
+				
+				NEXT(clipboardPathInfos, [
+				(clipboardPathInfo, next) => {
+					
+					let path = fixPath(clipboardPathInfo.path);
+					
+					let fileName = path.substring(path.lastIndexOf('/') + 1);
+					
+					// FTP -> 로컬
+					if (clipboardPathInfo.ftpInfo !== undefined) {
+						
+						let fromFTPConnector = ftpConnectors[clipboardPathInfo.ftpInfo.host];
+						
 						RUN((f) => {
 							
+							// 이미 존재하는가?
+							CHECK_FILE_EXISTS(folderPath + '/' + fileName, (isExists) => {
+								
+								if (isExists === true) {
+									
+									let extname = '';
+									let index = fileName.lastIndexOf('.');
+									
+									if (index !== -1) {
+										extname = fileName.substring(index);
+										fileName = fileName.substring(0, index);
+									}
+									
+									fileName = fileName + ' (2)' + extname;
+									
+									f();
+								}
+								
+								else {
+									
+									fromFTPConnector.checkIsFolder(path, (isFolder) => {
+										
+										// 폴더 복사
+										if (isFolder === true) {
+											// 로컬 <-> FTP 간 폴더 복사 불가
+											next();
+										}
+										
+										// 파일 복사
+										else {
+											
+											fromFTPConnector.load(path, {
+												error : errorHandler,
+												notExists : errorHandler,
+												success : (buffer) => {
+													
+													WRITE_FILE({
+														path : folderPath + '/' + fileName,
+														buffer : buffer
+													}, {
+														error : errorHandler,
+														success : next
+													});
+												}
+											});
+										}
+									});
+								}
+							});
+						});
+					}
+					
+					// 로컬 -> 로컬
+					else {
+						
+						RUN((f) => {
+							
+							// 이미 존재하는가?
 							CHECK_FILE_EXISTS(folderPath + '/' + fileName, (isExists) => {
 								
 								if (isExists === true) {
@@ -419,23 +746,21 @@ RUN(() => {
 											COPY_FOLDER({
 												from : path,
 												to : folderPath + '/' + fileName
+											}, {
+												error : errorHandler,
+												success : next
 											});
 										}
 										
 										// 파일 복사
 										else {
 											
-											READ_FILE(path, {
-												notExists : () => {
-													// ignore.
-												},
-												success : (buffer) => {
-													
-													WRITE_FILE({
-														path : folderPath + '/' + fileName,
-														buffer : buffer
-													});
-												}
+											COPY_FILE({
+												from : path,
+												to : folderPath + '/' + fileName
+											}, {
+												error : errorHandler,
+												success : next
 											});
 										}
 									});
@@ -443,7 +768,11 @@ RUN(() => {
 							});
 						});
 					}
-				});
+				},
+				
+				() => {
+					callback();
+				}]);
 			}
 		}
 	});

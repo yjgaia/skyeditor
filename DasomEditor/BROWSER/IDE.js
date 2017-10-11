@@ -741,16 +741,26 @@ DasomEditor.IDE = OBJECT({
 			
 			if (ftpInfo !== undefined) {
 				
+				let loadingBar = SkyDesktop.LoadingBar('lime');
+				
+				ftpLoadHandler(ftpInfo, path, {
+					error : () => {
+						loadingBar.done();
+						SkyEngine.Alert('FTP로부터 파일을 불러오는데 실패하였습니니다.');
+					},
+					success : (content) => {
+						loadingBar.done();
+						callback(content);
+					}
+				});
 			}
 			
 			else {
 				
 				loadHandler(path, {
-					
 					error : () => {
-						SkyEngine.Alert('FTP로부터 파일을 불러오는데 실패하였습니니다.');
+						SkyEngine.Alert('파일을 불러오는데 실패하였습니니다.');
 					},
-					
 					success : (content) => {
 						callback(content);
 					}
@@ -799,11 +809,10 @@ DasomEditor.IDE = OBJECT({
 				let loadingBar = SkyDesktop.LoadingBar('lime');
 				
 				ftpSaveHandler(ftpInfo, path, content, {
-					
 					error : () => {
+						loadingBar.done();
 						SkyEngine.Alert('FTP로 파일을 저장하는데 실패하였습니니다.');
 					},
-					
 					success : () => {
 						loadingBar.done();
 						callback(path);
