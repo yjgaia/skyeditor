@@ -342,7 +342,7 @@ RUN(() => {
 		
 		copy : (pathInfos) => {
 			
-			clipboard.writeText(STRINGIFY({
+			clipboard.writeText(JSON.stringify({
 				pathInfos : pathInfos
 			}));
 		},
@@ -366,7 +366,7 @@ RUN(() => {
 			}
 			
 			else {
-				let info = PARSE_STR(clipboard.readText());
+				let info = JSON.parse(clipboard.readText());
 				if (info !== undefined && info.pathInfos !== undefined) {
 					clipboardPathInfos = info.pathInfos;
 				}

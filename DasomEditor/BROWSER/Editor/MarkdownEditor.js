@@ -10,8 +10,6 @@ DasomEditor.MarkdownEditor = CLASS((cls) => {
 		});
 	};
 	
-	let markdownGenerateWorker = new Worker(DasomEditor.R('js/markdown-generate-worker.js'));
-	
 	return {
 		
 		preset : () => {
@@ -29,6 +27,8 @@ DasomEditor.MarkdownEditor = CLASS((cls) => {
 			
 			let editor = inner.getEditor();
 			let aceEditor = inner.getAceEditor();
+			
+			let markdownGenerateWorker = new Worker(DasomEditor.R('js/markdown-generate-worker.js'));
 			
 			aceEditor.getSession().setUseWrapMode(true);
 			
