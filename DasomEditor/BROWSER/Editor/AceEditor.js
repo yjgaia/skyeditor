@@ -35,6 +35,7 @@ DasomEditor.AceEditor = CLASS({
 			self.fireEvent('change');
 		});
 		aceEditor.renderer.setScrollMargin(0, 300);
+		aceEditor.setShowPrintMargin(false);
 		aceEditor.commands.addCommand({
 			name : 'replace2',
 			bindKey : {

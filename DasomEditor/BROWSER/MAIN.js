@@ -51,5 +51,10 @@ DasomEditor.MAIN = METHOD({
 			extname : 'gml',
 			editor : DasomEditor.GMLEditor
 		});
+		
+		DasomEditor.IDE.addEditor({
+			extname : 'php',
+			editor : DasomEditor.PHPEditor
+		});
 	}
 });
