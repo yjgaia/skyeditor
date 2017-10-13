@@ -10,8 +10,6 @@ DasomEditor.FileContextMenu = CLASS({
 		//OPTIONAL: params.path
 		//REQUIRED: params.folderPath
 		
-		console.log(params);
-		
 		let ftpInfo = params.ftpInfo;
 		
 		let path = params.path;

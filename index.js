@@ -205,6 +205,7 @@ RUN(() => {
 													},
 													tap : () => {
 														tab.remove();
+														EVENT.fireAll('resize');
 													}
 												}
 											}), H2({
