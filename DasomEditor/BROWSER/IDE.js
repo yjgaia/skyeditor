@@ -1685,6 +1685,7 @@ DasomEditor.IDE = OBJECT({
 								},
 								tap : () => {
 									tab.remove();
+									EVENT.fireAll('resize');
 								}
 							}
 						}), A({

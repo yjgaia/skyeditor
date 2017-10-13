@@ -334,6 +334,7 @@ DasomEditor.FileContextMenu = CLASS({
 										},
 										tap : () => {
 											tab.remove();
+											EVENT.fireAll('resize');
 										}
 									}
 								}), historyList = DIV()]
