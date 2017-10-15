@@ -56,5 +56,10 @@ DasomEditor.MAIN = METHOD({
 			extname : 'php',
 			editor : DasomEditor.PHPEditor
 		});
+		
+		DasomEditor.IDE.addEditor({
+			extname : 'xml',
+			editor : DasomEditor.XMLEditor
+		});
 	}
 });
