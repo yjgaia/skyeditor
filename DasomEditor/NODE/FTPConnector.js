@@ -165,9 +165,18 @@ DasomEditor.FTPConnector = CLASS({
 			let errorHandler = handlers.error;
 			let callback = handlers.success;
 			
-			ftp.removeFile(path, {
+			checkIsFolder(path, {
 				error : errorHandler,
-				success : callback
+				success : (isFolder) => {
+				
+					isFolder === true ? ftp.removeFolder(path, {
+						error : errorHandler,
+						success : callback
+					}) : ftp.removeFile(path, {
+						error : errorHandler,
+						success : callback
+					});
+				}
 			});
 		};
 		

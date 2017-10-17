@@ -14,11 +14,6 @@ RUN(() => {
 	let ftpInfoStore = STORE('ftpInfoStore');
 	let saveCommandStore = STORE('saveCommandStore');
 	
-	let ftpInfos = ftpInfoStore.get('infos');
-	if (ftpInfos === undefined) {
-		ftpInfos = [];
-	}
-	
 	let ftpConnectors = {};
 	
 	let fixPath = (path) => {
@@ -282,19 +277,25 @@ RUN(() => {
 			});
 		},
 		
-		ftpNew : (ftpInfo, errorHandler, callback) => {
+		ftpNew : (ftpInfo, errorHandler, existedHandler, callback) => {
 			//REQUIRED: ftpInfo
 			//REQUIRED: errorHandler
+			//REQUIRED: existedHandler
 			//REQUIRED: callback
 			
-			ftpInfos.push(ftpInfo);
+			if (ftpInfoStore.get(ftpInfo.username + '@' + ftpInfo.host) !== undefined) {
+				existedHandler();
+			}
 			
-			ftpInfoStore.save({
-				name : 'infos',
-				value : ftpInfos
-			});
-			
-			callback();
+			else {
+				
+				ftpInfoStore.save({
+					name : ftpInfo.username + '@' + ftpInfo.host,
+					value : ftpInfo
+				});
+				
+				callback();
+			}
 		},
 		
 		ftpDestroy : (ftpInfo, errorHandler, callback) => {
@@ -302,15 +303,7 @@ RUN(() => {
 			//REQUIRED: errorHandler
 			//REQUIRED: callback
 			
-			REMOVE({
-				array : ftpInfos,
-				value : ftpInfo
-			});
-			
-			ftpInfoStore.save({
-				name : 'infos',
-				value : ftpInfos
-			});
+			ftpInfoStore.remove(ftpInfo.username + '@' + ftpInfo.host);
 			
 			callback();
 		},
@@ -530,6 +523,9 @@ RUN(() => {
 				
 				if (toFTPConnector !== undefined) {
 					
+					let ftpFolderPaths = [];
+					let ftpFilePaths = [];
+					
 					NEXT(clipboardPathInfos, [
 					(clipboardPathInfo, next) => {
 						
@@ -573,6 +569,8 @@ RUN(() => {
 													
 													if (fromFTPConnector === toFTPConnector) {
 														
+														ftpFolderPaths.push(folderPath + '/' + fileName);
+														
 														toFTPConnector.copyFolder({
 															from : path,
 															to : folderPath + '/' + fileName
@@ -591,6 +589,8 @@ RUN(() => {
 												
 												// 파일 복사
 												else {
+													
+													ftpFilePaths.push(folderPath + '/' + fileName);
 													
 													if (fromFTPConnector === toFTPConnector) {
 														
@@ -664,6 +664,8 @@ RUN(() => {
 											// 파일 복사
 											else {
 												
+												ftpFilePaths.push(folderPath + '/' + fileName);
+												
 												READ_FILE(path, {
 													error : errorHandler,
 													notExists : errorHandler,
@@ -687,7 +689,9 @@ RUN(() => {
 					},
 					
 					() => {
-						callback();
+						return () => {
+							callback(ftpFolderPaths, ftpFilePaths);
+						};
 					}]);
 				}
 			}
@@ -819,7 +823,9 @@ RUN(() => {
 				},
 				
 				() => {
-					callback();
+					return () => {
+						callback();
+					};
 				}]);
 			}
 		}
@@ -1278,7 +1284,7 @@ RUN(() => {
 		e.stop();
 	});
 	
-	EACH(ftpInfos, (ftpInfo) => {
+	EACH(ftpInfoStore.all(), (ftpInfo) => {
 		DasomEditor.IDE.addFTPItem(ftpInfo);
 	});
 });

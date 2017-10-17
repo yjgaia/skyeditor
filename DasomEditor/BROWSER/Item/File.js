@@ -88,6 +88,8 @@ DasomEditor.File = CLASS({
 					let from = selectedFileItem.getPath();
 					
 					DasomEditor.IDE.move({
+						fromFTPInfo : selectedFileItem.getFTPInfo(),
+						toFTPInfo : ftpInfo,
 						from : from,
 						to : folderPath + '/' + from.substring(from.lastIndexOf('/') + 1)
 					});
