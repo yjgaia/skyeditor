@@ -236,10 +236,12 @@ DasomEditor.FTPItem = CLASS({
 								        })],
 								        on : {
 								        	change : (e, select) => {
-								        		if (select.getValue() === 'sftp') {
-								        			privateKeyInput.show();
-								        		} else {
-								        			privateKeyInput.hide();
+								        		if (privateKeyInput !== undefined) {
+									        		if (select.getValue() === 'sftp') {
+									        			privateKeyInput.show();
+									        		} else {
+									        			privateKeyInput.hide();
+									        		}
 								        		}
 								        	}
 								        }
@@ -339,6 +341,8 @@ DasomEditor.FTPItem = CLASS({
 										DasomEditor.IDE.ftpDestroy(ftpInfo, () => {
 											
 											DasomEditor.IDE.ftpNew(data, () => {
+												
+												self.setTitle(data.title);
 												
 												close();
 												
