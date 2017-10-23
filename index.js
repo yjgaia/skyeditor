@@ -581,8 +581,7 @@ RUN(() => {
 													}
 													
 													else {
-														
-														// 다른 FTP 끼리는 폴더 복사 불가
+														//TODO: 다른 FTP 끼리 폴더 복사
 														next();
 													}
 												}
@@ -657,7 +656,7 @@ RUN(() => {
 											
 											// 폴더 복사
 											if (isFolder === true) {
-												// 로컬 <-> FTP 간 폴더 복사 불가
+												//TODO: 로컬 <-> FTP 간 폴더 복사
 												next();
 											}
 											
@@ -737,7 +736,7 @@ RUN(() => {
 										
 										// 폴더 복사
 										if (isFolder === true) {
-											// 로컬 <-> FTP 간 폴더 복사 불가
+											//TODO: 로컬 <-> FTP 간 폴더 복사
 											next();
 										}
 										
