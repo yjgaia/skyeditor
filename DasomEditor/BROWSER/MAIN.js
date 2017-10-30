@@ -61,5 +61,10 @@ DasomEditor.MAIN = METHOD({
 			extname : 'xml',
 			editor : DasomEditor.XMLEditor
 		});
+		
+		DasomEditor.IDE.addEditor({
+			extname : 'java',
+			editor : DasomEditor.JavaEditor
+		});
 	}
 });
