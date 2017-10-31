@@ -510,9 +510,13 @@ RUN(() => {
 			}
 			
 			else {
-				let info = JSON.parse(clipboard.readText());
-				if (info !== undefined && info.pathInfos !== undefined) {
-					clipboardPathInfos = info.pathInfos;
+				try {
+					let info = JSON.parse(clipboard.readText());
+					if (info !== undefined && info.pathInfos !== undefined) {
+						clipboardPathInfos = info.pathInfos;
+					}
+				} catch(e) {
+					clipboardPathInfos = [];
 				}
 			}
 			
