@@ -66,5 +66,10 @@ DasomEditor.MAIN = METHOD({
 			extname : 'java',
 			editor : DasomEditor.JavaEditor
 		});
+		
+		DasomEditor.IDE.addEditor({
+			extname : 'nsp',
+			editor : DasomEditor.NSPEditor
+		});
 	}
 });
