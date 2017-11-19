@@ -99,6 +99,18 @@ DasomEditor.AceEditor = CLASS({
 			};
 		});
 		
+		let setFindText;
+		OVERRIDE(self.setFindText, (origin) => {
+			
+			setFindText = self.setFindText = (findText) => {
+				//REQUIRED: findText
+				
+				ace.config.loadModule('ace/ext/searchbox', (e) => {
+					new e.SearchBox(aceEditor).show(findText);
+				});
+			};
+		});
+		
 		let getContent;
 		OVERRIDE(self.getContent, (origin) => {
 			

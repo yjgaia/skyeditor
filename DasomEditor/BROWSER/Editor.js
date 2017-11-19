@@ -66,6 +66,10 @@ DasomEditor.Editor = CLASS({
 			//REQUIRED: scrollTop
 		};
 		
+		let setFindText = self.setFindText = (findText) => {
+			//REQUIRED: findText
+		};
+		
 		let setTitle;
 		OVERRIDE(self.setTitle, (origin) => {
 			

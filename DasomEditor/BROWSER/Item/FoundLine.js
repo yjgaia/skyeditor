@@ -22,26 +22,35 @@ DasomEditor.FoundLine = CLASS({
 	init : (inner, self, params) => {
 		//REQUIRED: params
 		//REQUIRED: params.path
-		//REQUIRED: params.text
+		//REQUIRED: params.findText
 		//REQUIRED: params.lineNumber
 		//REQUIRED: params.line
 		
 		let path = params.path;
-		let text = params.text;
+		let findText = params.findText;
 		let lineNumber = params.lineNumber;
 		let line = params.line;
 		
 		let titleChildren = [lineNumber, ': '];
 		
-		while (line.indexOf(text) !== -1) {
-			titleChildren.push(line.substring(0, line.indexOf(text)));
+		let lineLowerCase = line.toLowerCase();
+		let findTextLowerCase = findText.toLowerCase();
+		
+		while (lineLowerCase.indexOf(findTextLowerCase) !== -1) {
+			
+			let foundIndex = lineLowerCase.indexOf(findTextLowerCase);
+			let foundText = line.substring(foundIndex, foundIndex + findTextLowerCase.length);
+			
+			titleChildren.push(line.substring(0, foundIndex));
 			titleChildren.push(SPAN({
 				style : {
 					backgroundColor : 'red'
 				},
-				c : text
+				c : foundText
 			}));
-			line = line.substring(line.indexOf(text) + text.length);
+			
+			line = line.substring(foundIndex + findTextLowerCase.length);
+			lineLowerCase = lineLowerCase.substring(foundIndex + findTextLowerCase.length);
 		}
 		titleChildren.push(line);
 		

@@ -498,31 +498,13 @@ RUN(() => {
 		
 		paste : (ftpInfo, folderPath, errorHandler, callback) => {
 			
-			let clipboardPathInfos;
-			let clipboardPath = clipboard.read('public.file-url');
-			
-			if (VALID.notEmpty(clipboardPath) !== true) {
-				clipboardPath = clipboard.read('FileNameW');
-				if (VALID.notEmpty(clipboardPath) === true) {
-					clipboardPath = clipboardPath.replace(new RegExp(String.fromCharCode(0), 'g'), '');
+			try {
+				let info = JSON.parse(clipboard.readText());
+				if (info !== undefined && info.pathInfos !== undefined) {
+					clipboardPathInfos = info.pathInfos;
 				}
-			}
-			
-			if (VALID.notEmpty(clipboardPath) === true) {
-				clipboardPathInfos = [{
-					path : clipboardPath
-				}];
-			}
-			
-			else {
-				try {
-					let info = JSON.parse(clipboard.readText());
-					if (info !== undefined && info.pathInfos !== undefined) {
-						clipboardPathInfos = info.pathInfos;
-					}
-				} catch(e) {
-					clipboardPathInfos = [];
-				}
+			} catch(e) {
+				clipboardPathInfos = [];
 			}
 			
 			// -> FTP로
@@ -1274,6 +1256,8 @@ RUN(() => {
 	});
 	
 	EVENT('drop', (e) => {
+		
+		console.log(e.getTop());
 		
 		EACH(e.getFiles(), (file) => {
 			

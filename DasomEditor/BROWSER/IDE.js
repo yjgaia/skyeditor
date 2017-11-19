@@ -291,7 +291,7 @@ DasomEditor.IDE = OBJECT({
 			editorGroup.removeAllTabs();
 		};
 		
-		let loadAndOpenEditor = (path, scrollTop) => {
+		let loadAndOpenEditor = (path, scrollTop, findText) => {
 			
 			load({
 				path : path
@@ -307,6 +307,10 @@ DasomEditor.IDE = OBJECT({
 				
 				if (scrollTop !== undefined) {
 					editor.setScrollTop(scrollTop);
+				}
+				
+				if (findText !== undefined) {
+					editor.setFindText(findText);
 				}
 			});
 		};
@@ -1898,9 +1902,9 @@ DasomEditor.IDE = OBJECT({
 			
 			SkyDesktop.Prompt({
 				msg : '검색할 문자열을 입력해주세요.'
-			}, (text) => {
+			}, (findText) => {
 				
-				if (text !== '') {
+				if (findText !== '') {
 					
 					let tab;
 					let fileTree;
@@ -1967,7 +1971,7 @@ DasomEditor.IDE = OBJECT({
 										let loadingBar = SkyDesktop.LoadingBar('lime');
 										
 										NEXT(foundInfos, [(info, next) => {
-											innerSave(undefined, info.path, info.content.replace(new RegExp(text, 'g'), changeText), () => {
+											innerSave(undefined, info.path, info.content.replace(new RegExp(findText, 'g'), changeText), () => {
 												next();
 											});
 										}, () => {
@@ -2018,7 +2022,7 @@ DasomEditor.IDE = OBJECT({
 								EACH(content.split('\n'), (line, lineNumber) => {
 									lineNumber += 1;
 									
-									if (line.indexOf(text) !== -1) {
+									if (line.toLowerCase().indexOf(findText.toLowerCase()) !== -1) {
 										foundLineInfos.push({
 											lineNumber : lineNumber,
 											line : line
@@ -2046,12 +2050,12 @@ DasomEditor.IDE = OBJECT({
 											key : path + ':' + info.lineNumber,
 											item : DasomEditor.FoundLine({
 												path : path,
-												text : text,
+												findText : findText,
 												lineNumber : info.lineNumber,
 												line : info.line.trim(),
 												on : {
 													doubletap : () => {
-														loadAndOpenEditor(path, (info.lineNumber - 1) * 16);
+														loadAndOpenEditor(path, (info.lineNumber - 1 - 10) * 17, findText);
 													}
 												}
 											})
