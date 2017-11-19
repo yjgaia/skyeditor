@@ -74,10 +74,12 @@ RUN(() => {
 			//REQUIRED: callback
 			
 			FIND_FOLDER_NAMES(path, {
+				notExists : errorHandler,
 				error : errorHandler,
 				success : (folderNames) => {
 					
 					FIND_FILE_NAMES(path, {
+						notExists : errorHandler,
 						error : errorHandler,
 						success : (fileNames) => {
 							callback(folderNames, fileNames);
@@ -93,6 +95,7 @@ RUN(() => {
 			//REQUIRED: callback
 			
 			READ_FILE(path, {
+				notExists : errorHandler,
 				error : errorHandler,
 				success : (buffer) => {
 					callback(buffer.toString());
@@ -106,6 +109,7 @@ RUN(() => {
 			//REQUIRED: callback
 			
 			GET_FILE_INFO(path, {
+				notExists : errorHandler,
 				error : errorHandler,
 				success : callback
 			});
@@ -249,6 +253,7 @@ RUN(() => {
 				from : from,
 				to : to
 			}, {
+				notExists : errorHandler,
 				error : errorHandler,
 				success : callback
 			});

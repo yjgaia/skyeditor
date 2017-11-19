@@ -291,7 +291,7 @@ DasomEditor.IDE = OBJECT({
 			editorGroup.removeAllTabs();
 		};
 		
-		let loadAndOpenEditor = (path, scrollTop, next) => {
+		let loadAndOpenEditor = (path, scrollTop) => {
 			
 			load({
 				path : path
@@ -307,10 +307,6 @@ DasomEditor.IDE = OBJECT({
 				
 				if (scrollTop !== undefined) {
 					editor.setScrollTop(scrollTop);
-				}
-				
-				if (next !== undefined) {
-					next();
 				}
 			});
 		};
@@ -742,7 +738,31 @@ DasomEditor.IDE = OBJECT({
 			} else {
 				
 				NEXT(editorOpenedInfos, (editorOpenedInfo, next) => {
-					loadAndOpenEditor(editorOpenedInfo.path, editorOpenedInfo.scrollTop, next);
+
+					let path = editorOpenedInfo.path;
+					
+					loadHandler(path,
+
+					// 파일을 찾지 못함
+					() => {
+						editorOpenedStore.remove(path);
+						next();
+					},
+
+					(content) => {
+						
+						let fileName = path.substring(path.lastIndexOf('/') + 1);
+						
+						let editor = openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+							title : fileName,
+							path : path,
+							content : content
+						}));
+						
+						editor.setScrollTop(editorOpenedInfo.scrollTop);
+						
+						next();
+					});
 				});
 			}
 		};
