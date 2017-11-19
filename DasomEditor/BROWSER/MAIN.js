@@ -71,5 +71,10 @@ DasomEditor.MAIN = METHOD({
 			extname : 'nsp',
 			editor : DasomEditor.NSPEditor
 		});
+		
+		DasomEditor.IDE.addEditor({
+			extname : 'less',
+			editor : DasomEditor.LessEditor
+		});
 	}
 });
