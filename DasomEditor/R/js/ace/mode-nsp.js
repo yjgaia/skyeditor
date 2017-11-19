@@ -977,12 +977,12 @@ var HtmlHighlightRules = function() {
                 return ["meta.tag.punctuation." + (start == "<" ? "" : "end-") + "tag-open.xml",
                     "meta.tag" + (group ? "." + group : "") + ".tag-name.xml"];
             },
-            regex : "(</?)([-_a-zA-Z0-9:.]+)",
+            regex : "(</?|{{)([-_a-zA-Z0-9:.\?~]+)",
             next: "tag_stuff"
         }],
         tag_stuff: [
             {include : "attributes"},
-            {token : "meta.tag.punctuation.tag-close.xml", regex : "/?>", next : "start"}
+            {token : "meta.tag.punctuation.tag-close.xml", regex : "/?>|}}", next : "start"}
         ]
     });
 
@@ -998,140 +998,20 @@ oop.inherits(HtmlHighlightRules, XmlHighlightRules);
 exports.HtmlHighlightRules = HtmlHighlightRules;
 });
 
-define("ace/mode/java_highlight_rules",["require","exports","module","ace/lib/oop","ace/mode/doc_comment_highlight_rules","ace/mode/text_highlight_rules"], function(require, exports, module) {
-"use strict";
-
-var oop = require("../lib/oop");
-var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocCommentHighlightRules;
-var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
-
-var JavaHighlightRules = function() {
-    var keywords = (
-    "continue|for|new|switch|" +
-    "do|if|this|" +
-    "break|throw|" +
-    "else|import|throws|" +
-    "case|return|" +
-    "catch|extends|let|var|try|" +
-    "class|" +
-    "const|while|" +
-    "print|include|pause|resume|cookie|redirect|self"
-    );
-
-    var buildinConstants = ("null|Infinity|NaN|undefined");
-
-
-    var langClasses = (
-        "AbstractMethodError|AssertionError|ClassCircularityError|"+
-        "ClassFormatError|Deprecated|EnumConstantNotPresentException|"+
-        "ExceptionInInitializerError|IllegalAccessError|"+
-        "IllegalThreadStateException|InstantiationError|InternalError|"+
-        "NegativeArraySizeException|NoSuchFieldError|Override|Process|"+
-        "ProcessBuilder|SecurityManager|StringIndexOutOfBoundsException|"+
-        "SuppressWarnings|TypeNotPresentException|UnknownError|"+
-        "UnsatisfiedLinkError|UnsupportedClassVersionError|VerifyError|"+
-        "InstantiationException|IndexOutOfBoundsException|"+
-        "ArrayIndexOutOfBoundsException|CloneNotSupportedException|"+
-        "NoSuchFieldException|IllegalArgumentException|NumberFormatException|"+
-        "SecurityException|Void|InheritableThreadLocal|IllegalStateException|"+
-        "InterruptedException|NoSuchMethodException|IllegalAccessException|"+
-        "UnsupportedOperationException|Enum|StrictMath|Package|Compiler|"+
-        "Readable|Runtime|StringBuilder|Math|IncompatibleClassChangeError|"+
-        "NoSuchMethodError|ThreadLocal|RuntimePermission|ArithmeticException|"+
-        "NullPointerException|Long|Integer|Short|Byte|Double|Number|Float|"+
-        "Character|Boolean|StackTraceElement|Appendable|StringBuffer|"+
-        "Iterable|ThreadGroup|Runnable|Thread|IllegalMonitorStateException|"+
-        "StackOverflowError|OutOfMemoryError|VirtualMachineError|"+
-        "ArrayStoreException|ClassCastException|LinkageError|"+
-        "NoClassDefFoundError|ClassNotFoundException|RuntimeException|"+
-        "Exception|ThreadDeath|Error|Throwable|System|ClassLoader|"+
-        "Cloneable|Class|CharSequence|Comparable|String|Object"
-    );
-
-    var keywordMapper = this.createKeywordMapper({
-        "variable.language": "this",
-        "keyword": keywords,
-        "constant.language": buildinConstants,
-        "support.function": langClasses
-    }, "identifier");
-
-    this.$rules = {
-        "start" : [
-            {
-                token : "comment",
-                regex : "\\/\\/.*$"
-            },
-            DocCommentHighlightRules.getStartRule("doc-start"),
-            {
-                token : "comment", // multi line comment
-                regex : "\\/\\*",
-                next : "comment"
-            }, {
-                token : "string", // single line
-                regex : '["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]'
-            }, {
-                token : "string", // single line
-                regex : "['](?:(?:\\\\.)|(?:[^'\\\\]))*?[']"
-            }, {
-                token : "constant.numeric", // hex
-                regex : /0(?:[xX][0-9a-fA-F][0-9a-fA-F_]*|[bB][01][01_]*)[LlSsDdFfYy]?\b/
-            }, {
-                token : "constant.numeric", // float
-                regex : /[+-]?\d[\d_]*(?:(?:\.[\d_]*)?(?:[eE][+-]?[\d_]+)?)?[LlSsDdFfYy]?\b/
-            }, {
-                token : "constant.language.boolean",
-                regex : "(?:true|false)\\b"
-            }, {
-                token : keywordMapper,
-                regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
-            }, {
-                token : "keyword.operator",
-                regex : "!|\\$|%|&|\\*|\\-\\-|\\-|\\+\\+|\\+|~|===|==|=|!=|!==|<=|>=|<<=|>>=|>>>=|<>|<|>|!|&&|\\|\\||\\?\\:|\\*=|%=|\\+=|\\-=|&=|\\^=|\\b(?:in|instanceof|new|delete|typeof|void)"
-            }, {
-                token : "lparen",
-                regex : "[[({]"
-            }, {
-                token : "rparen",
-                regex : "[\\])}]"
-            }, {
-                token : "text",
-                regex : "\\s+"
-            }
-        ],
-        "comment" : [
-            {
-                token : "comment", // closing comment
-                regex : "\\*\\/",
-                next : "start"
-            }, {
-                defaultToken : "comment"
-            }
-        ]
-    };
-
-    this.embedRules(DocCommentHighlightRules, "doc-",
-        [ DocCommentHighlightRules.getEndRule("start") ]);
-};
-
-oop.inherits(JavaHighlightRules, TextHighlightRules);
-
-exports.JavaHighlightRules = JavaHighlightRules;
-});
-
 define("ace/mode/nsp_highlight_rules",["require","exports","module","ace/lib/oop","ace/mode/html_highlight_rules","ace/mode/java_highlight_rules"], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
 var HtmlHighlightRules = require("./html_highlight_rules").HtmlHighlightRules;
-var JavaHighlightRules = require("./java_highlight_rules").JavaHighlightRules;
+var JavaScriptHighlightRules = require("./javascript_highlight_rules").JavaScriptHighlightRules;
 
-var JspHighlightRules = function() {
+var NSPHighlightRules = function() {
     HtmlHighlightRules.call(this);
 
     var builtinVariables = 'request|response|out|session|' +
             'application|config|pageContext|page|Exception';
 
-    var keywords = 'page|include|taglib';
+    var keywords = 'print|include|pause|resume|cookie|redirect|self';
 
     var startRules = [
         {
@@ -1162,7 +1042,7 @@ var JspHighlightRules = function() {
     for (var key in this.$rules)
         this.$rules[key].unshift.apply(this.$rules[key], startRules);
 
-    this.embedRules(JavaHighlightRules, "nsp-", endRules, ["start"]);
+    this.embedRules(JavaScriptHighlightRules, "nsp-", endRules, ["start"]);
 
     this.addRules({
         "nsp-dcomment" : [{
@@ -1175,9 +1055,9 @@ var JspHighlightRules = function() {
     this.normalizeRules();
 };
 
-oop.inherits(JspHighlightRules, HtmlHighlightRules);
+oop.inherits(NSPHighlightRules, HtmlHighlightRules);
 
-exports.JspHighlightRules = JspHighlightRules;
+exports.NSPHighlightRules = NSPHighlightRules;
 });
 
 define("ace/mode/matching_brace_outdent",["require","exports","module","ace/range"], function(require, exports, module) {
@@ -1365,13 +1245,13 @@ define("ace/mode/nsp",["require","exports","module","ace/lib/oop","ace/mode/text
 
 var oop = require("../lib/oop");
 var TextMode = require("./text").Mode;
-var JspHighlightRules = require("./nsp_highlight_rules").JspHighlightRules;
+var NSPHighlightRules = require("./nsp_highlight_rules").NSPHighlightRules;
 var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
 var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.HighlightRules = JspHighlightRules;
+    this.HighlightRules = NSPHighlightRules;
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CstyleBehaviour();
     this.foldingRules = new CStyleFoldMode();
