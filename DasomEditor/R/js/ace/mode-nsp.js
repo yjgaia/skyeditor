@@ -1015,7 +1015,7 @@ var JavaHighlightRules = function() {
     "catch|extends|let|var|try|" +
     "class|" +
     "const|while|" +
-    "print|include|pause|resume|cookie|self"
+    "print|include|pause|resume|cookie|redirect|self"
     );
 
     var buildinConstants = ("null|Infinity|NaN|undefined");
