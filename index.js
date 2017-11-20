@@ -1,5 +1,12 @@
 RUN(() => {
 	
+	let config = JSON.parse(READ_FILE({
+		path : 'config.json',
+		isSync : true
+	}).toString());
+	
+	TITLE(config.name);
+	
 	const {shell, clipboard} = require('electron');
 	const {dialog} = require('electron').remote;
 	const ipcRenderer = require('electron').ipcRenderer;

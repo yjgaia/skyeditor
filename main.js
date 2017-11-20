@@ -11,26 +11,14 @@ let win;
 
 createWindow = () => {
 	
-	let config = {
-		isMaximized : true
-	};
-	
-	if (CHECK_FILE_EXISTS({
-		path : 'config.json',
-		isSync : true
-	}) === true) {
-		config = JSON.parse(READ_FILE({
-			path : 'config.json',
-			isSync : true
-		}).toString());
-	}
+	let winConfig = {};
 	
 	// 새로운 브라우저 창을 생성합니다.
 	win = new BrowserWindow({
-		x : config.x,
-		y : config.y,
-		width : config.width,
-		height : config.height,
+		x : winConfig.x,
+		y : winConfig.y,
+		width : winConfig.width,
+		height : winConfig.height,
 		icon : __dirname + '/DasomEditor/R/favicon.ico'
 	});
 	
@@ -42,7 +30,7 @@ createWindow = () => {
 		}
 	});
 	
-	if (config.isMaximized === true) {
+	if (winConfig.isMaximized === true) {
 		win.maximize();
 	}
 
@@ -59,13 +47,13 @@ createWindow = () => {
 		
 		let bounds = win.getBounds();
 		
-		config.isMaximized = win.isMaximized();
+		winConfig.isMaximized = win.isMaximized();
 		
-		if (config.isMaximized !== true) {
-			config.x = bounds.x;
-			config.y = bounds.y;
-			config.width = bounds.width;
-			config.height = bounds.height;
+		if (winConfig.isMaximized !== true) {
+			winConfig.x = bounds.x;
+			winConfig.y = bounds.y;
+			winConfig.width = bounds.width;
+			winConfig.height = bounds.height;
 		}
 	};
 	
@@ -78,11 +66,11 @@ createWindow = () => {
 		
 		setConfig();
 		
-		WRITE_FILE({
+		/*WRITE_FILE({
 			path : 'config.json',
 			isSync : true,
 			content : JSON.stringify(config, null, '\t')
-		});
+		});*/
 	});
 
 	// 창이 닫히면 호출됩니다.

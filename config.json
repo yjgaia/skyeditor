@@ -1,8 +1,5 @@
 {
-	"isMaximized": true,
-	"width": 1104,
-	"height": 680,
-	"x": 346,
-	"y": 310,
-	"isDevMode": true
+	"name": "다솜 에디터",
+	"version": 0.1,
+	"homepage": "http://uppercase.io"
 }
