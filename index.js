@@ -42,35 +42,18 @@ RUN(() => {
 				title : '홈',
 				c : DIV({
 					style : {
-						padding : 10
+						width : '100%',
+						height : '100%',
+						overflow : 'hidden'
 					},
-					c : [P({
-						c : ['좋은 에디터 ', A({
-							style : {
-								color : '#59A7FD',
-								textDecoration : 'underline'
-							},
-							c : '다솜 에디터',
-							on : {
-								tap : () => {
-									shell.openExternal('https://github.com/Hanul/DasomEditor');
-								}
-							}
-						})]
-					}), P({
-						c : ['문제 발생 시 ', A({
-							style : {
-								color : '#59A7FD',
-								textDecoration : 'underline'
-							},
-							c : 'Issue',
-							on : {
-								tap : () => {
-									shell.openExternal('https://github.com/Hanul/DasomEditor/issues');
-								}
-							}
-						}), '남겨주세요.']
-					})]
+					c : IFRAME({
+						style : {
+							backgroundColor : '#fff',
+							width : '100%',
+							height : '100%'
+						},
+						src : config.homepage + '?version=' + config.version
+					})
 				})
 			}));
 		},
