@@ -5,6 +5,7 @@ DasomEditor.IDE = OBJECT({
 	},
 	
 	params : () => {
+		
 		return {
 			style : {
 				position : 'absolute',
