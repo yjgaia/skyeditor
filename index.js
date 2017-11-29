@@ -21,6 +21,14 @@ RUN(() => {
 	let ftpInfoStore = STORE('ftpInfoStore');
 	let saveCommandStore = STORE('saveCommandStore');
 	
+	ipcRenderer.send('winConfig', editorStore.get('winConfig'));
+	ipcRenderer.on('winConfig', (e, winConfig) => {
+		editorStore.save({
+			name : 'winConfig',
+			value : winConfig
+		});
+	});
+	
 	let ftpConnectors = {};
 	
 	let fixPath = (path) => {

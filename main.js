@@ -15,10 +15,6 @@ createWindow = () => {
 	
 	// 새로운 브라우저 창을 생성합니다.
 	win = new BrowserWindow({
-		x : winConfig.x,
-		y : winConfig.y,
-		width : winConfig.width,
-		height : winConfig.height,
 		icon : __dirname + '/DasomEditor/R/favicon.ico'
 	});
 	
@@ -30,9 +26,31 @@ createWindow = () => {
 		}
 	});
 	
-	if (winConfig.isMaximized === true) {
-		win.maximize();
-	}
+	ipcMain.on('winConfig', (e, _winConfig) => {
+		
+		if (_winConfig !== undefined && _winConfig !== null) {
+			winConfig = _winConfig;
+			
+			if (winConfig.isMaximized === true) {
+				win.maximize();
+			}
+			
+			else {
+				
+				if (winConfig.width !== undefined && winConfig.height !== undefined) {
+					win.setSize(winConfig.width, winConfig.height);
+				}
+				
+				if (winConfig.x !== undefined && winConfig.y !== undefined) {
+					win.setPosition(winConfig.x, winConfig.y);
+				}
+			}
+		}
+		
+		else {
+			win.maximize();
+		}
+	});
 
 	// 그리고 현재 디렉터리의 index.html을 로드합니다.
 	win.loadURL(URL.format({
@@ -66,11 +84,7 @@ createWindow = () => {
 		
 		setConfig();
 		
-		/*WRITE_FILE({
-			path : 'config.json',
-			isSync : true,
-			content : JSON.stringify(config, null, '\t')
-		});*/
+		win.webContents.send('winConfig', winConfig);
 	});
 
 	// 창이 닫히면 호출됩니다.
