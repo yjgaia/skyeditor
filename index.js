@@ -831,9 +831,9 @@ RUN(() => {
 				
 				if (eventType === 'rename') {
 					
-					CHECK_FILE_EXISTS(path + '/' + fileName, (isExists) => {
+					CHECK_FILE_EXISTS(path + '/' + fileName, (exists) => {
 						
-						if (isExists === true) {
+						if (exists === true) {
 							
 							CHECK_IS_FOLDER(path + '/' + fileName, (isFolder) => {
 								
