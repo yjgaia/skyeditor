@@ -16,10 +16,8 @@ DasomEditor.FoundFile = CLASS({
 	init : (inner, self, params) => {
 		//REQUIRED: params
 		//REQUIRED: params.title
-		//OPTIONAL: params.isOpened
 		
 		let title = params.title;
-		let isOpened = params.isOpened;
 		
 		let Editor = DasomEditor.IDE.getEditor(title.substring(title.lastIndexOf('.') + 1).toLowerCase());
 		
@@ -93,14 +91,6 @@ DasomEditor.FoundFile = CLASS({
 			
 			self.fireEvent('close');
 		};
-		
-		if (isOpened === true) {
-			DELAY(() => {
-				open();
-			});
-		} else {
-			list.hide();
-		}
 		
 		self.on('remove', () => {
 			DELAY(() => {

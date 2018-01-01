@@ -1995,8 +1995,6 @@ DasomEditor.IDE = OBJECT({
 						paddingBottom : 0
 					});
 					
-					let isFirst = true;
-					
 					let search = (folderPath, folderNames, fileNames) => {
 						
 						EACH(folderNames, (folderName) => {
@@ -2039,12 +2037,9 @@ DasomEditor.IDE = OBJECT({
 										key : path,
 										item : foundFile = DasomEditor.FoundFile({
 											path : path,
-											title : path.substring(path.lastIndexOf('/') + 1),
-											isOpened : isFirst
+											title : path.substring(path.lastIndexOf('/') + 1)
 										})
 									});
-									
-									isFirst = false;
 									
 									EACH(foundLineInfos, (info) => {
 										foundFile.addItem({
