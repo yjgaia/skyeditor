@@ -321,6 +321,7 @@ DasomEditor.IDE = OBJECT({
 		let tabList;
 		
 		let leftTab;
+		let savedLeftTabSize;
 		let fileTreeTab;
 		let editorGroup;
 		self.append(TR({
@@ -588,6 +589,15 @@ DasomEditor.IDE = OBJECT({
 								size : 70,
 								c : editorGroup = SkyDesktop.TabGroup({
 									on : {
+										titledoubletap : () => {
+											if (savedLeftTabSize === undefined) {
+												savedLeftTabSize = leftTab.getSize();
+												leftTab.setSize(0);
+											} else {
+												leftTab.setSize(savedLeftTabSize);
+												savedLeftTabSize = undefined;
+											}
+										},
 										tap : () => {
 											deselectFiles();
 										}

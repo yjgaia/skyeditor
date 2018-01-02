@@ -3,6 +3,6 @@
 	"version": "0.0.1",
 	"main": "main.js",
 	"dependencies": {
-		"uppercase-boot": "latest"
+		"uppercase-boot": "^1.0.6"
 	}
 }

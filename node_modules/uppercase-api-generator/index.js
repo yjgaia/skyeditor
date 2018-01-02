@@ -324,7 +324,7 @@ module.exports = (sourcePath, apiPath, exceptFileNames) => {
 				
 				if (type === 'function' || type === 'METHOD' || type === 'CLASS' || type === 'OBJECT') {
 					
-					markdown += '# `' + (type !== 'function' ? type + ' ' : '') + '` ' + name.replace(/\(\'/g, '').replace(/\'\)/g, '');
+					markdown += '# ' + (type !== 'function' ? '`' + type + '` ' : '') + name.replace(/\(\'/g, '').replace(/\'\)/g, '');
 					
 					if (type === 'function') {
 						
