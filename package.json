@@ -3,6 +3,7 @@
 	"version": "0.0.1",
 	"main": "main.js",
 	"dependencies": {
-		"uppercase-boot": "^1.0.6"
+		"rimraf": "latest",
+		"uppercase-boot": "latest"
 	}
 }

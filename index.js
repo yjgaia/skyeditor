@@ -14,6 +14,7 @@ RUN(() => {
 	const FS = require('fs');
 	const SEP = require('path').sep;
 	
+	let Rimraf = require('rimraf');
 	let exec = require('child_process').exec;
 	
 	let editorStore = STORE('editorStore');
@@ -316,9 +317,12 @@ RUN(() => {
 			CHECK_IS_FOLDER(path, (isFolder) => {
 				
 				if (isFolder === true) {
-					REMOVE_FOLDER(path, {
-						error : errorHandler,
-						success : callback
+					Rimraf(path, (error) => {
+						if (error !== TO_DELETE) {
+							errorHandler(error.toString());
+						} else {
+							callback();
+						}
 					});
 				}
 				
