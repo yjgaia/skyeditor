@@ -71,18 +71,69 @@ RUN(() => {
 			//REQUIRED: errorHandler
 			//REQUIRED: callback
 			
-			FIND_FOLDER_NAMES(path, {
-				notExists : errorHandler,
-				error : errorHandler,
-				success : (folderNames) => {
+			let folderNames = [];
+			let fileNames = [];
+			
+			FS.readdir(path, (error, names) => {
+				
+				let next = () => {
 					
-					FIND_FILE_NAMES(path, {
-						notExists : errorHandler,
-						error : errorHandler,
-						success : (fileNames) => {
+					if (error !== TO_DELETE) {
+						errorHandler(error.toString());
+					} else {
+						
+						PARALLEL(names, [
+						(name, done) => {
+	
+							if (name[0] !== '.') {
+	
+								FS.stat(path + '/' + name, (error, stats) => {
+	
+									if (error !== TO_DELETE) {
+										errorHandler(error.toString());
+									} else {
+	
+										if (stats.isDirectory() === true) {
+											folderNames.push(name);
+										} else {
+											fileNames.push(name);
+										}
+	
+										done();
+									}
+								});
+	
+							} else {
+								done();
+							}
+						},
+	
+						() => {
 							callback(folderNames, fileNames);
+						}]);
+					}
+				};
+				
+				if (names.length > 100) {
+					
+					SkyDesktop.Confirm({
+						msg : path + '의 파일 개수가 많아 오래걸릴 수 있습니다. 탐색기로 열까요?',
+						on : {
+							remove : () => {
+								if (callback !== undefined) {
+									next();
+								}
+							}
 						}
+					}, () => {
+						shell.showItemInFolder(path + '/.');
+						callback([], []);
+						callback = undefined;
 					});
+				}
+				
+				else {
+					next();
 				}
 			});
 		},
@@ -1239,7 +1290,7 @@ RUN(() => {
 					on : {
 						tap : () => {
 							
-							shell.showItemInFolder(path === undefined ? DasomEditor.IDE.getWorkspacePath() : path);
+							shell.showItemInFolder(folderPath + '/.');
 							
 							self.remove();
 						}
