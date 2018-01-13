@@ -124,15 +124,11 @@ RUN(() => {
 						msg : path + '의 파일 개수가 많아 오래걸릴 수 있습니다. 탐색기로 열까요?',
 						on : {
 							remove : () => {
-								if (callback !== undefined) {
-									next();
-								}
+								callback([], []);
 							}
 						}
 					}, () => {
 						shell.showItemInFolder(path + '/.');
-						callback([], []);
-						callback = undefined;
 					});
 				}
 				

@@ -12,6 +12,20 @@ DasomEditor.AceEditor = CLASS({
 		let mode = params.mode;
 		let content = params.content;
 		
+		if (content.length > 1048576) {
+			content = undefined;
+			
+			DELAY(() => {
+				self.remove();
+			});
+			
+			/*SkyDesktop.Confirm({
+				msg : '파일의 크기가 너무 커 열 수 없습니다.'
+			}, () => {
+				shell.showItemInFolder(self.getPath() + '/.');
+			});*/
+		}
+		
 		let editor;
 		
 		self.append(editor = DIV({
