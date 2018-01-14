@@ -42,6 +42,8 @@ DasomEditor.IDE = OBJECT({
 		let copyHandler;
 		let pasteHandler;
 		
+		let overFileSizeHandler;
+		
 		let workspacePath;
 		
 		let editorMap = {};
@@ -294,26 +296,39 @@ DasomEditor.IDE = OBJECT({
 		
 		let loadAndOpenEditor = (path, scrollTop, findText) => {
 			
-			load({
-				path : path
-			}, (content) => {
-				
-				let fileName = path.substring(path.lastIndexOf('/') + 1);
-				
-				let editor = openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-					title : fileName,
-					path : path,
-					content : content
-				}));
-				
-				if (scrollTop !== undefined) {
-					editor.setScrollTop(scrollTop);
-				}
-				
-				if (findText !== undefined) {
-					editor.setFindText(findText);
+			let exists = false;
+			
+			EACH(editorGroup.getAllTabs(), (tab, i) => {
+				if (tab.checkIsInstanceOf(DasomEditor.Editor) === true && tab.getFTPInfo() === undefined && tab.getPath() === path) {
+					exists = true;
+					editorGroup.activeTab(i);
+					return false;
 				}
 			});
+			
+			if (exists !== true) {
+				
+				load({
+					path : path
+				}, (content) => {
+					
+					let fileName = path.substring(path.lastIndexOf('/') + 1);
+					
+					let editor = openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+						title : fileName,
+						path : path,
+						content : content
+					}));
+					
+					if (scrollTop !== undefined) {
+						editor.setScrollTop(scrollTop);
+					}
+					
+					if (findText !== undefined) {
+						editor.setFindText(findText);
+					}
+				});
+			}
 		};
 		
 		let fileTree;
@@ -745,6 +760,8 @@ DasomEditor.IDE = OBJECT({
 			
 			copyHandler = params.copy;
 			pasteHandler = params.paste;
+			
+			overFileSizeHandler = params.overFileSize;
 			
 			self.appendTo(BODY);
 			
@@ -1416,6 +1433,12 @@ DasomEditor.IDE = OBJECT({
 					});
 				});
 			});
+		};
+		
+		let overFileSize = self.overFileSize = (path) => {
+			//REQUIRED: path
+			
+			overFileSizeHandler(path);
 		};
 		
 		let getOpenedEditor = self.getOpenedEditor = (path) => {

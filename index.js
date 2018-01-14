@@ -15,7 +15,8 @@ RUN(() => {
 	const ipcRenderer = require('electron').ipcRenderer;
 	
 	const FS = require('fs');
-	const SEP = require('path').sep;
+	const Path = require('path');
+	const SEP = Path.sep;
 	
 	let Rimraf = require('rimraf');
 	let exec = require('child_process').exec;
@@ -45,6 +46,8 @@ RUN(() => {
 	let changeToOSPath = (path) => {
 		return path.replace(new RegExp('/', 'g'), SEP);
 	};
+	
+	let clipboardPathInfos = [];
 	
 	DasomEditor.IDE.init({
 		
@@ -121,7 +124,7 @@ RUN(() => {
 				if (names.length > 100) {
 					
 					SkyDesktop.Confirm({
-						msg : path + '의 파일 개수가 많아 오래걸릴 수 있습니다. 탐색기로 열까요?',
+						msg : path + '의 파일 개수가 많아 오래걸릴 수 있습니다. 탐색기로 여시겠습니까?',
 						on : {
 							remove : () => {
 								callback([], []);
@@ -543,21 +546,25 @@ RUN(() => {
 		
 		copy : (pathInfos) => {
 			
-			clipboard.writeText(JSON.stringify({
-				pathInfos : pathInfos
-			}));
+			clipboardPathInfos = pathInfos;
+			
+			let text = '';
+			
+			EACH(pathInfos, (pathInfo, i) => {
+				if (i > 0) {
+					text += '\n';
+				}
+				let fileName = Path.basename(pathInfo.path);
+				if (fileName.indexOf('.') !== -1) {
+					fileName = fileName.substring(0, fileName.indexOf('.'));
+				}
+				text += fileName;
+			});
+			
+			clipboard.writeText(text);
 		},
 		
 		paste : (ftpInfo, folderPath, errorHandler, callback) => {
-			
-			try {
-				let info = JSON.parse(clipboard.readText());
-				if (info !== undefined && info.pathInfos !== undefined) {
-					clipboardPathInfos = info.pathInfos;
-				}
-			} catch(e) {
-				clipboardPathInfos = [];
-			}
 			
 			// -> FTP로
 			if (ftpInfo !== undefined) {
@@ -870,6 +877,15 @@ RUN(() => {
 					};
 				}]);
 			}
+		},
+		
+		overFileSize : (path) => {
+			
+			SkyDesktop.Confirm({
+				msg : '파일의 크기가 너무 커 열 수 없습니다. 탐색기에서 보시겠습니까?'
+			}, () => {
+				shell.showItemInFolder(path);
+			});
 		}
 	});
 	

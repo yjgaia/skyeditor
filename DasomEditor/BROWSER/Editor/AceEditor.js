@@ -19,11 +19,7 @@ DasomEditor.AceEditor = CLASS({
 				self.remove();
 			});
 			
-			/*SkyDesktop.Confirm({
-				msg : '파일의 크기가 너무 커 열 수 없습니다.'
-			}, () => {
-				shell.showItemInFolder(self.getPath() + '/.');
-			});*/
+			DasomEditor.IDE.overFileSize(self.getPath());
 		}
 		
 		let editor;
