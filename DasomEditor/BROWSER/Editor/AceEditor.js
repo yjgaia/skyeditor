@@ -12,7 +12,7 @@ DasomEditor.AceEditor = CLASS({
 		let mode = params.mode;
 		let content = params.content;
 		
-		if (content.length > 1048576) {
+		if (content !== undefined && content.length > 1048576) {
 			content = undefined;
 			
 			DELAY(() => {
