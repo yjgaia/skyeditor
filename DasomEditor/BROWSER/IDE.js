@@ -871,17 +871,25 @@ DasomEditor.IDE = OBJECT({
 						content : content
 					});
 					
-					if (history.length > 100) {
+					if (history.length > 50) {
 						history.splice(0, 1);
 					}
 					
-					localHistoryStore.save({
-						name : STRINGIFY({
+					// 너무 많은 데이터를 저장하면 할당량 초과 오류가 뜸, 이 때는 히스토리를 삭제
+					try {
+						localHistoryStore.save({
+							name : STRINGIFY({
+								ftpInfo : ftpInfo,
+								path : path
+							}),
+							value : history
+						});
+					} catch(e) {
+						localHistoryStore.remove(STRINGIFY({
 							ftpInfo : ftpInfo,
 							path : path
-						}),
-						value : history
-					});
+						}));
+					}
 				}
 			}
 			
