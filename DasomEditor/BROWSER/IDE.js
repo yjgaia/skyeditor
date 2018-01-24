@@ -809,9 +809,9 @@ DasomEditor.IDE = OBJECT({
 				SkyDesktop.Alert({
 					msg : path + '의 파일 목록을 불러오는데 실패하였습니다.'
 				});
-			}, (folderNames, fileNames) => {
+			}, (folderNames, fileNames, isToClose) => {
 				loadingBar.done();
-				callback(folderNames, fileNames);
+				callback(folderNames, fileNames, isToClose);
 			});
 		};
 		

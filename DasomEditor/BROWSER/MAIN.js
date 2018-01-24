@@ -18,6 +18,11 @@ DasomEditor.MAIN = METHOD({
 		});
 		
 		DasomEditor.IDE.addEditor({
+			extname : 'babelrc',
+			editor : DasomEditor.JSONEditor
+		});
+		
+		DasomEditor.IDE.addEditor({
 			extname : 'html',
 			editor : DasomEditor.HTMLEditor
 		});

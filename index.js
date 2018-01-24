@@ -92,7 +92,7 @@ RUN(() => {
 						PARALLEL(names, [
 						(name, done) => {
 	
-							if (name[0] !== '.') {
+							if (name !== '.' && name !== '..' && name !== '.git') {
 	
 								FS.stat(path + '/' + name, (error, stats) => {
 	
@@ -124,10 +124,10 @@ RUN(() => {
 				if (names.length > 100) {
 					
 					SkyDesktop.Confirm({
-						msg : path + '의 파일 개수가 많아 오래걸릴 수 있습니다. 탐색기로 여시겠습니까?',
+						msg : path + '의 파일 개수가 많아 목록을 불러올 수 없습니다. 탐색기로 여시겠습니까?',
 						on : {
 							remove : () => {
-								callback([], []);
+								callback([], [], true);
 							}
 						}
 					}, () => {
@@ -983,7 +983,7 @@ RUN(() => {
 							value : true
 						});
 						
-						loadFiles(path, folder.addItem);
+						loadFiles(path, folder.addItem, folder.close);
 						
 						if (fileWatcher !== undefined) {
 							fileWatcher.close();
@@ -1006,9 +1006,9 @@ RUN(() => {
 			return folder;
 		};
 		
-		let loadFiles = (path, addItem) => {
+		let loadFiles = (path, addItem, close) => {
 			
-			DasomEditor.IDE.loadFiles(path, (folderNames, fileNames) => {
+			DasomEditor.IDE.loadFiles(path, (folderNames, fileNames, isToClose) => {
 				
 				EACH(folderNames, (folderName) => {
 					
@@ -1049,6 +1049,10 @@ RUN(() => {
 						})
 					});
 				});
+				
+				if (isToClose === true) {
+					close();
+				}
 			});
 		};
 		
