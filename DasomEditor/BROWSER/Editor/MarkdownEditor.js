@@ -37,9 +37,10 @@ DasomEditor.MarkdownEditor = CLASS((cls) => {
 				width : '50%'
 			});
 			
+			let _editor;
 			let preview;
 			
-			self.append(DIV({
+			self.append(_editor = DIV({
 				style : {
 					flt : 'left',
 					backgroundColor : '#fff',
@@ -59,6 +60,12 @@ DasomEditor.MarkdownEditor = CLASS((cls) => {
 					}
 				})
 			}));
+			
+			self.on('active', () => {
+				_editor.addStyle({
+					width : editor.getWidth() - 1
+				});
+			});
 			
 			self.append(CLEAR_BOTH());
 			

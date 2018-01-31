@@ -73,6 +73,7 @@ DasomEditor.AceEditor = CLASS({
 		
 		self.on('active', () => {
 		    aceEditor.focus();
+		    aceEditor.resize();
 		});
 		
 		let resizeEvent = EVENT('resize', () => {
