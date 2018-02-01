@@ -1608,7 +1608,7 @@ DasomEditor.IDE = OBJECT({
 				else if (key === 'w') {
 					
 					if (tabList.getAllTabs().length > 1) {
-						tabList.getAllTabs()[tabList.getAllTabs().length - 1].remove();
+						tabList.getAllTabs()[1].remove();
 					}
 					
 					else if (editorGroup.getActiveTab() !== undefined && editorGroup.getActiveTab().fireEvent('close') !== false) {
