@@ -72,8 +72,8 @@ DasomEditor.AceEditor = CLASS({
 		aceEditor.$blockScrolling = Infinity;
 		
 		self.on('active', () => {
-		    aceEditor.focus();
-		    aceEditor.resize();
+			aceEditor.focus();
+			aceEditor.resize();
 		});
 		
 		let resizeEvent = EVENT('resize', () => {
@@ -83,8 +83,8 @@ DasomEditor.AceEditor = CLASS({
 		});
 		
 		self.on('remove', () => {
-		    resizeEvent.remove();
-		    resizeEvent = undefined;
+			resizeEvent.remove();
+			resizeEvent = undefined;
 		});
 		
 		if (content !== undefined) {

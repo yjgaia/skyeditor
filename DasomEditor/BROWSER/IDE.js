@@ -305,8 +305,19 @@ DasomEditor.IDE = OBJECT({
 			
 			EACH(editorGroup.getAllTabs(), (tab, i) => {
 				if (tab.checkIsInstanceOf(DasomEditor.Editor) === true && tab.getFTPInfo() === undefined && tab.getPath() === path) {
+					
 					exists = true;
+					
 					editorGroup.activeTab(i);
+					
+					if (scrollTop !== undefined) {
+						editorGroup.getActiveTab().setScrollTop(scrollTop);
+					}
+					
+					if (findText !== undefined) {
+						editorGroup.getActiveTab().setFindText(findText);
+					}
+					
 					return false;
 				}
 			});
