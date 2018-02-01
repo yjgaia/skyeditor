@@ -211,6 +211,8 @@ RUN(() => {
 							command = command.replace(/\{\{folder\}\}/g, folderPath);
 							command = command.replace(/\{\{path\}\}/g, path);
 							
+							let errorTab;
+							
 							EACH(command.split('\n'), (command) => {
 								
 								console.log('저장 시 명령을 실행합니다: ' + command);
@@ -227,52 +229,64 @@ RUN(() => {
 										
 										SHOW_ERROR('저장 시 명령 실행', message);
 										
-										let tab;
-										
-										DasomEditor.IDE.addTab(tab = SkyDesktop.Tab({
-											style : {
-												position : 'relative'
-											},
-											size : 30,
-											c : [UUI.ICON_BUTTON({
+										if (errorTab === undefined) {
+											
+											DasomEditor.IDE.addTab(errorTab = SkyDesktop.Tab({
 												style : {
-													position : 'absolute',
-													right : 10,
-													top : 8,
-													color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
-													zIndex : 999
+													position : 'relative'
 												},
-												icon : FontAwesome.GetIcon('times'),
-												on : {
-													mouseover : (e, self) => {
-														self.addStyle({
-															color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
-														});
+												size : 30,
+												c : [UUI.ICON_BUTTON({
+													style : {
+														position : 'absolute',
+														right : 10,
+														top : 8,
+														color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
+														zIndex : 999
 													},
-													mouseout : (e, self) => {
-														self.addStyle({
-															color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
-														});
-													},
-													tap : () => {
-														tab.remove();
-														EVENT.fireAll('resize');
+													icon : FontAwesome.GetIcon('times'),
+													on : {
+														mouseover : (e, self) => {
+															self.addStyle({
+																color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
+															});
+														},
+														mouseout : (e, self) => {
+															self.addStyle({
+																color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
+															});
+														},
+														tap : () => {
+															errorTab.remove();
+															EVENT.fireAll('resize');
+														}
 													}
-												}
-											}), H2({
-												style : {
-													padding : 10
-												},
-												c : '저장 시 명령 실행'
-											}), P({
+												}), H2({
+													style : {
+														padding : 10
+													},
+													c : '저장 시 명령 실행'
+												}), P({
+													style : {
+														padding : 10,
+														paddingTop : 0,
+														color : 'red'
+													},
+													c : '오류가 발생했습니다. 오류 메시지: ' + message
+												})]
+											}));
+										}
+										
+										else {
+											errorTab.append(P({
 												style : {
 													padding : 10,
 													paddingTop : 0,
 													color : 'red'
 												},
 												c : '오류가 발생했습니다. 오류 메시지: ' + message
-											})]
-										}));
+											}));
+										}
 									}
 								});
 							});

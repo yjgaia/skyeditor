@@ -284,6 +284,11 @@ DasomEditor.IDE = OBJECT({
 				
 				tab.on('remove', () => {
 					editorOpenedStore.remove(tab.getPath());
+					
+					if (savedLeftTabSize !== undefined && editorGroup.getAllTabs().length === 0) {
+						leftTab.setSize(savedLeftTabSize);
+						savedLeftTabSize = undefined;
+					}
 				});
 			}
 			
@@ -1602,10 +1607,12 @@ DasomEditor.IDE = OBJECT({
 				// 현재 탭 종료
 				else if (key === 'w') {
 					
-					if (editorGroup.getActiveTab() !== undefined) {
-						if (editorGroup.getActiveTab().fireEvent('close') !== false) {
-							editorGroup.getActiveTab().remove();
-						}
+					if (tabList.getAllTabs().length > 1) {
+						tabList.getAllTabs()[tabList.getAllTabs().length - 1].remove();
+					}
+					
+					else if (editorGroup.getActiveTab() !== undefined && editorGroup.getActiveTab().fireEvent('close') !== false) {
+						editorGroup.getActiveTab().remove();
 					}
 				}
 				
