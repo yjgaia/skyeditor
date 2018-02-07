@@ -840,6 +840,8 @@ DasomEditor.IDE = OBJECT({
 			let ftpInfo = params.ftpInfo;
 			let path = params.path;
 			
+			deselectFiles();
+			
 			if (ftpInfo !== undefined) {
 				
 				let loadingBar = SkyDesktop.LoadingBar('lime');
