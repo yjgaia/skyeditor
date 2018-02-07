@@ -286,10 +286,10 @@ DasomEditor.FTPItem = CLASS({
 											name : 'privateKey',
 											type : 'file',
 											on : {
-												change : (e) => {
+												change : (e, input) => {
 													
 													let fileReader = new FileReader();
-													fr.readAsText(e.getFiles()[0]);
+													fileReader.readAsText(input.getFiles()[0]);
 													fileReader.onload = (e) => {
 														privateKey = e.target.result;
 													};
