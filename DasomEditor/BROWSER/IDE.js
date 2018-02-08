@@ -301,50 +301,26 @@ DasomEditor.IDE = OBJECT({
 		
 		let loadAndOpenEditor = (path, scrollTop, findText) => {
 			
-			let exists = false;
-			
-			EACH(editorGroup.getAllTabs(), (tab, i) => {
-				if (tab.checkIsInstanceOf(DasomEditor.Editor) === true && tab.getFTPInfo() === undefined && tab.getPath() === path) {
-					
-					exists = true;
-					
-					editorGroup.activeTab(i);
-					
-					if (scrollTop !== undefined) {
-						editorGroup.getActiveTab().setScrollTop(scrollTop);
-					}
-					
-					if (findText !== undefined) {
-						editorGroup.getActiveTab().setFindText(findText);
-					}
-					
-					return false;
+			load({
+				path : path
+			}, (content) => {
+				
+				let fileName = path.substring(path.lastIndexOf('/') + 1);
+				
+				let editor = openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+					title : fileName,
+					path : path,
+					content : content
+				}));
+				
+				if (scrollTop !== undefined) {
+					editor.setScrollTop(scrollTop);
+				}
+				
+				if (findText !== undefined) {
+					editor.setFindText(findText);
 				}
 			});
-			
-			if (exists !== true) {
-				
-				load({
-					path : path
-				}, (content) => {
-					
-					let fileName = path.substring(path.lastIndexOf('/') + 1);
-					
-					let editor = openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-						title : fileName,
-						path : path,
-						content : content
-					}));
-					
-					if (scrollTop !== undefined) {
-						editor.setScrollTop(scrollTop);
-					}
-					
-					if (findText !== undefined) {
-						editor.setFindText(findText);
-					}
-				});
-			}
 		};
 		
 		let fileTree;
