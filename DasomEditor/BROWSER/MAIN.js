@@ -81,5 +81,10 @@ DasomEditor.MAIN = METHOD({
 			extname : 'less',
 			editor : DasomEditor.LessEditor
 		});
+		
+		DasomEditor.IDE.addEditor({
+			extname : 'sol',
+			editor : DasomEditor.SolidityEditor
+		});
 	}
 });
