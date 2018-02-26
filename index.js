@@ -207,7 +207,13 @@ RUN(() => {
 							
 							let folderPath = path.substring(0, path.lastIndexOf('/'));
 							
-							command = command.replace(/\{\{workspace\}\}/g, DasomEditor.IDE.getWorkspacePath());
+							let workspacePath = DasomEditor.IDE.getWorkspacePath();
+							
+							let projectFolderPath = folderPath.substring(workspacePath.length + 1);
+							projectFolderPath = workspacePath + '/' + projectFolderPath.substring(0, projectFolderPath.indexOf('/'));
+							
+							command = command.replace(/\{\{workspace\}\}/g, workspacePath);
+							command = command.replace(/\{\{projectFolder\}\}/g, projectFolderPath);
 							command = command.replace(/\{\{folder\}\}/g, folderPath);
 							command = command.replace(/\{\{path\}\}/g, path);
 							
