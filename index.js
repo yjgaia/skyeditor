@@ -121,7 +121,7 @@ RUN(() => {
 					}
 				};
 				
-				if (names.length > 100) {
+				if (path !== DasomEditor.IDE.getWorkspacePath() && names.length > 100) {
 					
 					SkyDesktop.Confirm({
 						msg : path + '의 파일 개수가 많아 목록을 불러올 수 없습니다. 탐색기로 여시겠습니까?',
