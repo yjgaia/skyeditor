@@ -2035,7 +2035,7 @@ DasomEditor.IDE = OBJECT({
 										let loadingBar = SkyDesktop.LoadingBar('lime');
 										
 										NEXT(foundInfos, [(info, next) => {
-											innerSave(undefined, info.path, info.content.replace(new RegExp(findText, 'g'), changeText), () => {
+											innerSave(undefined, info.path, info.content.replace(new RegExp(findText.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'), 'g'), changeText), () => {
 												next();
 											});
 										}, () => {
