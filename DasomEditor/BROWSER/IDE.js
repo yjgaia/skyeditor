@@ -869,7 +869,7 @@ DasomEditor.IDE = OBJECT({
 			}
 		};
 		
-		let innerSave = (ftpInfo, path, content, callback) => {
+		let innerSave = (ftpInfo, path, content, callback, isFindAndReplace) => {
 			
 			// 로컬 히스토리 저장
 			// 파일의 용량이 1mb 미만인 경우에만 저장, 최대 100개
@@ -967,7 +967,7 @@ DasomEditor.IDE = OBJECT({
 					SkyDesktop.Alert({
 						msg : '파일 저장에 실패하였습니니다.'
 					});
-				}, callback);
+				}, callback, isFindAndReplace);
 			}
 		};
 		
@@ -2037,7 +2037,7 @@ DasomEditor.IDE = OBJECT({
 										NEXT(foundInfos, [(info, next) => {
 											innerSave(undefined, info.path, info.content.replace(new RegExp(findText.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'), 'g'), changeText), () => {
 												next();
-											});
+											}, true);
 										}, () => {
 											return () => {
 												SkyDesktop.Noti('모두 저장하였습니다.');

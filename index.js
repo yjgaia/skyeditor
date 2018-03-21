@@ -167,11 +167,12 @@ RUN(() => {
 			});
 		},
 		
-		save : (path, content, errorHandler, callback) => {
+		save : (path, content, errorHandler, callback, isFindAndReplace) => {
 			//REQUIRED: path
 			//REQUIRED: content
 			//REQUIRED: errorHandler
 			//REQUIRED: callback
+			//OPTIONAL: isFindAndReplace
 			
 			NEXT([(next) => {
 				
@@ -197,105 +198,109 @@ RUN(() => {
 						content : content
 					}, () => {
 						
-						let fileName = path.substring(path.lastIndexOf('/') + 1);
-						
-						let extname = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
-						
-						let command = saveCommandStore.get(extname);
-						
-						if (command !== undefined && VALID.notEmpty(content) === true) {
+						// 검색 후 변경이 아닐때만 저장 시 명령 실행
+						if (isFindAndReplace !== true) {
 							
-							let folderPath = path.substring(0, path.lastIndexOf('/'));
+							let fileName = path.substring(path.lastIndexOf('/') + 1);
 							
-							let workspacePath = DasomEditor.IDE.getWorkspacePath();
+							let extname = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
 							
-							let projectFolderPath = folderPath.substring(workspacePath.length + 1);
-							projectFolderPath = workspacePath + '/' + projectFolderPath.substring(0, projectFolderPath.indexOf('/'));
+							let command = saveCommandStore.get(extname);
 							
-							command = command.replace(/\{\{workspace\}\}/g, workspacePath);
-							command = command.replace(/\{\{projectFolder\}\}/g, projectFolderPath);
-							command = command.replace(/\{\{folder\}\}/g, folderPath);
-							command = command.replace(/\{\{path\}\}/g, path);
-							
-							let errorTab;
-							
-							EACH(command.split('\n'), (command) => {
+							if (command !== undefined && VALID.notEmpty(content) === true) {
 								
-								console.log('저장 시 명령을 실행합니다: ' + command);
+								let folderPath = path.substring(0, path.lastIndexOf('/'));
 								
-								exec(command, {
-									cwd : folderPath
-								}, (error, stdout, stderr) => {
-									if (error !== TO_DELETE) {
-										
-										let message = stdout;
-										if (message === '') {
-											message = stderr;
-										}
-										
-										SHOW_ERROR('저장 시 명령 실행', message);
-										
-										if (errorTab === undefined) {
+								let workspacePath = DasomEditor.IDE.getWorkspacePath();
+								
+								let projectFolderPath = folderPath.substring(workspacePath.length + 1);
+								projectFolderPath = workspacePath + '/' + projectFolderPath.substring(0, projectFolderPath.indexOf('/'));
+								
+								command = command.replace(/\{\{workspace\}\}/g, workspacePath);
+								command = command.replace(/\{\{projectFolder\}\}/g, projectFolderPath);
+								command = command.replace(/\{\{folder\}\}/g, folderPath);
+								command = command.replace(/\{\{path\}\}/g, path);
+								
+								let errorTab;
+								
+								EACH(command.split('\n'), (command) => {
+									
+									console.log('저장 시 명령을 실행합니다: ' + command);
+									
+									exec(command, {
+										cwd : folderPath
+									}, (error, stdout, stderr) => {
+										if (error !== TO_DELETE) {
 											
-											DasomEditor.IDE.addTab(errorTab = SkyDesktop.Tab({
-												style : {
-													position : 'relative'
-												},
-												size : 30,
-												c : [UUI.ICON_BUTTON({
+											let message = stdout;
+											if (message === '') {
+												message = stderr;
+											}
+											
+											SHOW_ERROR('저장 시 명령 실행', message);
+											
+											if (errorTab === undefined) {
+												
+												DasomEditor.IDE.addTab(errorTab = SkyDesktop.Tab({
 													style : {
-														position : 'absolute',
-														right : 10,
-														top : 8,
-														color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
-														zIndex : 999
+														position : 'relative'
 													},
-													icon : FontAwesome.GetIcon('times'),
-													on : {
-														mouseover : (e, self) => {
-															self.addStyle({
-																color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
-															});
+													size : 30,
+													c : [UUI.ICON_BUTTON({
+														style : {
+															position : 'absolute',
+															right : 10,
+															top : 8,
+															color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
+															zIndex : 999
 														},
-														mouseout : (e, self) => {
-															self.addStyle({
-																color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
-															});
-														},
-														tap : () => {
-															errorTab.remove();
-															EVENT.fireAll('resize');
+														icon : FontAwesome.GetIcon('times'),
+														on : {
+															mouseover : (e, self) => {
+																self.addStyle({
+																	color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
+																});
+															},
+															mouseout : (e, self) => {
+																self.addStyle({
+																	color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
+																});
+															},
+															tap : () => {
+																errorTab.remove();
+																EVENT.fireAll('resize');
+															}
 														}
-													}
-												}), H2({
-													style : {
-														padding : 10
-													},
-													c : '저장 시 명령 실행'
-												}), P({
+													}), H2({
+														style : {
+															padding : 10
+														},
+														c : '저장 시 명령 실행'
+													}), P({
+														style : {
+															padding : 10,
+															paddingTop : 0,
+															color : 'red'
+														},
+														c : '오류가 발생했습니다. 오류 메시지: ' + message
+													})]
+												}));
+											}
+											
+											else {
+												errorTab.append(P({
 													style : {
 														padding : 10,
 														paddingTop : 0,
 														color : 'red'
 													},
 													c : '오류가 발생했습니다. 오류 메시지: ' + message
-												})]
-											}));
+												}));
+											}
 										}
-										
-										else {
-											errorTab.append(P({
-												style : {
-													padding : 10,
-													paddingTop : 0,
-													color : 'red'
-												},
-												c : '오류가 발생했습니다. 오류 메시지: ' + message
-											}));
-										}
-									}
+									});
 								});
-							});
+							}
 						}
 						
 						callback(path);
