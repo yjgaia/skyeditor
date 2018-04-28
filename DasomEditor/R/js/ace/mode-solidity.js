@@ -893,7 +893,7 @@ ace.define("ace/mode/solidity",["require","exports","module","ace/lib/oop","ace/
 
 var oop = acequire("../lib/oop");
 var TextMode = acequire("./text").Mode;
-var JavaScriptHighlightRules = acequire("./javascript_highlight_rules").JavaScriptHighlightRules;
+var JavaScriptHighlightRules = acequire("./solidity_highlight_rules").JavaScriptHighlightRules;
 var MatchingBraceOutdent = acequire("./matching_brace_outdent").MatchingBraceOutdent;
 var Range = acequire("../range").Range;
 var WorkerClient = acequire("../worker/worker_client").WorkerClient;
