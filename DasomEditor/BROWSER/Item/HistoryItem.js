@@ -1,5 +1,5 @@
 DasomEditor.HistoryItem = CLASS({
-
+	
 	preset : () => {
 		return UUI.BUTTON_H;
 	},

@@ -1,7 +1,6 @@
 RUN(() => {
 	
 	let startFilePath = require('electron').remote.process.argv[1];
-	console.log(startFilePath);
 	
 	let config = JSON.parse(READ_FILE({
 		path : 'config.json',

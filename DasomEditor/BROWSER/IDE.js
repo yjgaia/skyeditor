@@ -53,6 +53,9 @@ DasomEditor.IDE = OBJECT({
 		
 		let draggingShadow;
 		
+		// 삭제된 파일 정보 스택
+		let removedFileInfoStack = [];
+		
 		let addEditor = self.addEditor = (params) => {
 			//REQUIRED: params
 			//REQUIRED: params.extname
@@ -1179,24 +1182,54 @@ DasomEditor.IDE = OBJECT({
 				
 				let loadingBar = SkyDesktop.LoadingBar('lime');
 				
-				ftpRemoveHandler(ftpInfo, path, () => {
+				// Ctrl Z로 삭제한 파일을 복구하기 위해 파일 내용을 가져옵니다.
+				ftpLoadHandler(ftpInfo, path, () => {
 					loadingBar.done();
 					SkyDesktop.Alert({
 						msg : 'FTP에서 파일을 삭제하는데 실패하였습니니다.'
 					});
-				}, () => {
-					loadingBar.done();
+				}, (content) => {
 					
-					getFTPItem(ftpInfo, path.substring(0, path.lastIndexOf('/'))).removeItem(path);
+					removedFileInfoStack.push({
+						ftpInfo : ftpInfo,
+						path : path,
+						content : content
+					});
+					
+					ftpRemoveHandler(ftpInfo, path, () => {
+						loadingBar.done();
+						SkyDesktop.Alert({
+							msg : 'FTP에서 파일을 삭제하는데 실패하였습니니다.'
+						});
+					}, () => {
+						loadingBar.done();
+						
+						getFTPItem(ftpInfo, path.substring(0, path.lastIndexOf('/'))).removeItem(path);
+					});
 				});
 			}
 			
 			else {
-				removeHandler(path, () => {
+				
+				// Ctrl Z로 삭제한 파일을 복구하기 위해 파일 내용을 가져옵니다.
+				loadHandler(path, () => {
 					SkyDesktop.Alert({
 						msg : '파일 삭제에 실패하였습니니다.'
 					});
-				}, () => {});
+				}, (content) => {
+					
+					removedFileInfoStack.push({
+						ftpInfo : ftpInfo,
+						path : path,
+						content : content
+					});
+					
+					removeHandler(path, () => {
+						SkyDesktop.Alert({
+							msg : '파일 삭제에 실패하였습니니다.'
+						});
+					}, () => {});
+				});
 			}
 		};
 		
@@ -1661,6 +1694,11 @@ DasomEditor.IDE = OBJECT({
 						editorGroup.activeTab(activeTabIndex + 1);
 					}
 				}
+				
+				// 삭제한 내용 복구
+				else if (e.getKey() === 'z') {
+					//TODO:
+				}
 			}
 			
 			if (e.getKey() === 'Control') {
@@ -1857,28 +1895,32 @@ DasomEditor.IDE = OBJECT({
 				
 				else if (e.getKey() === 'ArrowLeft') {
 					
-					let lastItem = selectedFileItems[selectedFileItems.length - 1];
-					
-					// 폴더고 열려 있을 때
-					if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true && COUNT_PROPERTIES(lastItem.getItems()) > 0) {
-						lastItem.fireEvent('doubletap');
-					}
-					
-					else {
+					// 입력칸에 포커싱이 되어있지 않을 때만 처리
+					if (document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'INPUT') {
 						
-						let folder;
-						EACH(lastItem.getParent().getParent().getChildren(), (child) => {
-							if (child === lastItem.getParent()) {
-								return false;
+						let lastItem = selectedFileItems[selectedFileItems.length - 1];
+						
+						// 폴더고 열려 있을 때
+						if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true && COUNT_PROPERTIES(lastItem.getItems()) > 0) {
+							lastItem.fireEvent('doubletap');
+						}
+						
+						else {
+							
+							let folder;
+							EACH(lastItem.getParent().getParent().getChildren(), (child) => {
+								if (child === lastItem.getParent()) {
+									return false;
+								}
+								folder = child;
+							});
+							
+							if (folder !== undefined) {
+								
+								deselectFile(lastItem);
+								
+								selectFile(folder);
 							}
-							folder = child;
-						});
-						
-						if (folder !== undefined) {
-							
-							deselectFile(lastItem);
-							
-							selectFile(folder);
 						}
 					}
 					
@@ -1887,24 +1929,28 @@ DasomEditor.IDE = OBJECT({
 				
 				else if (e.getKey() === 'ArrowRight') {
 					
-					let lastItem = selectedFileItems[selectedFileItems.length - 1];
-					
-					// 폴더고 열려 있을 때
-					if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true && COUNT_PROPERTIES(lastItem.getItems()) > 0) {
+					// 입력칸에 포커싱이 되어있지 않을 때만 처리
+					if (document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'INPUT') {
 						
-						EACH(lastItem.getItems(), (item) => {
-							EACH(item.getParent().getChildren(), (item) => {
-								if (item.checkIsInstanceOf(DasomEditor.File) === true || item.checkIsInstanceOf(DasomEditor.Folder) === true) {
-									selectFile(item);
-									return false;
-								}
+						let lastItem = selectedFileItems[selectedFileItems.length - 1];
+						
+						// 폴더고 열려 있을 때
+						if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true && COUNT_PROPERTIES(lastItem.getItems()) > 0) {
+							
+							EACH(lastItem.getItems(), (item) => {
+								EACH(item.getParent().getChildren(), (item) => {
+									if (item.checkIsInstanceOf(DasomEditor.File) === true || item.checkIsInstanceOf(DasomEditor.Folder) === true) {
+										selectFile(item);
+										return false;
+									}
+								});
+								return false;
 							});
-							return false;
-						});
-					}
-					
-					else if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true) {
-						lastItem.fireEvent('doubletap');
+						}
+						
+						else if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true) {
+							lastItem.fireEvent('doubletap');
+						}
 					}
 					
 					e.stopDefault();
@@ -1971,17 +2017,18 @@ DasomEditor.IDE = OBJECT({
 				if (findText !== '') {
 					
 					let tab;
+					let xButton;
+					let allReplaceButton;
 					let fileTree;
 					
 					let foundInfos = [];
 					
 					addTab(tab = SkyDesktop.Tab({
 						style : {
-							position : 'relative',
-							overflow : 'hidden'
+							position : 'relative'
 						},
 						size : 30,
-						c : [UUI.ICON_BUTTON({
+						c : [xButton = UUI.ICON_BUTTON({
 							style : {
 								position : 'absolute',
 								right : 10,
@@ -2006,11 +2053,11 @@ DasomEditor.IDE = OBJECT({
 									EVENT.fireAll('resize');
 								}
 							}
-						}), A({
+						}), allReplaceButton = A({
 							style : {
 								position : 'absolute',
 								right : 30,
-								top : 7,
+								top : 6,
 								color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#ccc',
 								zIndex : 999
 							},
@@ -2049,14 +2096,18 @@ DasomEditor.IDE = OBJECT({
 									});
 								}
 							}
-						}), fileTree = SkyDesktop.FileTree(loadAndOpenEditor)]
+						}), fileTree = SkyDesktop.FileTree(loadAndOpenEditor)],
+						on : {
+							scroll : () => {
+								xButton.addStyle({
+									top : 8 + tab.getScrollTop()
+								});
+								allReplaceButton.addStyle({
+									top : 6 + tab.getScrollTop()
+								});
+							}
+						}
 					}));
-					
-					fileTree.addStyle({
-						height : '100%',
-						overflowY : 'scroll',
-						paddingBottom : 0
-					});
 					
 					let search = (folderPath, folderNames, fileNames) => {
 						
