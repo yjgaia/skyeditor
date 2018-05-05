@@ -170,7 +170,7 @@ RUN(() => {
 			//REQUIRED: path
 			//REQUIRED: content
 			//REQUIRED: errorHandler
-			//REQUIRED: callback
+			//OPTIONAL: callback
 			//OPTIONAL: isFindAndReplace
 			
 			NEXT([(next) => {
@@ -302,7 +302,9 @@ RUN(() => {
 							}
 						}
 						
-						callback(path);
+						if (callback !== undefined) {
+							callback(path);
+						}
 					});
 				};
 			}]);

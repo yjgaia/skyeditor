@@ -53,7 +53,7 @@ DasomEditor.FileContextMenu = CLASS({
 						
 						if (fileName.trim() !== '') {
 							
-							DasomEditor.IDE.save(DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+							DasomEditor.IDE.saveTab(DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
 								ftpInfo : ftpInfo,
 								title : fileName,
 								path : folderPath + '/' + fileName

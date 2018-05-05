@@ -56,6 +56,9 @@ DasomEditor.IDE = OBJECT({
 		// 삭제된 파일 정보 스택
 		let removedFileInfoStack = [];
 		
+		// 드래그 앤 드롭 폴더 정보
+		let dropTargetInfo;
+		
 		let addEditor = self.addEditor = (params) => {
 			//REQUIRED: params
 			//REQUIRED: params.extname
@@ -136,7 +139,7 @@ DasomEditor.IDE = OBJECT({
 								let activeTab = editorGroup.getActiveTab();
 								
 								if (activeTab.checkIsInstanceOf(DasomEditor.Editor) === true) {
-									save(activeTab);
+									saveTab(activeTab);
 								}
 							}
 						}
@@ -786,6 +789,34 @@ DasomEditor.IDE = OBJECT({
 			
 			self.appendTo(BODY);
 			
+			// 외부 파일을 드래그 앤 드롭 했을 때
+			self.on('drop', (e) => {
+				
+				EACH(e.getFiles(), (file) => {
+					
+					let fileName = file.name;
+					
+					let fileReader = new FileReader();
+					fileReader.onload = (e) => {
+						let content = e.target.result;
+						
+						if (dropTargetInfo !== undefined) {
+							
+							save({
+								ftpInfo : dropTargetInfo.ftpInfo,
+								path : dropTargetInfo.folderPath + '/' + fileName,
+								content : content
+							});
+							
+							dropTargetInfo = undefined;
+						}
+					};
+					fileReader.readAsText(file);
+				});
+				
+				e.stop();
+			});
+			
 			if (editorOpenedInfos.length === 0) {
 				showHomeHandler();
 			} else {
@@ -872,7 +903,18 @@ DasomEditor.IDE = OBJECT({
 			}
 		};
 		
-		let innerSave = (ftpInfo, path, content, callback, isFindAndReplace) => {
+		let save = self.save = (params, callback) => {
+			//REQUIRED: params
+			//OPTIONAL: params.ftpInfo
+			//REQUIRED: params.path
+			//REQUIRED: params.content
+			//OPTIONAL: params.isFindAndReplace
+			//OPTIONAL: callback
+			
+			let ftpInfo = params.ftpInfo;
+			let path = params.path;
+			let content = params.content;
+			let isFindAndReplace = params.isFindAndReplace;
 			
 			// 로컬 히스토리 저장
 			// 파일의 용량이 1mb 미만인 경우에만 저장, 최대 100개
@@ -961,7 +1003,9 @@ DasomEditor.IDE = OBJECT({
 						})
 					});
 					
-					callback(path);
+					if (callback !== undefined) {
+						callback(path);
+					}
 				});
 			}
 			
@@ -974,17 +1018,25 @@ DasomEditor.IDE = OBJECT({
 			}
 		};
 		
-		let save = self.save = (activeTab) => {
-			//REQUIRED: activeTab
+		let saveTab = self.saveTab = (tab) => {
+			//REQUIRED: tab
 			//REQUIRED: callback
 			
-			if (activeTab.checkIsInstanceOf(DasomEditor.CompareEditor) === true) {
+			if (tab.checkIsInstanceOf(DasomEditor.CompareEditor) === true) {
 				
-				innerSave(activeTab.getFTPInfo(), activeTab.getPath1(), activeTab.getContent1(), () => {
+				save({
+					ftpInfo : tab.getFTPInfo(),
+					path : tab.getPath1(),
+					content : tab.getContent1()
+				}, () => {
 					
-					if (activeTab.getPath2() !== undefined) {
+					if (tab.getPath2() !== undefined) {
 						
-						innerSave(activeTab.getFTPInfo(), activeTab.getPath2(), activeTab.getContent2(), () => {
+						save({
+							ftpInfo : tab.getFTPInfo(),
+							path : tab.getPath2(),
+							content : tab.getContent2()
+						}, () => {
 							SkyDesktop.Noti('저장하였습니다.');
 						});
 					}
@@ -997,9 +1049,13 @@ DasomEditor.IDE = OBJECT({
 			
 			else {
 				
-				innerSave(activeTab.getFTPInfo(), activeTab.getPath(), activeTab.getContent(), (path) => {
+				save({
+					ftpInfo : tab.getFTPInfo(),
+					path : tab.getPath(),
+					content : tab.getContent()
+				}, (path) => {
 					
-					activeTab.setPath(path);
+					tab.setPath(path);
 					
 					let fileName = path.substring(path.lastIndexOf('/') + 1);
 					
@@ -1007,19 +1063,19 @@ DasomEditor.IDE = OBJECT({
 					
 					let Editor = getEditor(extname);
 					if (Editor !== undefined) {
-						activeTab.setIcon(Editor.getIcon());
+						tab.setIcon(Editor.getIcon());
 					}
 					
 					SkyDesktop.Noti('저장하였습니다.');
 					
-					activeTab.setOriginContent(activeTab.getContent());
-					activeTab.setTitle(fileName);
+					tab.setOriginContent(tab.getContent());
+					tab.setTitle(fileName);
 					
-					if (activeTab.getFTPInfo() === undefined) {
+					if (tab.getFTPInfo() === undefined) {
 						
 						editorOpenedStore.save({
-							name : activeTab.getPath(),
-							value : activeTab.getScrollTop()
+							name : tab.getPath(),
+							value : tab.getScrollTop()
 						});
 					}
 				});
@@ -1182,54 +1238,72 @@ DasomEditor.IDE = OBJECT({
 				
 				let loadingBar = SkyDesktop.LoadingBar('lime');
 				
-				// Ctrl Z로 삭제한 파일을 복구하기 위해 파일 내용을 가져옵니다.
-				ftpLoadHandler(ftpInfo, path, () => {
-					loadingBar.done();
-					SkyDesktop.Alert({
-						msg : 'FTP에서 파일을 삭제하는데 실패하였습니니다.'
-					});
-				}, (content) => {
+				NEXT([
+				(next) => {
 					
-					removedFileInfoStack.push({
-						ftpInfo : ftpInfo,
-						path : path,
-						content : content
-					});
-					
-					ftpRemoveHandler(ftpInfo, path, () => {
-						loadingBar.done();
-						SkyDesktop.Alert({
-							msg : 'FTP에서 파일을 삭제하는데 실패하였습니니다.'
-						});
-					}, () => {
-						loadingBar.done();
+					// Ctrl Z로 삭제한 파일을 복구하기 위해 파일 내용을 가져옵니다.
+					ftpLoadHandler(ftpInfo, path, () => {
+						next();
+					}, (content) => {
 						
-						getFTPItem(ftpInfo, path.substring(0, path.lastIndexOf('/'))).removeItem(path);
+						removedFileInfoStack.push({
+							ftpInfo : ftpInfo,
+							path : path,
+							content : content
+						});
+						
+						next();
 					});
-				});
+				},
+				
+				() => {
+					return () => {
+						
+						ftpRemoveHandler(ftpInfo, path, () => {
+							loadingBar.done();
+							SkyDesktop.Alert({
+								msg : 'FTP에서 파일을 삭제하는데 실패하였습니니다.'
+							});
+						}, () => {
+							loadingBar.done();
+							
+							getFTPItem(ftpInfo, path.substring(0, path.lastIndexOf('/'))).removeItem(path);
+						});
+					};
+				}]);
 			}
 			
 			else {
 				
-				// Ctrl Z로 삭제한 파일을 복구하기 위해 파일 내용을 가져옵니다.
-				loadHandler(path, () => {
-					SkyDesktop.Alert({
-						msg : '파일 삭제에 실패하였습니니다.'
-					});
-				}, (content) => {
+				
+				NEXT([
+				(next) => {
 					
-					removedFileInfoStack.push({
-						ftpInfo : ftpInfo,
-						path : path,
-						content : content
-					});
-					
-					removeHandler(path, () => {
-						SkyDesktop.Alert({
-							msg : '파일 삭제에 실패하였습니니다.'
+					// Ctrl Z로 삭제한 파일을 복구하기 위해 파일 내용을 가져옵니다.
+					loadHandler(path, () => {
+						next();
+					}, (content) => {
+						
+						removedFileInfoStack.push({
+							ftpInfo : ftpInfo,
+							path : path,
+							content : content
 						});
-					}, () => {});
-				});
+						
+						next();
+					});
+				},
+				
+				() => {
+					return () => {
+						
+						removeHandler(path, () => {
+							SkyDesktop.Alert({
+								msg : '파일 삭제에 실패하였습니니다.'
+							});
+						}, () => {});
+					};
+				}]);
 			}
 		};
 		
@@ -1534,7 +1608,7 @@ DasomEditor.IDE = OBJECT({
 		let deselectFiles = self.deselectFiles = () => {
 			
 			EACH(selectedFileItems, (selectedFileItem) => {
-				if (selectedFileItem.checkIsShowing() === true) {
+				if (selectedFileItem.checkIsRemoved() !== true) {
 					selectedFileItem.deselect();
 				}
 			});
@@ -1668,7 +1742,7 @@ DasomEditor.IDE = OBJECT({
 				else if (key === 's') {
 					
 					if (editorGroup.getActiveTab() !== undefined) {
-						save(editorGroup.getActiveTab());
+						saveTab(editorGroup.getActiveTab());
 					}
 				}
 				
@@ -2082,9 +2156,13 @@ DasomEditor.IDE = OBJECT({
 										let loadingBar = SkyDesktop.LoadingBar('lime');
 										
 										NEXT(foundInfos, [(info, next) => {
-											innerSave(undefined, info.path, info.content.replace(new RegExp(findText.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'), 'g'), changeText), () => {
+											save({
+												path : info.path,
+												content : info.content.replace(new RegExp(findText.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'), 'g'), changeText),
+												isFindAndReplace : true
+											}, () => {
 												next();
-											}, true);
+											});
 										}, () => {
 											return () => {
 												SkyDesktop.Noti('모두 저장하였습니다.');
@@ -2193,6 +2271,10 @@ DasomEditor.IDE = OBJECT({
 					});
 				}
 			});
+		};
+		
+		let setDropTargetInfo = self.setDropTargetInfo = (_dropTargetInfo) => {
+			dropTargetInfo = _dropTargetInfo;
 		};
 	}
 });

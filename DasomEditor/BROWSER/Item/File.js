@@ -126,6 +126,13 @@ DasomEditor.File = CLASS({
 			e.stop();
 		});
 		
+		self.on('drop', (e) => {
+			DasomEditor.IDE.setDropTargetInfo({
+				ftpInfo : ftpInfo,
+				folderPath : folderPath
+			});
+		});
+		
 		let checkControlKeydownEvent = EVENT('keydown', (e) => {
 			if (e.getKey() === 'Control') {
 				isControlMode = true;
