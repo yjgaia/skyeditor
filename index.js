@@ -82,60 +82,39 @@ RUN(() => {
 			
 			FS.readdir(path, (error, names) => {
 				
-				let next = () => {
+				if (error !== TO_DELETE) {
+					errorHandler(error.toString());
+				} else {
 					
-					if (error !== TO_DELETE) {
-						errorHandler(error.toString());
-					} else {
-						
-						PARALLEL(names, [
-						(name, done) => {
-	
-							if (name !== '.' && name !== '..' && name !== '.git') {
-	
-								FS.stat(path + '/' + name, (error, stats) => {
-	
-									if (error !== TO_DELETE) {
-										errorHandler(error.toString());
+					PARALLEL(names, [
+					(name, done) => {
+
+						if (name !== '.' && name !== '..' && name !== '.git') {
+
+							FS.stat(path + '/' + name, (error, stats) => {
+
+								if (error !== TO_DELETE) {
+									errorHandler(error.toString());
+								} else {
+
+									if (stats.isDirectory() === true) {
+										folderNames.push(name);
 									} else {
-	
-										if (stats.isDirectory() === true) {
-											folderNames.push(name);
-										} else {
-											fileNames.push(name);
-										}
-	
-										done();
+										fileNames.push(name);
 									}
-								});
-	
-							} else {
-								done();
-							}
-						},
-	
-						() => {
-							callback(folderNames, fileNames);
-						}]);
-					}
-				};
-				
-				if (path !== DasomEditor.IDE.getWorkspacePath() && names.length > 100) {
-					
-					SkyDesktop.Confirm({
-						msg : path + '의 파일 개수가 많아 목록을 불러올 수 없습니다. 탐색기로 여시겠습니까?',
-						on : {
-							remove : () => {
-								callback([], [], true);
-							}
+
+									done();
+								}
+							});
+
+						} else {
+							done();
 						}
-					}, () => {
-						shell.showItemInFolder(path + '/.');
-					});
-				}
-				
-				else {
-					next();
+					},
+
+					() => {
+						callback(folderNames, fileNames);
+					}]);
 				}
 			});
 		},
@@ -1057,6 +1036,8 @@ RUN(() => {
 			
 			DasomEditor.IDE.loadFiles(path, (folderNames, fileNames, isToClose) => {
 				
+				let count = 0;
+				
 				EACH(folderNames, (folderName) => {
 					
 					let folderItem = createFolderItem(path + '/' + folderName, folderName);
@@ -1084,18 +1065,44 @@ RUN(() => {
 						key : path + '/' + folderName,
 						item : folderItem
 					});
+					
+					count += 1;
+					
+					if (count === 100) {
+						return false;
+					}
 				});
 				
-				EACH(fileNames, (fileName) => {
+				if (count < 100) {
+					
+					EACH(fileNames, (fileName) => {
+						
+						addItem({
+							key : path + '/' + fileName,
+							item : DasomEditor.File({
+								path : path + '/' + fileName,
+								title : fileName
+							})
+						});
+						
+						count += 1;
+						
+						if (count === 100) {
+							return false;
+						}
+					});
+				}
+				
+				// 개수가 100개 넘으면 더 불러옴
+				if (count === 100) {
 					
 					addItem({
-						key : path + '/' + fileName,
-						item : DasomEditor.File({
-							path : path + '/' + fileName,
-							title : fileName
+						key : path + '/',
+						item : DasomEditor.More({
+							title : '더 보기...'
 						})
 					});
-				});
+				}
 				
 				if (isToClose === true) {
 					close();
