@@ -1,10 +1,17 @@
 DasomEditor.More = CLASS({
 
 	preset : () => {
-		return SkyDesktop.File;
+		return UUI.BUTTON_H;
 	},
 
-	init : (inner, self, params) => {
+	params : () => {
 		
+		return {
+			style : {
+				marginLeft : 20,
+				padding : '2px 5px',
+				whiteSpace : 'nowrap'
+			}
+		};
 	}
 });

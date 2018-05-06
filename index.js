@@ -1009,7 +1009,7 @@ RUN(() => {
 							value : true
 						});
 						
-						loadFiles(path, folder.addItem, folder.close);
+						loadFiles(path, folder, folder.close);
 						
 						if (fileWatcher !== undefined) {
 							fileWatcher.close();
@@ -1032,77 +1032,94 @@ RUN(() => {
 			return folder;
 		};
 		
-		let loadFiles = (path, addItem, close) => {
+		let loadFiles = (path, folder, close) => {
 			
 			DasomEditor.IDE.loadFiles(path, (folderNames, fileNames, isToClose) => {
 				
-				let count = 0;
+				let total = 0;
 				
-				EACH(folderNames, (folderName) => {
+				RUN((f) => {
+					let count = 0;
 					
-					let folderItem = createFolderItem(path + '/' + folderName, folderName);
-					
-					if (path === workspacePath) {
+					while (total < folderNames.length) {
+						let folderName = folderNames[total];
 						
-						folderItem.setIcon(IMG({
-							src : DasomEditor.R('icon/project.png')
-						}));
+						let folderItem = createFolderItem(path + '/' + folderName, folderName);
 						
-						folderItem.on('open', () => {
-							folderItem.setIcon(IMG({
-								src : DasomEditor.R('icon/project-opened.png')
-							}));
-						});
-						
-						folderItem.on('close', () => {
+						if (path === workspacePath) {
+							
 							folderItem.setIcon(IMG({
 								src : DasomEditor.R('icon/project.png')
 							}));
-						});
-					}
-					
-					addItem({
-						key : path + '/' + folderName,
-						item : folderItem
-					});
-					
-					count += 1;
-					
-					if (count === 100) {
-						return false;
-					}
-				});
-				
-				if (count < 100) {
-					
-					EACH(fileNames, (fileName) => {
+							
+							folderItem.on('open', () => {
+								folderItem.setIcon(IMG({
+									src : DasomEditor.R('icon/project-opened.png')
+								}));
+							});
+							
+							folderItem.on('close', () => {
+								folderItem.setIcon(IMG({
+									src : DasomEditor.R('icon/project.png')
+								}));
+							});
+						}
 						
-						addItem({
-							key : path + '/' + fileName,
-							item : DasomEditor.File({
-								path : path + '/' + fileName,
-								title : fileName
-							})
+						folder.addItem({
+							key : path + '/' + folderName,
+							item : folderItem
 						});
+						
+						total += 1;
 						
 						count += 1;
-						
-						if (count === 100) {
-							return false;
+						if (path !== workspacePath && count === 50) {
+							break;
 						}
-					});
-				}
-				
-				// 개수가 100개 넘으면 더 불러옴
-				if (count === 100) {
+					}
 					
-					addItem({
-						key : path + '/',
-						item : DasomEditor.More({
-							title : '더 보기...'
-						})
-					});
-				}
+					if (path !== workspacePath && total < 50) {
+						
+						while (total - folderNames.length < fileNames.length) {
+							let fileName = fileNames[total - folderNames.length];
+							
+							folder.addItem({
+								key : path + '/' + fileName,
+								item : DasomEditor.File({
+									path : path + '/' + fileName,
+									title : fileName
+								})
+							});
+							
+							total += 1;
+							
+							count += 1;
+							if (path !== workspacePath && count === 50) {
+								break;
+							}
+						}
+					}
+					
+					// 개수가 50개 넘으면 더 불러옴
+					if (path !== workspacePath && count === 50) {
+						
+						folder.addItem({
+							key : '__MORE_BUTTON',
+							item : DasomEditor.More({
+								title : '더 보기...',
+								on : {
+									tap : () => {
+										f();
+									}
+								}
+							})
+						});
+					}
+					
+					if (total === folderNames.length + fileNames.length) {
+						folder.removeItem('__MORE_BUTTON');
+					}
+				});
 				
 				if (isToClose === true) {
 					close();
@@ -1118,7 +1135,7 @@ RUN(() => {
 		
 		DasomEditor.IDE.setWorkspacePath(workspacePath);
 		
-		loadFiles(workspacePath, DasomEditor.IDE.addItem);
+		loadFiles(workspacePath, DasomEditor.IDE);
 		
 		if (workspaceFileWatcher !== undefined) {
 			workspaceFileWatcher.close();
