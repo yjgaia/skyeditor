@@ -26,6 +26,7 @@ DasomEditor.IDE = OBJECT({
 		let removeHandler;
 		let moveHandler;
 		let getInfoHandler;
+		let checkExistsHandler;
 		
 		let ftpNewHandler;
 		let ftpDestroyHandler;
@@ -38,6 +39,7 @@ DasomEditor.IDE = OBJECT({
 		let ftpRemoveHandler;
 		let ftpMoveHandler;
 		let ftpGetInfoHandler;
+		let ftpCheckExistsHandler;
 		
 		let copyHandler;
 		let pasteHandler;
@@ -749,6 +751,8 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params.createFolder
 			//REQUIRED: params.remove
 			//REQUIRED: params.move
+			//REQUIRED: params.getInfo
+			//REQUIRED: params.checkExists
 			//REQUIRED: params.ftpNew
 			//REQUIRED: params.ftpList
 			//REQUIRED: params.ftpLoad
@@ -757,8 +761,11 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params.ftpCreateFolder
 			//REQUIRED: params.ftpRemove
 			//REQUIRED: params.ftpMove
+			//REQUIRED: params.ftpGetInfo
+			//REQUIRED: params.ftpCheckExists
 			//REQUIRED: params.copy
 			//REQUIRED: params.paste
+			//REQUIRED: params.overFileSize
 			
 			showHomeHandler = params.showHome;
 			
@@ -769,6 +776,7 @@ DasomEditor.IDE = OBJECT({
 			removeHandler = params.remove;
 			moveHandler = params.move;
 			getInfoHandler = params.getInfo;
+			checkExistsHandler = params.checkExists;
 			
 			ftpNewHandler = params.ftpNew;
 			ftpDestroyHandler = params.ftpDestroy;
@@ -781,6 +789,7 @@ DasomEditor.IDE = OBJECT({
 			ftpRemoveHandler = params.ftpRemove;
 			ftpMoveHandler = params.ftpMove;
 			ftpGetInfoHandler = params.ftpGetInfo;
+			ftpCheckExistsHandler = params.ftpCheckExists;
 			
 			copyHandler = params.copy;
 			pasteHandler = params.paste;
@@ -900,6 +909,30 @@ DasomEditor.IDE = OBJECT({
 						msg : '파일을 불러오는데 실패하였습니니다.'
 					});
 				}, callback);
+			}
+		};
+		
+		let checkExists = self.checkExists = (params, callback) => {
+			//REQUIRED: params
+			//OPTIONAL: params.ftpInfo
+			//REQUIRED: params.path
+			//REQUIRED: callback
+			
+			let ftpInfo = params.ftpInfo;
+			let path = params.path;
+			
+			if (ftpInfo !== undefined) {
+				
+				let loadingBar = SkyDesktop.LoadingBar('lime');
+				
+				ftpCheckExistsHandler(ftpInfo, path, (exists) => {
+					loadingBar.done();
+					callback(exists);
+				});
+			}
+			
+			else {
+				checkExistsHandler(path, callback);
 			}
 		};
 		

@@ -53,11 +53,39 @@ DasomEditor.FileContextMenu = CLASS({
 						
 						if (fileName.trim() !== '') {
 							
-							DasomEditor.IDE.saveTab(DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-								ftpInfo : ftpInfo,
-								title : fileName,
-								path : folderPath + '/' + fileName
-							})));
+							RUN((f) => {
+								
+								// 이미 해당하는 파일이 존재하는지 체크
+								DasomEditor.IDE.checkExists({
+									ftpInfo : ftpInfo,
+									path : folderPath + '/' + fileName
+								}, (exists) => {
+									
+									if (exists === true) {
+										
+										let extname = '';
+										let index = fileName.lastIndexOf('.');
+										
+										if (index !== -1) {
+											extname = fileName.substring(index);
+											fileName = fileName.substring(0, index);
+										}
+										
+										fileName = fileName + ' (2)' + extname;
+										
+										f();
+									}
+									
+									else {
+										
+										DasomEditor.IDE.saveTab(DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+											ftpInfo : ftpInfo,
+											title : fileName,
+											path : folderPath + '/' + fileName
+										})));
+									}
+								});
+							});
 						}
 					});
 					

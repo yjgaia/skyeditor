@@ -154,6 +154,13 @@ RUN(() => {
 			});
 		},
 		
+		checkExists : (path, callback) => {
+			//REQUIRED: path
+			//REQUIRED: callback
+			
+			CHECK_FILE_EXISTS(path, callback);
+		},
+		
 		getInfo : (path, errorHandler, callback) => {
 			//REQUIRED: path
 			//REQUIRED: errorHandler
@@ -461,6 +468,20 @@ RUN(() => {
 					error : errorHandler,
 					success : callback
 				});
+			}
+		},
+		
+		ftpCheckExists : (ftpInfo, path, errorHandler, callback) => {
+			//REQUIRED: ftpInfo
+			//REQUIRED: path
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
+			
+			let ftpConnector = ftpConnectors[ftpInfo.host];
+			
+			if (ftpConnector !== undefined) {
+				
+				ftpConnector.checkFileExists(path, callback);
 			}
 		},
 		
