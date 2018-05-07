@@ -732,7 +732,7 @@ RUN(() => {
 											
 											// 폴더 복사
 											if (isFolder === true) {
-												//TODO: 로컬 <-> FTP 간 폴더 복사
+												//TODO: 로컬 -> FTP 폴더 복사
 												next();
 											}
 											
@@ -812,7 +812,7 @@ RUN(() => {
 										
 										// 폴더 복사
 										if (isFolder === true) {
-											//TODO: 로컬 <-> FTP 간 폴더 복사
+											//TODO: FTP -> 로컬 폴더 복사
 											next();
 										}
 										

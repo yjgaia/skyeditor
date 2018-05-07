@@ -362,6 +362,7 @@ DasomEditor.IDE = OBJECT({
 		let tabList;
 		
 		let leftTab;
+		let leftTabGroup;
 		let savedLeftTabSize;
 		let fileTreeTab;
 		let editorGroup;
@@ -370,7 +371,7 @@ DasomEditor.IDE = OBJECT({
 				c : SkyDesktop.HorizontalTabList({
 					tabs : [leftTab = SkyDesktop.Tab({
 						size : 23,
-						c : SkyDesktop.TabGroup({
+						c : leftTabGroup = SkyDesktop.TabGroup({
 							activeTabIndex : 0,
 							tabs : [fileTreeTab = SkyDesktop.Tab({
 								isCannotClose : true,
@@ -1781,7 +1782,8 @@ DasomEditor.IDE = OBJECT({
 				
 				// 검색
 				else if (key === 'h') {
-					if (selectedFileItems.length > 0) {
+					// 작업 폴더에서만 작동
+					if (leftTabGroup.getActiveTabIndex() === 0 && selectedFileItems.length > 0) {
 						search();
 					}
 				}
@@ -1805,6 +1807,90 @@ DasomEditor.IDE = OBJECT({
 				// 삭제한 내용 복구
 				else if (e.getKey() === 'z') {
 					//TODO:
+				}
+			}
+			
+			// 컨트롤키 누른게 아닌 상태
+			else {
+				
+				// A~Z 혹은 0~9이고 선택된 아이템이 있을 때
+				if ('abcdefghijklmnopqrstuvwxyz0123456789'.indexOf(e.getKey()) !== -1 && selectedFileItems.length > 0) {
+					
+					let lastItem = selectedFileItems[selectedFileItems.length - 1];
+					
+					let isFound = false;
+					
+					// 폴더고 열려 있을 때
+					if (lastItem.checkIsInstanceOf(DasomEditor.Folder) === true && COUNT_PROPERTIES(lastItem.getItems()) > 0) {
+						
+						EACH(lastItem.getItems(), (item) => {
+							EACH(item.getParent().getChildren(), (item) => {
+								if (item.checkIsInstanceOf(DasomEditor.File) === true || item.checkIsInstanceOf(DasomEditor.Folder) === true) {
+									
+									// 자식 아이템 중에 맨 앞글자가 눌린 키와 같은 아이템을 찾습니다.
+									if (item.getTitle()[0].toLowerCase() === e.getKey()) {
+										isFound = true;
+										selectFile(item);
+										return false;
+									}
+								}
+							});
+							return false;
+						});
+					}
+					
+					if (isFound !== true) {
+						
+						let brotherItem;
+						REVERSE_EACH(lastItem.getParent().getChildren(), (item) => {
+							if (item.checkIsInstanceOf(DasomEditor.File) === true || item.checkIsInstanceOf(DasomEditor.Folder) === true) {
+								if (item === lastItem) {
+									return false;
+								}
+								
+								// 형제 아이템 중에 맨 앞글자가 눌린 키와 같은 아이템을 찾습니다.
+								if (item.getTitle()[0].toLowerCase() === e.getKey()) {
+									brotherItem = item;
+									return false;
+								}
+							}
+						});
+						
+						items = undefined;
+						
+						if (brotherItem === undefined) {
+							
+							if (lastItem.getParent() !== fileTree) {
+								
+								let folder;
+								REVERSE_EACH(lastItem.getParent().getParent().getChildren(), (child) => {
+									if (child.checkIsInstanceOf(DasomEditor.File) === true || child.checkIsInstanceOf(DasomEditor.Folder) === true) {
+										if (child === lastItem.getParent()) {
+											return false;
+										}
+										
+										if (child.getTitle()[0].toLowerCase() === e.getKey()) {
+											folder = child;
+										}
+									}
+								});
+								
+								if (folder !== undefined) {
+									
+									deselectFile(lastItem);
+									
+									selectFile(folder);
+								}
+							}
+						}
+						
+						else {
+							
+							deselectFile(lastItem);
+							
+							selectFile(brotherItem);
+						}
+					}
 				}
 			}
 			
@@ -2115,10 +2201,12 @@ DasomEditor.IDE = OBJECT({
 			tabList.addTab(tab);
 		};
 		
+		let lastFindText;
 		let search = self.search = () => {
 			
 			SkyDesktop.Prompt({
-				msg : '검색할 문자열을 입력해주세요.'
+				msg : '검색할 문자열을 입력해주세요.',
+				value : lastFindText
 			}, (findText) => {
 				
 				if (findText !== '') {
@@ -2302,6 +2390,8 @@ DasomEditor.IDE = OBJECT({
 							}
 						}
 					});
+					
+					lastFindText = findText;
 				}
 			});
 		};
