@@ -676,25 +676,53 @@ RUN(() => {
 							
 							RUN((f) => {
 								
-								// 이미 존재하는가?
-								toFTPConnector.checkExists(folderPath + '/' + fileName, (isExists) => {
+								NEXT([
+								(next) => {
 									
-									if (isExists === true) {
+									// 이미 존재하는가?
+									toFTPConnector.checkExists(folderPath + '/' + fileName, (isExists) => {
 										
-										let extname = '';
-										let index = fileName.lastIndexOf('.');
-										
-										if (index !== -1) {
-											extname = fileName.substring(index);
-											fileName = fileName.substring(0, index);
+										if (isExists === true) {
+											
+											// 같은 폴더면 (2)를 붙힙니다.
+											if (path.substring(0, path.lastIndexOf('/')) === folderPath) {
+												
+												let extname = '';
+												let index = fileName.lastIndexOf('.');
+												
+												if (index !== -1) {
+													extname = fileName.substring(index);
+													fileName = fileName.substring(0, index);
+												}
+												
+												fileName = fileName + ' (2)' + extname;
+												
+												f();
+											}
+											
+											// 덮어씌울지 물어봅니다.
+											else {
+												SkyDesktop.Confirm({
+													msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+												}, {
+													ok : () => {
+														next();
+													},
+													cancel : () => {
+														callback();
+													}
+												});
+											}
 										}
 										
-										fileName = fileName + ' (2)' + extname;
-										
-										f();
-									}
-									
-									else {
+										else {
+											next();
+										}
+									});
+								},
+								
+								() => {
+									return () => {
 										
 										fromFTPConnector.checkIsFolder(path, {
 											error : errorHandler,
@@ -758,8 +786,8 @@ RUN(() => {
 												}
 											}
 										});
-									}
-								});
+									};
+								}]);
 							});
 						}
 						
@@ -768,25 +796,53 @@ RUN(() => {
 							
 							RUN((f) => {
 								
-								// 이미 존재하는가?
-								toFTPConnector.checkExists(folderPath + '/' + fileName, (isExists) => {
+								NEXT([
+								(next) => {
 									
-									if (isExists === true) {
+									// 이미 존재하는가?
+									toFTPConnector.checkExists(folderPath + '/' + fileName, (isExists) => {
 										
-										let extname = '';
-										let index = fileName.lastIndexOf('.');
-										
-										if (index !== -1) {
-											extname = fileName.substring(index);
-											fileName = fileName.substring(0, index);
+										if (isExists === true) {
+											
+											// 같은 폴더면 (2)를 붙힙니다.
+											if (path.substring(0, path.lastIndexOf('/')) === folderPath) {
+												
+												let extname = '';
+												let index = fileName.lastIndexOf('.');
+												
+												if (index !== -1) {
+													extname = fileName.substring(index);
+													fileName = fileName.substring(0, index);
+												}
+												
+												fileName = fileName + ' (2)' + extname;
+												
+												f();
+											}
+											
+											// 덮어씌울지 물어봅니다.
+											else {
+												SkyDesktop.Confirm({
+													msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+												}, {
+													ok : () => {
+														next();
+													},
+													cancel : () => {
+														callback();
+													}
+												});
+											}
 										}
 										
-										fileName = fileName + ' (2)' + extname;
-										
-										f();
-									}
-									
-									else {
+										else {
+											next();
+										}
+									});
+								},
+								
+								() => {
+									return () => {
 										
 										CHECK_IS_FOLDER(path, (isFolder) => {
 											
@@ -817,8 +873,8 @@ RUN(() => {
 												});
 											}
 										});
-									}
-								});
+									};
+								}]);
 							});
 						}
 					},
@@ -848,25 +904,53 @@ RUN(() => {
 						
 						RUN((f) => {
 							
-							// 이미 존재하는가?
-							CHECK_FILE_EXISTS(folderPath + '/' + fileName, (isExists) => {
+							NEXT([
+							(next) => {
 								
-								if (isExists === true) {
+								// 이미 존재하는가?
+								CHECK_FILE_EXISTS(folderPath + '/' + fileName, (isExists) => {
 									
-									let extname = '';
-									let index = fileName.lastIndexOf('.');
-									
-									if (index !== -1) {
-										extname = fileName.substring(index);
-										fileName = fileName.substring(0, index);
+									if (isExists === true) {
+										
+										// 같은 폴더면 (2)를 붙힙니다.
+										if (path.substring(0, path.lastIndexOf('/')) === folderPath) {
+											
+											let extname = '';
+											let index = fileName.lastIndexOf('.');
+											
+											if (index !== -1) {
+												extname = fileName.substring(index);
+												fileName = fileName.substring(0, index);
+											}
+											
+											fileName = fileName + ' (2)' + extname;
+											
+											f();
+										}
+										
+										// 덮어씌울지 물어봅니다.
+										else {
+											SkyDesktop.Confirm({
+												msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+											}, {
+												ok : () => {
+													next();
+												},
+												cancel : () => {
+													callback();
+												}
+											});
+										}
 									}
 									
-									fileName = fileName + ' (2)' + extname;
-									
-									f();
-								}
-								
-								else {
+									else {
+										next();
+									}
+								});
+							},
+							
+							() => {
+								return () => {
 									
 									fromFTPConnector.checkIsFolder(path, (isFolder) => {
 										
@@ -895,8 +979,8 @@ RUN(() => {
 											});
 										}
 									});
-								}
-							});
+								};
+							}]);
 						});
 					}
 					
@@ -905,25 +989,53 @@ RUN(() => {
 						
 						RUN((f) => {
 							
-							// 이미 존재하는가?
-							CHECK_FILE_EXISTS(folderPath + '/' + fileName, (isExists) => {
+							NEXT([
+							(next) => {
 								
-								if (isExists === true) {
+								// 이미 존재하는가?
+								CHECK_FILE_EXISTS(folderPath + '/' + fileName, (isExists) => {
 									
-									let extname = '';
-									let index = fileName.lastIndexOf('.');
-									
-									if (index !== -1) {
-										extname = fileName.substring(index);
-										fileName = fileName.substring(0, index);
+									if (isExists === true) {
+										
+										// 같은 폴더면 (2)를 붙힙니다.
+										if (path.substring(0, path.lastIndexOf('/')) === folderPath) {
+											
+											let extname = '';
+											let index = fileName.lastIndexOf('.');
+											
+											if (index !== -1) {
+												extname = fileName.substring(index);
+												fileName = fileName.substring(0, index);
+											}
+											
+											fileName = fileName + ' (2)' + extname;
+											
+											f();
+										}
+										
+										// 덮어씌울지 물어봅니다.
+										else {
+											SkyDesktop.Confirm({
+												msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+											}, {
+												ok : () => {
+													next();
+												},
+												cancel : () => {
+													callback();
+												}
+											});
+										}
 									}
 									
-									fileName = fileName + ' (2)' + extname;
-									
-									f();
-								}
-								
-								else {
+									else {
+										next();
+									}
+								});
+							},
+							
+							() => {
+								return () => {
 									
 									CHECK_IS_FOLDER(path, (isFolder) => {
 										
@@ -951,8 +1063,8 @@ RUN(() => {
 											});
 										}
 									});
-								}
-							});
+								};
+							}]);
 						});
 					}
 				},

@@ -819,13 +819,52 @@ DasomEditor.IDE = OBJECT({
 						
 						if (dropTargetInfo !== undefined) {
 							
-							save({
-								ftpInfo : dropTargetInfo.ftpInfo,
-								path : dropTargetInfo.folderPath + '/' + fileName,
-								content : content
-							});
+							let loadingBar = SkyDesktop.LoadingBar('lime');
 							
-							dropTargetInfo = undefined;
+							NEXT([
+							(next) => {
+								
+								// 이미 존재하는가?
+								checkExists({
+									ftpInfo : dropTargetInfo.ftpInfo,
+									path : dropTargetInfo.folderPath + '/' + fileName
+								}, (isExists) => {
+									
+									if (isExists === true) {
+										
+										// 덮어씌울지 물어봅니다.
+										SkyDesktop.Confirm({
+											msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+										}, {
+											ok : () => {
+												next();
+											},
+											cancel : () => {
+												loadingBar.done();
+											}
+										});
+									}
+									
+									else {
+										next();
+									}
+								});
+							},
+							
+							() => {
+								return () => {
+									
+									save({
+										ftpInfo : dropTargetInfo.ftpInfo,
+										path : dropTargetInfo.folderPath + '/' + fileName,
+										content : content
+									}, () => {
+										loadingBar.done();
+									});
+									
+									dropTargetInfo = undefined;
+								};
+							}]);
 						}
 					};
 					fileReader.readAsText(file);
@@ -1360,114 +1399,159 @@ DasomEditor.IDE = OBJECT({
 			let from = params.from;
 			let to = params.to;
 			
-			if (fromFTPInfo !== undefined || toFTPInfo !== undefined) {
-				
-				ftpMoveHandler(fromFTPInfo, toFTPInfo, from, to, () => {
-					SkyDesktop.Alert({
-						msg : 'FTP에서 파일 이동에 실패하였습니니다.'
-					});
-				}, () => {
-					
-					let openedEditor = getOpenedEditor(from);
-					if (openedEditor !== undefined) {
-						openedEditor.setFTPInfo(toFTPInfo);
-						openedEditor.setPath(to);
-						openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
-					}
-					
-					let fromParentItem = getFTPItem(fromFTPInfo, from.substring(0, from.lastIndexOf('/')));
-					
-					if (fromParentItem.getItem(from).checkIsInstanceOf(DasomEditor.Folder) === true) {
-						
-						let item;
-						let folderName = to.substring(to.lastIndexOf('/') + 1);
-						
-						getFTPItem(toFTPInfo, to.substring(0, to.lastIndexOf('/'))).addItem({
-							key : to,
-							item : item = DasomEditor.Folder({
-								ftpInfo : toFTPInfo,
-								path : to,
-								title : folderName,
-								on : {
-									open : () => {
-										ftpLoadFiles(toFTPInfo, item, to);
-									}
-								}
-							})
-						});
-					}
-					
-					else {
-						
-						let fileName = to.substring(to.lastIndexOf('/') + 1);
-						
-						getFTPItem(toFTPInfo, to.substring(0, to.lastIndexOf('/'))).addItem({
-							key : to,
-							item : DasomEditor.File({
-								ftpInfo : toFTPInfo,
-								path : to,
-								title : fileName,
-								on : {
-									doubletap : () => {
-										
-										let loadingBar = SkyDesktop.LoadingBar('lime');
-										
-										ftpLoadHandler(toFTPInfo, to, () => {
-											loadingBar.done();
-											SkyDesktop.Alert(to + '의 파일 목록을 불러오는데 실패하였습니다.');
-										}, (content) => {
-											loadingBar.done();
-											
-											openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-												ftpInfo : toFTPInfo,
-												title : fileName,
-												path : to,
-												content : content
-											}));
-										});
-									}
-								}
-							})
-						});
-					}
-					
-					fromParentItem.removeItem(from);
-				});
-			}
+			let loadingBar = SkyDesktop.LoadingBar('lime');
 			
-			else {
+			NEXT([
+			(next) => {
 				
-				moveHandler(from, to, () => {
-					SkyDesktop.Alert({
-						msg : '파일 이동에 실패하였습니니다.'
-					});
-				}, () => {
+				// 이미 존재하는가?
+				checkExists({
+					ftpInfo : toFTPInfo,
+					path : to
+				}, (isExists) => {
 					
-					let openedEditor = getOpenedEditor(from);
-					if (openedEditor !== undefined) {
-						openedEditor.setPath(to);
-						openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
-					}
-					
-					let selectedItem = fileTree.getItem(to);
-					
-					if (selectedItem === undefined) {
-						EACH(fileTree.getItems(), (item) => {
-							if (item.checkIsInstanceOf(SkyDesktop.Folder) === true) {
-								let _item = item.getItem(to);
-								if (_item !== undefined) {
-									selectedItem = _item;
-									return false;
-								}
+					if (isExists === true) {
+						
+						// 덮어씌울지 물어봅니다.
+						SkyDesktop.Confirm({
+							msg : to.substring(to.lastIndexOf('/') + 1) + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+						}, {
+							ok : () => {
+								next();
+							},
+							cancel : () => {
+								loadingBar.done();
 							}
 						});
 					}
 					
 					else {
-						selectedItem.select();
+						next();
 					}
 				});
-			}
+			},
+			
+			() => {
+				return () => {
+					
+					if (fromFTPInfo !== undefined || toFTPInfo !== undefined) {
+						
+						ftpMoveHandler(fromFTPInfo, toFTPInfo, from, to, () => {
+							loadingBar.done();
+							
+							SkyDesktop.Alert({
+								msg : 'FTP에서 파일 이동에 실패하였습니니다.'
+							});
+							
+						}, () => {
+							loadingBar.done();
+							
+							let openedEditor = getOpenedEditor(from);
+							if (openedEditor !== undefined) {
+								openedEditor.setFTPInfo(toFTPInfo);
+								openedEditor.setPath(to);
+								openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
+							}
+							
+							let fromParentItem = getFTPItem(fromFTPInfo, from.substring(0, from.lastIndexOf('/')));
+							
+							if (fromParentItem.getItem(from).checkIsInstanceOf(DasomEditor.Folder) === true) {
+								
+								let item;
+								let folderName = to.substring(to.lastIndexOf('/') + 1);
+								
+								getFTPItem(toFTPInfo, to.substring(0, to.lastIndexOf('/'))).addItem({
+									key : to,
+									item : item = DasomEditor.Folder({
+										ftpInfo : toFTPInfo,
+										path : to,
+										title : folderName,
+										on : {
+											open : () => {
+												ftpLoadFiles(toFTPInfo, item, to);
+											}
+										}
+									})
+								});
+							}
+							
+							else {
+								
+								let fileName = to.substring(to.lastIndexOf('/') + 1);
+								
+								getFTPItem(toFTPInfo, to.substring(0, to.lastIndexOf('/'))).addItem({
+									key : to,
+									item : DasomEditor.File({
+										ftpInfo : toFTPInfo,
+										path : to,
+										title : fileName,
+										on : {
+											doubletap : () => {
+												
+												let loadingBar = SkyDesktop.LoadingBar('lime');
+												
+												ftpLoadHandler(toFTPInfo, to, () => {
+													loadingBar.done();
+													SkyDesktop.Alert(to + '의 파일 목록을 불러오는데 실패하였습니다.');
+												}, (content) => {
+													loadingBar.done();
+													
+													openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+														ftpInfo : toFTPInfo,
+														title : fileName,
+														path : to,
+														content : content
+													}));
+												});
+											}
+										}
+									})
+								});
+							}
+							
+							fromParentItem.removeItem(from);
+						});
+					}
+					
+					else {
+						
+						moveHandler(from, to, () => {
+							loadingBar.done();
+							
+							SkyDesktop.Alert({
+								msg : '파일 이동에 실패하였습니니다.'
+							});
+							
+						}, () => {
+							loadingBar.done();
+							
+							let openedEditor = getOpenedEditor(from);
+							if (openedEditor !== undefined) {
+								openedEditor.setPath(to);
+								openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
+							}
+							
+							let selectedItem = fileTree.getItem(to);
+							
+							if (selectedItem === undefined) {
+								EACH(fileTree.getItems(), (item) => {
+									if (item.checkIsInstanceOf(SkyDesktop.Folder) === true) {
+										let _item = item.getItem(to);
+										if (_item !== undefined) {
+											selectedItem = _item;
+											return false;
+										}
+									}
+								});
+							}
+							
+							else {
+								selectedItem.select();
+							}
+						});
+					}
+				};
+			}]);
 		};
 		
 		let clone = self.clone = (params) => {
@@ -1482,112 +1566,157 @@ DasomEditor.IDE = OBJECT({
 			let from = params.from;
 			let to = params.to;
 			
-			if (fromFTPInfo !== undefined || toFTPInfo !== undefined) {
-				
-				ftpCloneHandler(fromFTPInfo, toFTPInfo, from, to, () => {
-					SkyDesktop.Alert({
-						msg : 'FTP에서 파일 복사에 실패하였습니니다.'
-					});
-				}, () => {
-					
-					let openedEditor = getOpenedEditor(from);
-					if (openedEditor !== undefined) {
-						openedEditor.setFTPInfo(toFTPInfo);
-						openedEditor.setPath(to);
-						openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
-					}
-					
-					let fromParentItem = getFTPItem(fromFTPInfo, from.substring(0, from.lastIndexOf('/')));
-					
-					if (fromParentItem.getItem(from).checkIsInstanceOf(DasomEditor.Folder) === true) {
-						
-						let item;
-						let folderName = to.substring(to.lastIndexOf('/') + 1);
-						
-						getFTPItem(toFTPInfo, to.substring(0, to.lastIndexOf('/'))).addItem({
-							key : to,
-							item : item = DasomEditor.Folder({
-								ftpInfo : toFTPInfo,
-								path : to,
-								title : folderName,
-								on : {
-									open : () => {
-										ftpLoadFiles(toFTPInfo, item, to);
-									}
-								}
-							})
-						});
-					}
-					
-					else {
-						
-						let fileName = to.substring(to.lastIndexOf('/') + 1);
-						
-						getFTPItem(toFTPInfo, to.substring(0, to.lastIndexOf('/'))).addItem({
-							key : to,
-							item : DasomEditor.File({
-								ftpInfo : toFTPInfo,
-								path : to,
-								title : fileName,
-								on : {
-									doubletap : () => {
-										
-										let loadingBar = SkyDesktop.LoadingBar('lime');
-										
-										ftpLoadHandler(toFTPInfo, to, () => {
-											loadingBar.done();
-											SkyDesktop.Alert(to + '의 파일 목록을 불러오는데 실패하였습니다.');
-										}, (content) => {
-											loadingBar.done();
-											
-											openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-												ftpInfo : toFTPInfo,
-												title : fileName,
-												path : to,
-												content : content
-											}));
-										});
-									}
-								}
-							})
-						});
-					}
-				});
-			}
+			let loadingBar = SkyDesktop.LoadingBar('lime');
 			
-			else {
+			NEXT([
+			(next) => {
 				
-				cloneHandler(from, to, () => {
-					SkyDesktop.Alert({
-						msg : '파일 복사에 실패하였습니니다.'
-					});
-				}, () => {
+				// 이미 존재하는가?
+				checkExists({
+					ftpInfo : toFTPInfo,
+					path : to
+				}, (isExists) => {
 					
-					let openedEditor = getOpenedEditor(from);
-					if (openedEditor !== undefined) {
-						openedEditor.setPath(to);
-						openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
-					}
-					
-					let selectedItem = fileTree.getItem(to);
-					
-					if (selectedItem === undefined) {
-						EACH(fileTree.getItems(), (item) => {
-							if (item.checkIsInstanceOf(SkyDesktop.Folder) === true) {
-								let _item = item.getItem(to);
-								if (_item !== undefined) {
-									selectedItem = _item;
-									return false;
-								}
+					if (isExists === true) {
+						
+						// 덮어씌울지 물어봅니다.
+						SkyDesktop.Confirm({
+							msg : to.substring(to.lastIndexOf('/') + 1) + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+						}, {
+							ok : () => {
+								next();
+							},
+							cancel : () => {
+								loadingBar.done();
 							}
 						});
 					}
 					
 					else {
-						selectedItem.select();
+						next();
 					}
 				});
-			}
+			},
+			
+			() => {
+				return () => {
+					
+					if (fromFTPInfo !== undefined || toFTPInfo !== undefined) {
+						
+						ftpCloneHandler(fromFTPInfo, toFTPInfo, from, to, () => {
+							loadingBar.done();
+							
+							SkyDesktop.Alert({
+								msg : 'FTP에서 파일 복사에 실패하였습니니다.'
+							});
+							
+						}, () => {
+							loadingBar.done();
+							
+							let openedEditor = getOpenedEditor(from);
+							if (openedEditor !== undefined) {
+								openedEditor.setFTPInfo(toFTPInfo);
+								openedEditor.setPath(to);
+								openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
+							}
+							
+							let fromParentItem = getFTPItem(fromFTPInfo, from.substring(0, from.lastIndexOf('/')));
+							
+							if (fromParentItem.getItem(from).checkIsInstanceOf(DasomEditor.Folder) === true) {
+								
+								let item;
+								let folderName = to.substring(to.lastIndexOf('/') + 1);
+								
+								getFTPItem(toFTPInfo, to.substring(0, to.lastIndexOf('/'))).addItem({
+									key : to,
+									item : item = DasomEditor.Folder({
+										ftpInfo : toFTPInfo,
+										path : to,
+										title : folderName,
+										on : {
+											open : () => {
+												ftpLoadFiles(toFTPInfo, item, to);
+											}
+										}
+									})
+								});
+							}
+							
+							else {
+								
+								let fileName = to.substring(to.lastIndexOf('/') + 1);
+								
+								getFTPItem(toFTPInfo, to.substring(0, to.lastIndexOf('/'))).addItem({
+									key : to,
+									item : DasomEditor.File({
+										ftpInfo : toFTPInfo,
+										path : to,
+										title : fileName,
+										on : {
+											doubletap : () => {
+												
+												let loadingBar = SkyDesktop.LoadingBar('lime');
+												
+												ftpLoadHandler(toFTPInfo, to, () => {
+													loadingBar.done();
+													SkyDesktop.Alert(to + '의 파일 목록을 불러오는데 실패하였습니다.');
+												}, (content) => {
+													loadingBar.done();
+													
+													openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+														ftpInfo : toFTPInfo,
+														title : fileName,
+														path : to,
+														content : content
+													}));
+												});
+											}
+										}
+									})
+								});
+							}
+						});
+					}
+					
+					else {
+						
+						cloneHandler(from, to, () => {
+							loadingBar.done();
+							
+							SkyDesktop.Alert({
+								msg : '파일 복사에 실패하였습니니다.'
+							});
+							
+						}, () => {
+							loadingBar.done();
+							
+							let openedEditor = getOpenedEditor(from);
+							if (openedEditor !== undefined) {
+								openedEditor.setPath(to);
+								openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
+							}
+							
+							let selectedItem = fileTree.getItem(to);
+							
+							if (selectedItem === undefined) {
+								EACH(fileTree.getItems(), (item) => {
+									if (item.checkIsInstanceOf(SkyDesktop.Folder) === true) {
+										let _item = item.getItem(to);
+										if (_item !== undefined) {
+											selectedItem = _item;
+											return false;
+										}
+									}
+								});
+							}
+							
+							else {
+								selectedItem.select();
+							}
+						});
+					}
+				};
+			}]);
 		};
 		
 		let getInfo = self.getInfo = (params, callback) => {
