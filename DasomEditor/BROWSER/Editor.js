@@ -54,6 +54,14 @@ DasomEditor.Editor = CLASS({
 			return content;
 		};
 		
+		let setContent = self.setContent = (_content) => {
+			//REQUIRED: content
+			
+			content = _content;
+			
+			self.fireEvent('change');
+		};
+		
 		let setOriginContent = self.setOriginContent = (_originContent) => {
 			//REQUIRED: originContent
 			
@@ -103,6 +111,22 @@ DasomEditor.Editor = CLASS({
 				
 				return false;
 			}
+		});
+		
+		// 에디터가 활성화되면 파일 내용 새로 불러와서 비교합니다.
+		self.on('active', () => {
+			
+			DasomEditor.IDE.load({
+				ftpInfo : ftpInfo,
+				path : path
+			}, (newContent) => {
+				
+				// 수정한 바가 없으면 새 내용으로 변경
+				if (self.getContent() !== newContent && self.getContent() === originContent) {
+					self.setContent(newContent);
+					self.setOriginContent(newContent);
+				}
+			});
 		});
 	}
 });

@@ -1717,9 +1717,12 @@ DasomEditor.IDE = OBJECT({
 		
 		let getSelectedFileItems = self.getSelectedFileItems = () => {
 			return selectedFileItems;
-		}
+		};
 		
 		let isControlMode;
+		let checkIsControlMode = self.checkIsControlMode = () => {
+			return isControlMode;
+		};
 		
 		EVENT('keydown', (e) => {
 			
@@ -2310,68 +2313,115 @@ DasomEditor.IDE = OBJECT({
 					
 					let search = (folderPath, folderNames, fileNames) => {
 						
-						EACH(folderNames, (folderName) => {
-							loadFiles(folderPath + '/' + folderName, (folderNames, fileNames) => {
-								search(folderPath + '/' + folderName, folderNames, fileNames)
-							});
-						});
+						let total = 0;
 						
-						EACH(fileNames, (fileName) => {
+						RUN((f) => {
 							
-							let path = folderPath + '/' + fileName;
+							let count = 0;
 							
-							load({
-								path : path
-							}, (content) => {
+							while (total < folderNames.length) {
+								let folderName = folderNames[total];
 								
-								foundInfos.push({
-									path : path,
-									content : content
+								loadFiles(folderPath + '/' + folderName, (folderNames, fileNames) => {
+									search(folderPath + '/' + folderName, folderNames, fileNames)
 								});
 								
-								let foundLineInfos = [];
+								total += 1;
 								
-								EACH(content.split('\n'), (line, lineNumber) => {
-									lineNumber += 1;
-									
-									if (line.toLowerCase().indexOf(findText.toLowerCase()) !== -1) {
-										foundLineInfos.push({
-											lineNumber : lineNumber,
-											line : line
-										});
-									}
-								});
-								
-								if (foundLineInfos.length > 0) {
-									
-									let foundFile;
-									
-									fileTree.addItem({
-										key : path,
-										item : foundFile = DasomEditor.FoundFile({
-											path : path,
-											title : path.substring(path.lastIndexOf('/') + 1)
-										})
-									});
-									
-									EACH(foundLineInfos, (info) => {
-										foundFile.addItem({
-											key : path + ':' + info.lineNumber,
-											item : DasomEditor.FoundLine({
-												path : path,
-												findText : findText,
-												lineNumber : info.lineNumber,
-												line : info.line.trim(),
-												on : {
-													doubletap : () => {
-														loadAndOpenEditor(path, (info.lineNumber - 1 - 10) * 17, findText);
-													}
-												}
-											})
-										});
-									});
+								count += 1;
+								if (count === 20) {
+									break;
 								}
-							});
+							}
+							
+							if (count < 20) {
+								
+								while (total - folderNames.length < fileNames.length) {
+									let fileName = fileNames[total - folderNames.length];
+									
+									let path = folderPath + '/' + fileName;
+									
+									load({
+										path : path
+									}, (content) => {
+										
+										foundInfos.push({
+											path : path,
+											content : content
+										});
+										
+										let foundLineInfos = [];
+										
+										EACH(content.split('\n'), (line, lineNumber) => {
+											lineNumber += 1;
+											
+											if (line.toLowerCase().indexOf(findText.toLowerCase()) !== -1) {
+												foundLineInfos.push({
+													lineNumber : lineNumber,
+													line : line
+												});
+											}
+										});
+										
+										if (foundLineInfos.length > 0) {
+											
+											let foundFile;
+											
+											fileTree.addItem({
+												key : path,
+												item : foundFile = DasomEditor.FoundFile({
+													path : path,
+													title : path.substring(path.lastIndexOf('/') + 1)
+												})
+											});
+											
+											EACH(foundLineInfos, (info) => {
+												foundFile.addItem({
+													key : path + ':' + info.lineNumber,
+													item : DasomEditor.FoundLine({
+														path : path,
+														findText : findText,
+														lineNumber : info.lineNumber,
+														line : info.line.trim(),
+														on : {
+															doubletap : () => {
+																loadAndOpenEditor(path, (info.lineNumber - 1 - 10) * 17, findText);
+															}
+														}
+													})
+												});
+											});
+										}
+									});
+									
+									total += 1;
+									
+									count += 1;
+									if (count === 20) {
+										break;
+									}
+								}
+							}
+							
+							// 개수가 20개 넘으면 더 불러옴
+							if (count === 20) {
+								
+								fileTree.addItem({
+									key : '__MORE_BUTTON',
+									item : DasomEditor.More({
+										title : '더 보기...',
+										on : {
+											tap : () => {
+												f();
+											}
+										}
+									})
+								});
+							}
+							
+							if (total === folderNames.length + fileNames.length) {
+								fileTree.removeItem('__MORE_BUTTON');
+							}
 						});
 					};
 					

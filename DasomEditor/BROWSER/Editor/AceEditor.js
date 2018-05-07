@@ -87,11 +87,6 @@ DasomEditor.AceEditor = CLASS({
 			resizeEvent = undefined;
 		});
 		
-		if (content !== undefined) {
-			aceEditor.setValue(content, -1);
-			aceEditor.getSession().setUndoManager(new ace.UndoManager());
-		}
-		
 		let getScrollTop;
 		OVERRIDE(self.getScrollTop, (origin) => {
 			
@@ -129,6 +124,22 @@ DasomEditor.AceEditor = CLASS({
 				return aceEditor.getValue();
 			};
 		});
+		
+		let setContent;
+		OVERRIDE(self.setContent, (origin) => {
+			
+			setContent = self.setContent = (_content) => {
+				//REQUIRED: content
+				
+				content = _content;
+				aceEditor.setValue(content, 1);
+			};
+		});
+		
+		if (content !== undefined) {
+			setContent(content);
+			aceEditor.getSession().setUndoManager(new ace.UndoManager());
+		}
 		
 		let getEditor = inner.getEditor = () => {
 			return editor;

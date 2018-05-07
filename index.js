@@ -1078,7 +1078,7 @@ RUN(() => {
 						}
 					}
 					
-					if (path !== workspacePath && total < 50) {
+					if (path !== workspacePath && count < 50) {
 						
 						while (total - folderNames.length < fileNames.length) {
 							let fileName = fileNames[total - folderNames.length];
