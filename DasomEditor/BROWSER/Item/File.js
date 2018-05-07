@@ -87,7 +87,7 @@ DasomEditor.File = CLASS({
 					
 					let from = selectedFileItem.getPath();
 					
-					DasomEditor.IDE.move({
+					(DasomEditor.IDE.checkIsControlMode() === true ? DasomEditor.IDE.clone : DasomEditor.IDE.move)({
 						fromFTPInfo : selectedFileItem.getFTPInfo(),
 						toFTPInfo : ftpInfo,
 						from : from,

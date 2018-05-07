@@ -25,6 +25,7 @@ DasomEditor.IDE = OBJECT({
 		let createFolderHandler;
 		let removeHandler;
 		let moveHandler;
+		let cloneHandler;
 		let getInfoHandler;
 		let checkExistsHandler;
 		
@@ -38,6 +39,7 @@ DasomEditor.IDE = OBJECT({
 		let ftpCreateFolderHandler;
 		let ftpRemoveHandler;
 		let ftpMoveHandler;
+		let ftpCloneHandler;
 		let ftpGetInfoHandler;
 		let ftpCheckExistsHandler;
 		
@@ -54,6 +56,7 @@ DasomEditor.IDE = OBJECT({
 		let localHistoryStore = DasomEditor.STORE('localHistoryStore');
 		
 		let draggingShadow;
+		let draggingShadowPlusIcon;
 		
 		// 삭제된 파일 정보 스택
 		let removedFileInfoStack = [];
@@ -752,6 +755,7 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params.createFolder
 			//REQUIRED: params.remove
 			//REQUIRED: params.move
+			//REQUIRED: params.clone
 			//REQUIRED: params.getInfo
 			//REQUIRED: params.checkExists
 			//REQUIRED: params.ftpNew
@@ -762,6 +766,7 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params.ftpCreateFolder
 			//REQUIRED: params.ftpRemove
 			//REQUIRED: params.ftpMove
+			//REQUIRED: params.ftpClone
 			//REQUIRED: params.ftpGetInfo
 			//REQUIRED: params.ftpCheckExists
 			//REQUIRED: params.copy
@@ -776,6 +781,7 @@ DasomEditor.IDE = OBJECT({
 			createFolderHandler = params.createFolder;
 			removeHandler = params.remove;
 			moveHandler = params.move;
+			cloneHandler = params.clone;
 			getInfoHandler = params.getInfo;
 			checkExistsHandler = params.checkExists;
 			
@@ -789,6 +795,7 @@ DasomEditor.IDE = OBJECT({
 			ftpCreateFolderHandler = params.ftpCreateFolder;
 			ftpRemoveHandler = params.ftpRemove;
 			ftpMoveHandler = params.ftpMove;
+			ftpCloneHandler = params.ftpClone;
 			ftpGetInfoHandler = params.ftpGetInfo;
 			ftpCheckExistsHandler = params.ftpCheckExists;
 			
@@ -1463,6 +1470,126 @@ DasomEditor.IDE = OBJECT({
 			}
 		};
 		
+		let clone = self.clone = (params) => {
+			//REQUIRED: params
+			//OPTIONAL: params.fromFTPInfo
+			//OPTIONAL: params.toFTPInfo
+			//REQUIRED: params.from
+			//REQUIRED: params.to
+			
+			let fromFTPInfo = params.fromFTPInfo;
+			let toFTPInfo = params.toFTPInfo;
+			let from = params.from;
+			let to = params.to;
+			
+			if (fromFTPInfo !== undefined || toFTPInfo !== undefined) {
+				
+				ftpCloneHandler(fromFTPInfo, toFTPInfo, from, to, () => {
+					SkyDesktop.Alert({
+						msg : 'FTP에서 파일 복사에 실패하였습니니다.'
+					});
+				}, () => {
+					
+					let openedEditor = getOpenedEditor(from);
+					if (openedEditor !== undefined) {
+						openedEditor.setFTPInfo(toFTPInfo);
+						openedEditor.setPath(to);
+						openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
+					}
+					
+					let fromParentItem = getFTPItem(fromFTPInfo, from.substring(0, from.lastIndexOf('/')));
+					
+					if (fromParentItem.getItem(from).checkIsInstanceOf(DasomEditor.Folder) === true) {
+						
+						let item;
+						let folderName = to.substring(to.lastIndexOf('/') + 1);
+						
+						getFTPItem(toFTPInfo, to.substring(0, to.lastIndexOf('/'))).addItem({
+							key : to,
+							item : item = DasomEditor.Folder({
+								ftpInfo : toFTPInfo,
+								path : to,
+								title : folderName,
+								on : {
+									open : () => {
+										ftpLoadFiles(toFTPInfo, item, to);
+									}
+								}
+							})
+						});
+					}
+					
+					else {
+						
+						let fileName = to.substring(to.lastIndexOf('/') + 1);
+						
+						getFTPItem(toFTPInfo, to.substring(0, to.lastIndexOf('/'))).addItem({
+							key : to,
+							item : DasomEditor.File({
+								ftpInfo : toFTPInfo,
+								path : to,
+								title : fileName,
+								on : {
+									doubletap : () => {
+										
+										let loadingBar = SkyDesktop.LoadingBar('lime');
+										
+										ftpLoadHandler(toFTPInfo, to, () => {
+											loadingBar.done();
+											SkyDesktop.Alert(to + '의 파일 목록을 불러오는데 실패하였습니다.');
+										}, (content) => {
+											loadingBar.done();
+											
+											openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+												ftpInfo : toFTPInfo,
+												title : fileName,
+												path : to,
+												content : content
+											}));
+										});
+									}
+								}
+							})
+						});
+					}
+				});
+			}
+			
+			else {
+				
+				cloneHandler(from, to, () => {
+					SkyDesktop.Alert({
+						msg : '파일 복사에 실패하였습니니다.'
+					});
+				}, () => {
+					
+					let openedEditor = getOpenedEditor(from);
+					if (openedEditor !== undefined) {
+						openedEditor.setPath(to);
+						openedEditor.setTitle(to.substring(to.lastIndexOf('/') + 1));
+					}
+					
+					let selectedItem = fileTree.getItem(to);
+					
+					if (selectedItem === undefined) {
+						EACH(fileTree.getItems(), (item) => {
+							if (item.checkIsInstanceOf(SkyDesktop.Folder) === true) {
+								let _item = item.getItem(to);
+								if (_item !== undefined) {
+									selectedItem = _item;
+									return false;
+								}
+							}
+						});
+					}
+					
+					else {
+						selectedItem.select();
+					}
+				});
+			}
+		};
+		
 		let getInfo = self.getInfo = (params, callback) => {
 			//REQUIRED: params
 			//OPTIONAL: params.ftpInfo
@@ -1899,6 +2026,16 @@ DasomEditor.IDE = OBJECT({
 			
 			if (e.getKey() === 'Control') {
 				isControlMode = true;
+				
+				if (draggingShadow !== undefined && draggingShadowPlusIcon === undefined) {
+					draggingShadow.append(draggingShadowPlusIcon = FontAwesome.GetIcon({
+						style : {
+							position : 'absolute',
+							left : -17
+						},
+						key : 'plus'
+					}));
+				}
 			}
 			
 			// 삭제
@@ -2157,6 +2294,11 @@ DasomEditor.IDE = OBJECT({
 		EVENT('keyup', (e) => {
 			if (e.getKey() === 'Control') {
 				isControlMode = false;
+				
+				if (draggingShadowPlusIcon !== undefined) {
+					draggingShadowPlusIcon.remove();
+					draggingShadowPlusIcon = undefined;
+				}
 			}
 		});
 		
@@ -2164,6 +2306,16 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: draggingShadow
 			
 			draggingShadow = _draggingShadow;
+			
+			if (isControlMode === true) {
+				draggingShadow.append(draggingShadowPlusIcon = FontAwesome.GetIcon({
+					style : {
+						position : 'absolute',
+						left : -17
+					},
+					key : 'plus'
+				}));
+			}
 		};
 		
 		let getDraggingShadow = self.getDraggingShadow = () => {
@@ -2184,6 +2336,7 @@ DasomEditor.IDE = OBJECT({
 				if (draggingShadow !== undefined) {
 					draggingShadow.remove();
 					draggingShadow = undefined;
+					draggingShadowPlusIcon = undefined;
 				}
 			});
 		});

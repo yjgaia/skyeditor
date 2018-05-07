@@ -323,6 +323,22 @@ RUN(() => {
 			});
 		},
 		
+		clone : (from, to, errorHandler, callback) => {
+			//REQUIRED: from
+			//REQUIRED: to
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
+			
+			COPY_FILE({
+				from : from,
+				to : to
+			}, {
+				notExists : errorHandler,
+				error : errorHandler,
+				success : callback
+			});
+		},
+		
 		remove : (path, errorHandler, callback) => {
 			//REQUIRED: path
 			//REQUIRED: errorHandler
@@ -546,6 +562,50 @@ RUN(() => {
 										success : callback
 									});
 								}
+							});
+						}
+					});
+				}
+			}
+		},
+		
+		ftpClone : (fromFTPInfo, toFTPInfo, from, to, errorHandler, callback) => {
+			//REQUIRED: fromFTPInfo
+			//REQUIRED: toFTPInfo
+			//REQUIRED: from
+			//REQUIRED: to
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
+			
+			let fromFTPConnector = ftpConnectors[fromFTPInfo.host];
+			let toFTPConnector = ftpConnectors[toFTPInfo.host];
+			
+			if (fromFTPConnector !== undefined && toFTPConnector !== undefined) {
+				
+				if (fromFTPConnector === toFTPConnector) {
+					
+					toFTPConnector.copyFile({
+						from : from,
+						to : to
+					}, {
+						error : errorHandler,
+						success : callback
+					});
+				}
+				
+				else {
+					
+					fromFTPConnector.load(from, {
+						error : errorHandler,
+						notExists : errorHandler,
+						success : (buffer) => {
+							
+							toFTPConnector.save({
+								path : to,
+								buffer : buffer
+							}, {
+								error : errorHandler,
+								success : callback
 							});
 						}
 					});
