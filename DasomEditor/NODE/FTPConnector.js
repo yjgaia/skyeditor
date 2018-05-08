@@ -11,7 +11,7 @@ DasomEditor.FTPConnector = CLASS({
 		//REQUIRED: ftpInfo.privateKey
 		//REQUIRED: handlers
 		//REQUIRED: handlers.error
-		//REQUIRED: handlers.suceess
+		//REQUIRED: handlers.success
 		
 		let title = ftpInfo.title;
 		let protocol = ftpInfo.protocol;
@@ -39,7 +39,7 @@ DasomEditor.FTPConnector = CLASS({
 			//REQUIRED: path
 			//REQUIRED: handlers
 			//REQUIRED: handlers.error
-			//REQUIRED: handlers.suceess
+			//REQUIRED: handlers.success
 			
 			let errorHandler = handlers.error;
 			let callback = handlers.success;
@@ -64,7 +64,7 @@ DasomEditor.FTPConnector = CLASS({
 			//REQUIRED: path
 			//REQUIRED: handlers
 			//REQUIRED: handlers.error
-			//REQUIRED: handlers.suceess
+			//REQUIRED: handlers.success
 			
 			let errorHandler = handlers.error;
 			let callback = handlers.success;
@@ -72,7 +72,7 @@ DasomEditor.FTPConnector = CLASS({
 			ftp.readFile(path, {
 				error : errorHandler,
 				success : (buffer) => {
-					callback(buffer.toString());
+					callback(buffer);
 				}
 			});
 		};
@@ -81,7 +81,7 @@ DasomEditor.FTPConnector = CLASS({
 			//REQUIRED: path
 			//REQUIRED: handlers
 			//REQUIRED: handlers.error
-			//REQUIRED: handlers.suceess
+			//REQUIRED: handlers.success
 			
 			let errorHandler = handlers.error;
 			let callback = handlers.success;
@@ -99,7 +99,7 @@ DasomEditor.FTPConnector = CLASS({
 			//OPTIONAL: params.buffer
 			//REQUIRED: handlers
 			//REQUIRED: handlers.error
-			//REQUIRED: handlers.suceess
+			//REQUIRED: handlers.success
 			
 			let path = params.path;
 			let content = params.content;
@@ -122,7 +122,7 @@ DasomEditor.FTPConnector = CLASS({
 			//REQUIRED: path
 			//REQUIRED: handlers
 			//REQUIRED: handlers.error
-			//REQUIRED: handlers.suceess
+			//REQUIRED: handlers.success
 			
 			let errorHandler = handlers.error;
 			let callback = handlers.success;
@@ -139,7 +139,7 @@ DasomEditor.FTPConnector = CLASS({
 			//REQUIRED: params.to
 			//REQUIRED: handlers
 			//REQUIRED: handlers.error
-			//REQUIRED: handlers.suceess
+			//REQUIRED: handlers.success
 			
 			let from = params.from;
 			let to = params.to;
@@ -160,7 +160,7 @@ DasomEditor.FTPConnector = CLASS({
 			//REQUIRED: path
 			//REQUIRED: handlers
 			//REQUIRED: handlers.error
-			//REQUIRED: handlers.suceess
+			//REQUIRED: handlers.success
 			
 			let errorHandler = handlers.error;
 			let callback = handlers.success;
@@ -191,7 +191,7 @@ DasomEditor.FTPConnector = CLASS({
 			//REQUIRED: path
 			//REQUIRED: handlers
 			//REQUIRED: handlers.error
-			//REQUIRED: handlers.suceess
+			//REQUIRED: handlers.success
 			
 			let errorHandler = handlers.error;
 			let callback = handlers.success;
@@ -208,7 +208,7 @@ DasomEditor.FTPConnector = CLASS({
 			//REQUIRED: params.to
 			//REQUIRED: handlers
 			//REQUIRED: handlers.error
-			//REQUIRED: handlers.suceess
+			//REQUIRED: handlers.success
 			
 			let from = params.from;
 			let to = params.to;
@@ -231,7 +231,7 @@ DasomEditor.FTPConnector = CLASS({
 			//REQUIRED: params.to
 			//REQUIRED: handlers
 			//REQUIRED: handlers.error
-			//REQUIRED: handlers.suceess
+			//REQUIRED: handlers.success
 			
 			let from = params.from;
 			let to = params.to;

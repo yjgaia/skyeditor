@@ -972,7 +972,11 @@ DasomEditor.IDE = OBJECT({
 				
 				let loadingBar = SkyDesktop.LoadingBar('lime');
 				
-				ftpCheckExistsHandler(ftpInfo, path, (exists) => {
+				ftpCheckExistsHandler(ftpInfo, path, () => {
+					SkyDesktop.Alert({
+						msg : '파일이 존재하는지 확인하는데 실패하였습니다.'
+					});
+				}, (exists) => {
 					loadingBar.done();
 					callback(exists);
 				});

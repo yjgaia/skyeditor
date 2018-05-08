@@ -329,13 +329,29 @@ RUN(() => {
 			//REQUIRED: errorHandler
 			//REQUIRED: callback
 			
-			COPY_FILE({
-				from : from,
-				to : to
-			}, {
-				notExists : errorHandler,
-				error : errorHandler,
-				success : callback
+			CHECK_IS_FOLDER(from, (isFolder) => {
+				
+				if (isFolder === true) {
+					COPY_FOLDER({
+						from : from,
+						to : to
+					}, {
+						notExists : errorHandler,
+						error : errorHandler,
+						success : callback
+					});
+				}
+				
+				else {
+					COPY_FILE({
+						from : from,
+						to : to
+					}, {
+						notExists : errorHandler,
+						error : errorHandler,
+						success : callback
+					});
+				}
 			});
 		},
 		
@@ -444,7 +460,9 @@ RUN(() => {
 				
 				ftpConnector.load(path, {
 					error : errorHandler,
-					success : callback
+					success : (buffer) => {
+						callback(buffer.toString());
+					}
 				});
 			}
 		},
@@ -476,7 +494,7 @@ RUN(() => {
 			
 			if (ftpConnector !== undefined) {
 				
-				ftpConnector.checkFileExists(path, callback);
+				ftpConnector.checkExists(path, callback);
 			}
 		},
 		
@@ -685,7 +703,7 @@ RUN(() => {
 										if (isExists === true) {
 											
 											// 같은 폴더면 (2)를 붙힙니다.
-											if (path.substring(0, path.lastIndexOf('/')) === folderPath) {
+											if (fromFTPConnector === toFTPConnector && path.substring(0, path.lastIndexOf('/')) === folderPath) {
 												
 												let extname = '';
 												let index = fileName.lastIndexOf('.');
@@ -745,7 +763,45 @@ RUN(() => {
 													}
 													
 													else {
-														//TODO: 다른 FTP 끼리 폴더 복사
+														// 다른 FTP 끼리 폴더 복사
+														
+														f = (path, folderPath) => {
+															
+															// 폴더의 내용들을 읽어들임
+															fromFTPConnector.loadFiles(path, {
+																error : errorHandler,
+																success : (folderNames, fileNames) => {
+																	
+																	// 폴더는 다시 반복
+																	EACH(folderNames, (folderName) => {
+																		f(path + '/' + folderName, folderPath + '/' + folderName);
+																	});
+																	
+																	// 파일은 내용을 불러와 복사
+																	NEXT(fileNames, (fileName, next) => {
+																		
+																		fromFTPConnector.load(path + '/' + fileName, {
+																			error : errorHandler,
+																			notExists : errorHandler,
+																			success : (buffer) => {
+																				
+																				toFTPConnector.save({
+																					path : folderPath + '/' + fileName,
+																					buffer : buffer
+																				}, {
+																					error : errorHandler,
+																					success : next
+																				});
+																			}
+																		});
+																	});
+																}
+															});
+														};
+														f(path, folderPath + '/' + fileName);
+														
+														ftpFolderPaths.push(folderPath + '/' + fileName);
+														
 														next();
 													}
 												}
@@ -848,7 +904,47 @@ RUN(() => {
 											
 											// 폴더 복사
 											if (isFolder === true) {
-												//TODO: 로컬 -> FTP 폴더 복사
+												// 로컬 -> FTP 폴더 복사
+												
+												f = (path, folderPath) => {
+													
+													// 폴더는 다시 반복
+													FIND_FOLDER_NAMES(path, {
+														error : errorHandler,
+														success : EACH((folderName) => {
+															f(path + '/' + folderName, folderPath + '/' + folderName);
+														})
+													});
+													
+													// 파일은 내용을 불러와 복사
+													FIND_FILE_NAMES(path, {
+														error : errorHandler,
+														success : (fileNames) => {
+															
+															NEXT(fileNames, (fileName, next) => {
+																
+																READ_FILE(path + '/' + fileName, {
+																	error : errorHandler,
+																	notExists : errorHandler,
+																	success : (buffer) => {
+																		
+																		toFTPConnector.save({
+																			path : folderPath + '/' + fileName,
+																			buffer : buffer
+																		}, {
+																			error : errorHandler,
+																			success : next
+																		});
+																	}
+																});
+															});
+														}
+													});
+												};
+												f(path, folderPath + '/' + fileName);
+												
+												ftpFolderPaths.push(folderPath + '/' + fileName);
+												
 												next();
 											}
 											
@@ -952,31 +1048,69 @@ RUN(() => {
 							() => {
 								return () => {
 									
-									fromFTPConnector.checkIsFolder(path, (isFolder) => {
-										
-										// 폴더 복사
-										if (isFolder === true) {
-											//TODO: FTP -> 로컬 폴더 복사
-											next();
-										}
-										
-										// 파일 복사
-										else {
+									fromFTPConnector.checkIsFolder(path, {
+										error : errorHandler,
+										success : (isFolder) => {
 											
-											fromFTPConnector.load(path, {
-												error : errorHandler,
-												notExists : errorHandler,
-												success : (buffer) => {
+											// 폴더 복사
+											if (isFolder === true) {
+												// FTP -> 로컬 폴더 복사
+												
+												f = (path, folderPath) => {
 													
-													WRITE_FILE({
-														path : folderPath + '/' + fileName,
-														buffer : buffer
-													}, {
+													// 폴더의 내용들을 읽어들임
+													fromFTPConnector.loadFiles(path, {
 														error : errorHandler,
-														success : next
+														success : (folderNames, fileNames) => {
+															
+															// 폴더는 다시 반복
+															EACH(folderNames, (folderName) => {
+																f(path + '/' + folderName, folderPath + '/' + folderName);
+															});
+															
+															// 파일은 내용을 불러와 복사
+															NEXT(fileNames, (fileName, next) => {
+																fromFTPConnector.load(path + '/' + fileName, {
+																	error : errorHandler,
+																	notExists : errorHandler,
+																	success : (buffer) => {
+																		
+																		WRITE_FILE({
+																			path : folderPath + '/' + fileName,
+																			buffer : buffer
+																		}, {
+																			error : errorHandler,
+																			success : next
+																		});
+																	}
+																});
+															});
+														}
 													});
-												}
-											});
+												};
+												f(path, folderPath + '/' + fileName);
+												
+												next();
+											}
+											
+											// 파일 복사
+											else {
+												
+												fromFTPConnector.load(path, {
+													error : errorHandler,
+													notExists : errorHandler,
+													success : (buffer) => {
+														
+														WRITE_FILE({
+															path : folderPath + '/' + fileName,
+															buffer : buffer
+														}, {
+															error : errorHandler,
+															success : next
+														});
+													}
+												});
+											}
 										}
 									});
 								};
