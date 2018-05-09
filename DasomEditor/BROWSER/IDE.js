@@ -2069,7 +2069,17 @@ DasomEditor.IDE = OBJECT({
 				
 				// 삭제한 내용 복구
 				else if (e.getKey() === 'z') {
-					//TODO:
+					
+					let removedFileInfo = removedFileInfoStack.pop();
+					
+					if (removedFileInfo !== undefined) {
+						
+						let loadingBar = SkyDesktop.LoadingBar('lime');
+						
+						save(removedFileInfo, () => {
+							loadingBar.done();
+						});
+					}
 				}
 			}
 			
