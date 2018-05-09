@@ -78,7 +78,7 @@ DasomEditor.Folder = CLASS({
 					
 					let from = selectedFileItem.getPath();
 					
-					DasomEditor.IDE.move({
+					(DasomEditor.IDE.checkIsControlMode() === true ? DasomEditor.IDE.clone : DasomEditor.IDE.move)({
 						fromFTPInfo : selectedFileItem.getFTPInfo(),
 						toFTPInfo : ftpInfo,
 						from : from,
@@ -115,6 +115,13 @@ DasomEditor.Folder = CLASS({
 			});
 			
 			e.stop();
+		});
+		
+		self.on('drop', (e) => {
+			DasomEditor.IDE.setDropTargetInfo({
+				ftpInfo : ftpInfo,
+				folderPath : folderPath
+			});
 		});
 		
 		let checkControlKeydownEvent = EVENT('keydown', (e) => {

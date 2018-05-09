@@ -12,6 +12,16 @@ DasomEditor.AceEditor = CLASS({
 		let mode = params.mode;
 		let content = params.content;
 		
+		if (content !== undefined && content.length > 1048576) {
+			content = undefined;
+			
+			DELAY(() => {
+				self.remove();
+			});
+			
+			DasomEditor.IDE.overFileSize(self.getPath());
+		}
+		
 		let editor;
 		
 		self.append(editor = DIV({
@@ -62,7 +72,8 @@ DasomEditor.AceEditor = CLASS({
 		aceEditor.$blockScrolling = Infinity;
 		
 		self.on('active', () => {
-		    aceEditor.focus();
+			aceEditor.focus();
+			aceEditor.resize();
 		});
 		
 		let resizeEvent = EVENT('resize', () => {
@@ -72,14 +83,9 @@ DasomEditor.AceEditor = CLASS({
 		});
 		
 		self.on('remove', () => {
-		    resizeEvent.remove();
-		    resizeEvent = undefined;
+			resizeEvent.remove();
+			resizeEvent = undefined;
 		});
-		
-		if (content !== undefined) {
-			aceEditor.setValue(content, -1);
-			aceEditor.getSession().setUndoManager(new ace.UndoManager());
-		}
 		
 		let getScrollTop;
 		OVERRIDE(self.getScrollTop, (origin) => {
@@ -118,6 +124,22 @@ DasomEditor.AceEditor = CLASS({
 				return aceEditor.getValue();
 			};
 		});
+		
+		let setContent;
+		OVERRIDE(self.setContent, (origin) => {
+			
+			setContent = self.setContent = (_content) => {
+				//REQUIRED: content
+				
+				content = _content;
+				aceEditor.setValue(content, 1);
+			};
+		});
+		
+		if (content !== undefined) {
+			setContent(content);
+			aceEditor.getSession().setUndoManager(new ace.UndoManager());
+		}
 		
 		let getEditor = inner.getEditor = () => {
 			return editor;

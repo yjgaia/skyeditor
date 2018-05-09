@@ -53,11 +53,39 @@ DasomEditor.FileContextMenu = CLASS({
 						
 						if (fileName.trim() !== '') {
 							
-							DasomEditor.IDE.save(DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-								ftpInfo : ftpInfo,
-								title : fileName,
-								path : folderPath + '/' + fileName
-							})));
+							RUN((f) => {
+								
+								// 이미 해당하는 파일이 존재하는지 체크
+								DasomEditor.IDE.checkExists({
+									ftpInfo : ftpInfo,
+									path : folderPath + '/' + fileName
+								}, (exists) => {
+									
+									if (exists === true) {
+										
+										let extname = '';
+										let index = fileName.lastIndexOf('.');
+										
+										if (index !== -1) {
+											extname = fileName.substring(index);
+											fileName = fileName.substring(0, index);
+										}
+										
+										fileName = fileName + ' (2)' + extname;
+										
+										f();
+									}
+									
+									else {
+										
+										DasomEditor.IDE.saveTab(DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+											ftpInfo : ftpInfo,
+											title : fileName,
+											path : folderPath + '/' + fileName
+										})));
+									}
+								});
+							});
 						}
 					});
 					
@@ -303,6 +331,7 @@ DasomEditor.FileContextMenu = CLASS({
 						tap : () => {
 							
 							let tab;
+							let xButton;
 							let historyList;
 							
 							DasomEditor.IDE.addTab(tab = SkyDesktop.Tab({
@@ -310,7 +339,7 @@ DasomEditor.FileContextMenu = CLASS({
 									position : 'relative'
 								},
 								size : 30,
-								c : [UUI.ICON_BUTTON({
+								c : [xButton = UUI.ICON_BUTTON({
 									style : {
 										position : 'absolute',
 										right : 10,
@@ -335,38 +364,48 @@ DasomEditor.FileContextMenu = CLASS({
 											EVENT.fireAll('resize');
 										}
 									}
-								}), historyList = DIV()]
+								}), historyList = DIV()],
+								on : {
+									scroll : () => {
+										xButton.addStyle({
+											top : 8 + tab.getScrollTop()
+										});
+									}
+								}
 							}));
 							
-							let history = DasomEditor.IDE.getLocalHistory({
-								ftpInfo : ftpInfo,
+							DasomEditor.IDE.load({
 								path : path
-							});
-							
-							REVERSE_EACH(history, (info) => {
+							}, (content) => {
 								
-								let cal = CALENDAR(info.time);
-								let title = cal.getYear() + '-' + cal.getMonth(true) + '-' + cal.getDate(true) + ' ' + cal.getHour(true) + ':' + cal.getMinute(true);
+								let history = DasomEditor.IDE.getLocalHistory({
+									ftpInfo : ftpInfo,
+									path : path
+								});
 								
-								historyList.append(DasomEditor.HistoryItem({
-									title : title,
-									on : {
-										doubletap : () => {
-											
-											DasomEditor.IDE.load({
-												path : path
-											}, (content) => {
-												
-												DasomEditor.IDE.openEditor(DasomEditor.CompareEditor({
-													title : '로컬 저장 기록 비교 (현재 - ' + title + ')',
-													path1 : path,
-													content1 : content,
-													content2 : info.content
-												}));
-											});
-										}
+								REVERSE_EACH(history, (info) => {
+									
+									if (info.content !== content) {
+										
+										let cal = CALENDAR(info.time);
+										let title = cal.getYear() + '-' + cal.getMonth(true) + '-' + cal.getDate(true) + ' ' + cal.getHour(true) + ':' + cal.getMinute(true);
+										
+										historyList.append(DasomEditor.HistoryItem({
+											title : title,
+											on : {
+												doubletap : () => {
+													
+													DasomEditor.IDE.openEditor(DasomEditor.CompareEditor({
+														title : '로컬 저장 기록 비교 (현재 - ' + title + ')',
+														path1 : path,
+														content1 : content,
+														content2 : info.content
+													}));
+												}
+											}
+										}));
 									}
-								}));
+								});
 							});
 							
 							self.remove();

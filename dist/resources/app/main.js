@@ -17,7 +17,7 @@ createWindow = () => {
 	win = new BrowserWindow({
 		icon : __dirname + '/DasomEditor/R/favicon.ico'
 	});
-	win.webContents.openDevTools();
+	
 	ipcMain.on('toggleDevTool', () => {
 		if (win.webContents.isDevToolsOpened() !== true) {
 			win.webContents.openDevTools();

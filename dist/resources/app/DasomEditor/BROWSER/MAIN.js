@@ -18,6 +18,11 @@ DasomEditor.MAIN = METHOD({
 		});
 		
 		DasomEditor.IDE.addEditor({
+			extname : 'babelrc',
+			editor : DasomEditor.JSONEditor
+		});
+		
+		DasomEditor.IDE.addEditor({
 			extname : 'html',
 			editor : DasomEditor.HTMLEditor
 		});
@@ -75,6 +80,11 @@ DasomEditor.MAIN = METHOD({
 		DasomEditor.IDE.addEditor({
 			extname : 'less',
 			editor : DasomEditor.LessEditor
+		});
+		
+		DasomEditor.IDE.addEditor({
+			extname : 'sol',
+			editor : DasomEditor.SolidityEditor
 		});
 	}
 });

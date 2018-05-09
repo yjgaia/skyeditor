@@ -1,6 +1,6 @@
 RUN(() => {
 	
-	
+	let startFilePath = require('electron').remote.process.argv[1];
 	
 	let config = JSON.parse(READ_FILE({
 		path : 'config.json',
@@ -14,7 +14,8 @@ RUN(() => {
 	const ipcRenderer = require('electron').ipcRenderer;
 	
 	const FS = require('fs');
-	const SEP = require('path').sep;
+	const Path = require('path');
+	const SEP = Path.sep;
 	
 	let Rimraf = require('rimraf');
 	let exec = require('child_process').exec;
@@ -44,6 +45,8 @@ RUN(() => {
 	let changeToOSPath = (path) => {
 		return path.replace(new RegExp('/', 'g'), SEP);
 	};
+	
+	let clipboardPathInfos = [];
 	
 	DasomEditor.IDE.init({
 		
@@ -79,64 +82,39 @@ RUN(() => {
 			
 			FS.readdir(path, (error, names) => {
 				
-				let next = () => {
+				if (error !== TO_DELETE) {
+					errorHandler(error.toString());
+				} else {
 					
-					if (error !== TO_DELETE) {
-						errorHandler(error.toString());
-					} else {
-						
-						PARALLEL(names, [
-						(name, done) => {
-	
-							if (name[0] !== '.') {
-	
-								FS.stat(path + '/' + name, (error, stats) => {
-	
-									if (error !== TO_DELETE) {
-										errorHandler(error.toString());
+					PARALLEL(names, [
+					(name, done) => {
+
+						if (name !== '.' && name !== '..' && name !== '.git') {
+
+							FS.stat(path + '/' + name, (error, stats) => {
+
+								if (error !== TO_DELETE) {
+									errorHandler(error.toString());
+								} else {
+
+									if (stats.isDirectory() === true) {
+										folderNames.push(name);
 									} else {
-	
-										if (stats.isDirectory() === true) {
-											folderNames.push(name);
-										} else {
-											fileNames.push(name);
-										}
-	
-										done();
+										fileNames.push(name);
 									}
-								});
-	
-							} else {
-								done();
-							}
-						},
-	
-						() => {
-							callback(folderNames, fileNames);
-						}]);
-					}
-				};
-				
-				if (names.length > 100) {
-					
-					SkyDesktop.Confirm({
-						msg : path + '의 파일 개수가 많아 오래걸릴 수 있습니다. 탐색기로 열까요?',
-						on : {
-							remove : () => {
-								if (callback !== undefined) {
-									next();
+
+									done();
 								}
-							}
+							});
+
+						} else {
+							done();
 						}
-					}, () => {
-						shell.showItemInFolder(path + '/.');
-						callback([], []);
-						callback = undefined;
-					});
-				}
-				
-				else {
-					next();
+					},
+
+					() => {
+						callback(folderNames, fileNames);
+					}]);
 				}
 			});
 		},
@@ -155,6 +133,13 @@ RUN(() => {
 			});
 		},
 		
+		checkExists : (path, callback) => {
+			//REQUIRED: path
+			//REQUIRED: callback
+			
+			CHECK_FILE_EXISTS(path, callback);
+		},
+		
 		getInfo : (path, errorHandler, callback) => {
 			//REQUIRED: path
 			//REQUIRED: errorHandler
@@ -167,11 +152,12 @@ RUN(() => {
 			});
 		},
 		
-		save : (path, content, errorHandler, callback) => {
+		save : (path, content, errorHandler, callback, isFindAndReplace) => {
 			//REQUIRED: path
 			//REQUIRED: content
 			//REQUIRED: errorHandler
-			//REQUIRED: callback
+			//OPTIONAL: callback
+			//OPTIONAL: isFindAndReplace
 			
 			NEXT([(next) => {
 				
@@ -197,88 +183,114 @@ RUN(() => {
 						content : content
 					}, () => {
 						
-						let fileName = path.substring(path.lastIndexOf('/') + 1);
-						
-						let extname = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
-						
-						let command = saveCommandStore.get(extname);
-						
-						if (command !== undefined && VALID.notEmpty(content) === true) {
+						// 검색 후 변경이 아닐때만 저장 시 명령 실행
+						if (isFindAndReplace !== true) {
 							
-							let folderPath = path.substring(0, path.lastIndexOf('/'));
+							let fileName = path.substring(path.lastIndexOf('/') + 1);
 							
-							command = command.replace(/\{\{workspace\}\}/g, DasomEditor.IDE.getWorkspacePath());
-							command = command.replace(/\{\{folder\}\}/g, folderPath);
-							command = command.replace(/\{\{path\}\}/g, path);
+							let extname = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
 							
-							EACH(command.split('\n'), (command) => {
+							let command = saveCommandStore.get(extname);
+							
+							if (command !== undefined && VALID.notEmpty(content) === true) {
 								
-								console.log('저장 시 명령을 실행합니다: ' + command);
+								let folderPath = path.substring(0, path.lastIndexOf('/'));
 								
-								exec(command, {
-									cwd : folderPath
-								}, (error, stdout, stderr) => {
-									if (error !== TO_DELETE) {
-										
-										let message = stdout;
-										if (message === '') {
-											message = stderr;
+								let workspacePath = DasomEditor.IDE.getWorkspacePath();
+								
+								let projectFolderPath = folderPath.substring(workspacePath.length + 1);
+								projectFolderPath = workspacePath + '/' + projectFolderPath.substring(0, projectFolderPath.indexOf('/'));
+								
+								command = command.replace(/\{\{workspace\}\}/g, workspacePath);
+								command = command.replace(/\{\{projectFolder\}\}/g, projectFolderPath);
+								command = command.replace(/\{\{folder\}\}/g, folderPath);
+								command = command.replace(/\{\{path\}\}/g, path);
+								
+								let errorTab;
+								
+								EACH(command.split('\n'), (command) => {
+									
+									console.log('저장 시 명령을 실행합니다: ' + command);
+									
+									exec(command, {
+										cwd : folderPath
+									}, (error, stdout, stderr) => {
+										if (error !== TO_DELETE) {
+											
+											let message = stdout;
+											if (message === '') {
+												message = stderr;
+											}
+											
+											SHOW_ERROR('저장 시 명령 실행', message);
+											
+											if (errorTab === undefined) {
+												
+												DasomEditor.IDE.addTab(errorTab = SkyDesktop.Tab({
+													style : {
+														position : 'relative'
+													},
+													size : 30,
+													c : [UUI.ICON_BUTTON({
+														style : {
+															position : 'absolute',
+															right : 10,
+															top : 8,
+															color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
+															zIndex : 999
+														},
+														icon : FontAwesome.GetIcon('times'),
+														on : {
+															mouseover : (e, self) => {
+																self.addStyle({
+																	color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
+																});
+															},
+															mouseout : (e, self) => {
+																self.addStyle({
+																	color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
+																});
+															},
+															tap : () => {
+																errorTab.remove();
+																EVENT.fireAll('resize');
+															}
+														}
+													}), H2({
+														style : {
+															padding : 10
+														},
+														c : '저장 시 명령 실행'
+													}), P({
+														style : {
+															padding : 10,
+															paddingTop : 0,
+															color : 'red'
+														},
+														c : '오류가 발생했습니다. 오류 메시지: ' + message
+													})]
+												}));
+											}
+											
+											else {
+												errorTab.append(P({
+													style : {
+														padding : 10,
+														paddingTop : 0,
+														color : 'red'
+													},
+													c : '오류가 발생했습니다. 오류 메시지: ' + message
+												}));
+											}
 										}
-										
-										SHOW_ERROR('저장 시 명령 실행', message);
-										
-										let tab;
-										
-										DasomEditor.IDE.addTab(tab = SkyDesktop.Tab({
-											style : {
-												position : 'relative'
-											},
-											size : 30,
-											c : [UUI.ICON_BUTTON({
-												style : {
-													position : 'absolute',
-													right : 10,
-													top : 8,
-													color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
-													zIndex : 999
-												},
-												icon : FontAwesome.GetIcon('times'),
-												on : {
-													mouseover : (e, self) => {
-														self.addStyle({
-															color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
-														});
-													},
-													mouseout : (e, self) => {
-														self.addStyle({
-															color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
-														});
-													},
-													tap : () => {
-														tab.remove();
-														EVENT.fireAll('resize');
-													}
-												}
-											}), H2({
-												style : {
-													padding : 10
-												},
-												c : '저장 시 명령 실행'
-											}), P({
-												style : {
-													padding : 10,
-													paddingTop : 0,
-													color : 'red'
-												},
-												c : '오류가 발생했습니다. 오류 메시지: ' + message
-											})]
-										}));
-									}
+									});
 								});
-							});
+							}
 						}
 						
-						callback(path);
+						if (callback !== undefined) {
+							callback(path);
+						}
 					});
 				};
 			}]);
@@ -308,6 +320,38 @@ RUN(() => {
 				notExists : errorHandler,
 				error : errorHandler,
 				success : callback
+			});
+		},
+		
+		clone : (from, to, errorHandler, callback) => {
+			//REQUIRED: from
+			//REQUIRED: to
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
+			
+			CHECK_IS_FOLDER(from, (isFolder) => {
+				
+				if (isFolder === true) {
+					COPY_FOLDER({
+						from : from,
+						to : to
+					}, {
+						notExists : errorHandler,
+						error : errorHandler,
+						success : callback
+					});
+				}
+				
+				else {
+					COPY_FILE({
+						from : from,
+						to : to
+					}, {
+						notExists : errorHandler,
+						error : errorHandler,
+						success : callback
+					});
+				}
 			});
 		},
 		
@@ -416,7 +460,9 @@ RUN(() => {
 				
 				ftpConnector.load(path, {
 					error : errorHandler,
-					success : callback
+					success : (buffer) => {
+						callback(buffer.toString());
+					}
 				});
 			}
 		},
@@ -435,6 +481,20 @@ RUN(() => {
 					error : errorHandler,
 					success : callback
 				});
+			}
+		},
+		
+		ftpCheckExists : (ftpInfo, path, errorHandler, callback) => {
+			//REQUIRED: ftpInfo
+			//REQUIRED: path
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
+			
+			let ftpConnector = ftpConnectors[ftpInfo.host];
+			
+			if (ftpConnector !== undefined) {
+				
+				ftpConnector.checkExists(path, callback);
 			}
 		},
 		
@@ -527,6 +587,50 @@ RUN(() => {
 			}
 		},
 		
+		ftpClone : (fromFTPInfo, toFTPInfo, from, to, errorHandler, callback) => {
+			//REQUIRED: fromFTPInfo
+			//REQUIRED: toFTPInfo
+			//REQUIRED: from
+			//REQUIRED: to
+			//REQUIRED: errorHandler
+			//REQUIRED: callback
+			
+			let fromFTPConnector = ftpConnectors[fromFTPInfo.host];
+			let toFTPConnector = ftpConnectors[toFTPInfo.host];
+			
+			if (fromFTPConnector !== undefined && toFTPConnector !== undefined) {
+				
+				if (fromFTPConnector === toFTPConnector) {
+					
+					toFTPConnector.copyFile({
+						from : from,
+						to : to
+					}, {
+						error : errorHandler,
+						success : callback
+					});
+				}
+				
+				else {
+					
+					fromFTPConnector.load(from, {
+						error : errorHandler,
+						notExists : errorHandler,
+						success : (buffer) => {
+							
+							toFTPConnector.save({
+								path : to,
+								buffer : buffer
+							}, {
+								error : errorHandler,
+								success : callback
+							});
+						}
+					});
+				}
+			}
+		},
+		
 		ftpRemove : (ftpInfo, path, errorHandler, callback) => {
 			//REQUIRED: ftpInfo
 			//REQUIRED: path
@@ -546,21 +650,25 @@ RUN(() => {
 		
 		copy : (pathInfos) => {
 			
-			clipboard.writeText(JSON.stringify({
-				pathInfos : pathInfos
-			}));
+			clipboardPathInfos = pathInfos;
+			
+			let text = '';
+			
+			EACH(pathInfos, (pathInfo, i) => {
+				if (i > 0) {
+					text += '\n';
+				}
+				let fileName = Path.basename(pathInfo.path);
+				if (fileName.indexOf('.') !== -1) {
+					fileName = fileName.substring(0, fileName.indexOf('.'));
+				}
+				text += fileName;
+			});
+			
+			clipboard.writeText(text);
 		},
 		
 		paste : (ftpInfo, folderPath, errorHandler, callback) => {
-			
-			try {
-				let info = JSON.parse(clipboard.readText());
-				if (info !== undefined && info.pathInfos !== undefined) {
-					clipboardPathInfos = info.pathInfos;
-				}
-			} catch(e) {
-				clipboardPathInfos = [];
-			}
 			
 			// -> FTP로
 			if (ftpInfo !== undefined) {
@@ -586,25 +694,53 @@ RUN(() => {
 							
 							RUN((f) => {
 								
-								// 이미 존재하는가?
-								toFTPConnector.checkExists(folderPath + '/' + fileName, (isExists) => {
+								NEXT([
+								(next) => {
 									
-									if (isExists === true) {
+									// 이미 존재하는가?
+									toFTPConnector.checkExists(folderPath + '/' + fileName, (isExists) => {
 										
-										let extname = '';
-										let index = fileName.lastIndexOf('.');
-										
-										if (index !== -1) {
-											extname = fileName.substring(index);
-											fileName = fileName.substring(0, index);
+										if (isExists === true) {
+											
+											// 같은 폴더면 (2)를 붙힙니다.
+											if (fromFTPConnector === toFTPConnector && path.substring(0, path.lastIndexOf('/')) === folderPath) {
+												
+												let extname = '';
+												let index = fileName.lastIndexOf('.');
+												
+												if (index !== -1) {
+													extname = fileName.substring(index);
+													fileName = fileName.substring(0, index);
+												}
+												
+												fileName = fileName + ' (2)' + extname;
+												
+												f();
+											}
+											
+											// 덮어씌울지 물어봅니다.
+											else {
+												SkyDesktop.Confirm({
+													msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+												}, {
+													ok : () => {
+														next();
+													},
+													cancel : () => {
+														callback();
+													}
+												});
+											}
 										}
 										
-										fileName = fileName + ' (2)' + extname;
-										
-										f();
-									}
-									
-									else {
+										else {
+											next();
+										}
+									});
+								},
+								
+								() => {
+									return () => {
 										
 										fromFTPConnector.checkIsFolder(path, {
 											error : errorHandler,
@@ -627,7 +763,45 @@ RUN(() => {
 													}
 													
 													else {
-														//TODO: 다른 FTP 끼리 폴더 복사
+														// 다른 FTP 끼리 폴더 복사
+														
+														f = (path, folderPath) => {
+															
+															// 폴더의 내용들을 읽어들임
+															fromFTPConnector.loadFiles(path, {
+																error : errorHandler,
+																success : (folderNames, fileNames) => {
+																	
+																	// 폴더는 다시 반복
+																	EACH(folderNames, (folderName) => {
+																		f(path + '/' + folderName, folderPath + '/' + folderName);
+																	});
+																	
+																	// 파일은 내용을 불러와 복사
+																	NEXT(fileNames, (fileName, next) => {
+																		
+																		fromFTPConnector.load(path + '/' + fileName, {
+																			error : errorHandler,
+																			notExists : errorHandler,
+																			success : (buffer) => {
+																				
+																				toFTPConnector.save({
+																					path : folderPath + '/' + fileName,
+																					buffer : buffer
+																				}, {
+																					error : errorHandler,
+																					success : next
+																				});
+																			}
+																		});
+																	});
+																}
+															});
+														};
+														f(path, folderPath + '/' + fileName);
+														
+														ftpFolderPaths.push(folderPath + '/' + fileName);
+														
 														next();
 													}
 												}
@@ -668,8 +842,8 @@ RUN(() => {
 												}
 											}
 										});
-									}
-								});
+									};
+								}]);
 							});
 						}
 						
@@ -678,31 +852,99 @@ RUN(() => {
 							
 							RUN((f) => {
 								
-								// 이미 존재하는가?
-								toFTPConnector.checkExists(folderPath + '/' + fileName, (isExists) => {
+								NEXT([
+								(next) => {
 									
-									if (isExists === true) {
+									// 이미 존재하는가?
+									toFTPConnector.checkExists(folderPath + '/' + fileName, (isExists) => {
 										
-										let extname = '';
-										let index = fileName.lastIndexOf('.');
-										
-										if (index !== -1) {
-											extname = fileName.substring(index);
-											fileName = fileName.substring(0, index);
+										if (isExists === true) {
+											
+											// 같은 폴더면 (2)를 붙힙니다.
+											if (path.substring(0, path.lastIndexOf('/')) === folderPath) {
+												
+												let extname = '';
+												let index = fileName.lastIndexOf('.');
+												
+												if (index !== -1) {
+													extname = fileName.substring(index);
+													fileName = fileName.substring(0, index);
+												}
+												
+												fileName = fileName + ' (2)' + extname;
+												
+												f();
+											}
+											
+											// 덮어씌울지 물어봅니다.
+											else {
+												SkyDesktop.Confirm({
+													msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+												}, {
+													ok : () => {
+														next();
+													},
+													cancel : () => {
+														callback();
+													}
+												});
+											}
 										}
 										
-										fileName = fileName + ' (2)' + extname;
-										
-										f();
-									}
-									
-									else {
+										else {
+											next();
+										}
+									});
+								},
+								
+								() => {
+									return () => {
 										
 										CHECK_IS_FOLDER(path, (isFolder) => {
 											
 											// 폴더 복사
 											if (isFolder === true) {
-												//TODO: 로컬 <-> FTP 간 폴더 복사
+												// 로컬 -> FTP 폴더 복사
+												
+												f = (path, folderPath) => {
+													
+													// 폴더는 다시 반복
+													FIND_FOLDER_NAMES(path, {
+														error : errorHandler,
+														success : EACH((folderName) => {
+															f(path + '/' + folderName, folderPath + '/' + folderName);
+														})
+													});
+													
+													// 파일은 내용을 불러와 복사
+													FIND_FILE_NAMES(path, {
+														error : errorHandler,
+														success : (fileNames) => {
+															
+															NEXT(fileNames, (fileName, next) => {
+																
+																READ_FILE(path + '/' + fileName, {
+																	error : errorHandler,
+																	notExists : errorHandler,
+																	success : (buffer) => {
+																		
+																		toFTPConnector.save({
+																			path : folderPath + '/' + fileName,
+																			buffer : buffer
+																		}, {
+																			error : errorHandler,
+																			success : next
+																		});
+																	}
+																});
+															});
+														}
+													});
+												};
+												f(path, folderPath + '/' + fileName);
+												
+												ftpFolderPaths.push(folderPath + '/' + fileName);
+												
 												next();
 											}
 											
@@ -727,8 +969,8 @@ RUN(() => {
 												});
 											}
 										});
-									}
-								});
+									};
+								}]);
 							});
 						}
 					},
@@ -758,55 +1000,121 @@ RUN(() => {
 						
 						RUN((f) => {
 							
-							// 이미 존재하는가?
-							CHECK_FILE_EXISTS(folderPath + '/' + fileName, (isExists) => {
+							NEXT([
+							(next) => {
 								
-								if (isExists === true) {
+								// 이미 존재하는가?
+								CHECK_FILE_EXISTS(folderPath + '/' + fileName, (isExists) => {
 									
-									let extname = '';
-									let index = fileName.lastIndexOf('.');
-									
-									if (index !== -1) {
-										extname = fileName.substring(index);
-										fileName = fileName.substring(0, index);
-									}
-									
-									fileName = fileName + ' (2)' + extname;
-									
-									f();
-								}
-								
-								else {
-									
-									fromFTPConnector.checkIsFolder(path, (isFolder) => {
+									if (isExists === true) {
 										
-										// 폴더 복사
-										if (isFolder === true) {
-											//TODO: 로컬 <-> FTP 간 폴더 복사
-											next();
+										// 같은 폴더면 (2)를 붙힙니다.
+										if (path.substring(0, path.lastIndexOf('/')) === folderPath) {
+											
+											let extname = '';
+											let index = fileName.lastIndexOf('.');
+											
+											if (index !== -1) {
+												extname = fileName.substring(index);
+												fileName = fileName.substring(0, index);
+											}
+											
+											fileName = fileName + ' (2)' + extname;
+											
+											f();
 										}
 										
-										// 파일 복사
+										// 덮어씌울지 물어봅니다.
 										else {
-											
-											fromFTPConnector.load(path, {
-												error : errorHandler,
-												notExists : errorHandler,
-												success : (buffer) => {
-													
-													WRITE_FILE({
-														path : folderPath + '/' + fileName,
-														buffer : buffer
-													}, {
-														error : errorHandler,
-														success : next
-													});
+											SkyDesktop.Confirm({
+												msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+											}, {
+												ok : () => {
+													next();
+												},
+												cancel : () => {
+													callback();
 												}
 											});
 										}
+									}
+									
+									else {
+										next();
+									}
+								});
+							},
+							
+							() => {
+								return () => {
+									
+									fromFTPConnector.checkIsFolder(path, {
+										error : errorHandler,
+										success : (isFolder) => {
+											
+											// 폴더 복사
+											if (isFolder === true) {
+												// FTP -> 로컬 폴더 복사
+												
+												f = (path, folderPath) => {
+													
+													// 폴더의 내용들을 읽어들임
+													fromFTPConnector.loadFiles(path, {
+														error : errorHandler,
+														success : (folderNames, fileNames) => {
+															
+															// 폴더는 다시 반복
+															EACH(folderNames, (folderName) => {
+																f(path + '/' + folderName, folderPath + '/' + folderName);
+															});
+															
+															// 파일은 내용을 불러와 복사
+															NEXT(fileNames, (fileName, next) => {
+																fromFTPConnector.load(path + '/' + fileName, {
+																	error : errorHandler,
+																	notExists : errorHandler,
+																	success : (buffer) => {
+																		
+																		WRITE_FILE({
+																			path : folderPath + '/' + fileName,
+																			buffer : buffer
+																		}, {
+																			error : errorHandler,
+																			success : next
+																		});
+																	}
+																});
+															});
+														}
+													});
+												};
+												f(path, folderPath + '/' + fileName);
+												
+												next();
+											}
+											
+											// 파일 복사
+											else {
+												
+												fromFTPConnector.load(path, {
+													error : errorHandler,
+													notExists : errorHandler,
+													success : (buffer) => {
+														
+														WRITE_FILE({
+															path : folderPath + '/' + fileName,
+															buffer : buffer
+														}, {
+															error : errorHandler,
+															success : next
+														});
+													}
+												});
+											}
+										}
 									});
-								}
-							});
+								};
+							}]);
 						});
 					}
 					
@@ -815,25 +1123,53 @@ RUN(() => {
 						
 						RUN((f) => {
 							
-							// 이미 존재하는가?
-							CHECK_FILE_EXISTS(folderPath + '/' + fileName, (isExists) => {
+							NEXT([
+							(next) => {
 								
-								if (isExists === true) {
+								// 이미 존재하는가?
+								CHECK_FILE_EXISTS(folderPath + '/' + fileName, (isExists) => {
 									
-									let extname = '';
-									let index = fileName.lastIndexOf('.');
-									
-									if (index !== -1) {
-										extname = fileName.substring(index);
-										fileName = fileName.substring(0, index);
+									if (isExists === true) {
+										
+										// 같은 폴더면 (2)를 붙힙니다.
+										if (path.substring(0, path.lastIndexOf('/')) === folderPath) {
+											
+											let extname = '';
+											let index = fileName.lastIndexOf('.');
+											
+											if (index !== -1) {
+												extname = fileName.substring(index);
+												fileName = fileName.substring(0, index);
+											}
+											
+											fileName = fileName + ' (2)' + extname;
+											
+											f();
+										}
+										
+										// 덮어씌울지 물어봅니다.
+										else {
+											SkyDesktop.Confirm({
+												msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+											}, {
+												ok : () => {
+													next();
+												},
+												cancel : () => {
+													callback();
+												}
+											});
+										}
 									}
 									
-									fileName = fileName + ' (2)' + extname;
-									
-									f();
-								}
-								
-								else {
+									else {
+										next();
+									}
+								});
+							},
+							
+							() => {
+								return () => {
 									
 									CHECK_IS_FOLDER(path, (isFolder) => {
 										
@@ -861,8 +1197,8 @@ RUN(() => {
 											});
 										}
 									});
-								}
-							});
+								};
+							}]);
 						});
 					}
 				},
@@ -873,6 +1209,15 @@ RUN(() => {
 					};
 				}]);
 			}
+		},
+		
+		overFileSize : (path) => {
+			
+			SkyDesktop.Confirm({
+				msg : '파일의 크기가 너무 커 열 수 없습니다. 탐색기에서 보시겠습니까?'
+			}, () => {
+				shell.showItemInFolder(path);
+			});
 		}
 	});
 	
@@ -970,7 +1315,7 @@ RUN(() => {
 							value : true
 						});
 						
-						loadFiles(path, folder.addItem);
+						loadFiles(path, folder, folder.close);
 						
 						if (fileWatcher !== undefined) {
 							fileWatcher.close();
@@ -993,49 +1338,98 @@ RUN(() => {
 			return folder;
 		};
 		
-		let loadFiles = (path, addItem) => {
+		let loadFiles = (path, folder, close) => {
 			
-			DasomEditor.IDE.loadFiles(path, (folderNames, fileNames) => {
+			DasomEditor.IDE.loadFiles(path, (folderNames, fileNames, isToClose) => {
 				
-				EACH(folderNames, (folderName) => {
+				let total = 0;
+				
+				RUN((f) => {
+					let count = 0;
 					
-					let folderItem = createFolderItem(path + '/' + folderName, folderName);
-					
-					if (path === workspacePath) {
+					while (total < folderNames.length) {
+						let folderName = folderNames[total];
 						
-						folderItem.setIcon(IMG({
-							src : DasomEditor.R('icon/project.png')
-						}));
+						let folderItem = createFolderItem(path + '/' + folderName, folderName);
 						
-						folderItem.on('open', () => {
-							folderItem.setIcon(IMG({
-								src : DasomEditor.R('icon/project-opened.png')
-							}));
-						});
-						
-						folderItem.on('close', () => {
+						if (path === workspacePath) {
+							
 							folderItem.setIcon(IMG({
 								src : DasomEditor.R('icon/project.png')
 							}));
+							
+							folderItem.on('open', () => {
+								folderItem.setIcon(IMG({
+									src : DasomEditor.R('icon/project-opened.png')
+								}));
+							});
+							
+							folderItem.on('close', () => {
+								folderItem.setIcon(IMG({
+									src : DasomEditor.R('icon/project.png')
+								}));
+							});
+						}
+						
+						folder.addItem({
+							key : path + '/' + folderName,
+							item : folderItem
+						});
+						
+						total += 1;
+						
+						count += 1;
+						if (path !== workspacePath && count === 50) {
+							break;
+						}
+					}
+					
+					if (path !== workspacePath && count < 50) {
+						
+						while (total - folderNames.length < fileNames.length) {
+							let fileName = fileNames[total - folderNames.length];
+							
+							folder.addItem({
+								key : path + '/' + fileName,
+								item : DasomEditor.File({
+									path : path + '/' + fileName,
+									title : fileName
+								})
+							});
+							
+							total += 1;
+							
+							count += 1;
+							if (path !== workspacePath && count === 50) {
+								break;
+							}
+						}
+					}
+					
+					// 개수가 50개 넘으면 더 불러옴
+					if (path !== workspacePath && count === 50) {
+						
+						folder.addItem({
+							key : '__MORE_BUTTON',
+							item : DasomEditor.More({
+								title : '더 보기...',
+								on : {
+									tap : () => {
+										f();
+									}
+								}
+							})
 						});
 					}
 					
-					addItem({
-						key : path + '/' + folderName,
-						item : folderItem
-					});
+					if (total === folderNames.length + fileNames.length) {
+						folder.removeItem('__MORE_BUTTON');
+					}
 				});
 				
-				EACH(fileNames, (fileName) => {
-					
-					addItem({
-						key : path + '/' + fileName,
-						item : DasomEditor.File({
-							path : path + '/' + fileName,
-							title : fileName
-						})
-					});
-				});
+				if (isToClose === true) {
+					close();
+				}
 			});
 		};
 		
@@ -1047,7 +1441,7 @@ RUN(() => {
 		
 		DasomEditor.IDE.setWorkspacePath(workspacePath);
 		
-		loadFiles(workspacePath, DasomEditor.IDE.addItem);
+		loadFiles(workspacePath, DasomEditor.IDE);
 		
 		if (workspaceFileWatcher !== undefined) {
 			workspaceFileWatcher.close();

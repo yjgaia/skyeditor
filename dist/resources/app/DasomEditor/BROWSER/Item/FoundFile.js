@@ -132,7 +132,6 @@ DasomEditor.FoundFile = CLASS({
 			//REQUIRED: key
 
 			list.removeItem(key);
-			sortItems();
 		};
 		
 		let removeAllItems = self.removeAllItems = () => {

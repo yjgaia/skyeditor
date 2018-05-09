@@ -105,6 +105,26 @@ DasomEditor.FTPItem = CLASS({
 				list.remove();
 			});
 		});
+
+		let sortItems = () => {
+			list.sortItems((a, b) => {
+				if ((a.checkIsInstanceOf(SkyDesktop.File) === true && b.checkIsInstanceOf(SkyDesktop.File) === true) || (a.checkIsInstanceOf(SkyDesktop.Folder) === true && b.checkIsInstanceOf(SkyDesktop.Folder) === true)) {
+					return a.getTitle().toLowerCase().localeCompare(b.getTitle().toLowerCase());
+				} else {
+					if (a.checkIsInstanceOf(SkyDesktop.File) === true && b.checkIsInstanceOf(SkyDesktop.Folder) === true) {
+						return 1;
+					} else if (a.checkIsInstanceOf(SkyDesktop.Folder) === true && b.checkIsInstanceOf(SkyDesktop.File) === true) {
+						return -1;
+					} else if (a.checkIsInstanceOf(SkyDesktop.File) !== true && a.checkIsInstanceOf(SkyDesktop.Folder) !== true) {
+						return 1;
+					} else if (b.checkIsInstanceOf(SkyDesktop.File) !== true && b.checkIsInstanceOf(SkyDesktop.Folder) !== true) {
+						return -1;
+					} else {
+						return 0;
+					}
+				}
+			});
+		};
 		
 		let addItem = self.addItem = (params) => {
 			//REQUIRED: params
@@ -112,6 +132,7 @@ DasomEditor.FTPItem = CLASS({
 			//REQUIRED: params.item
 			
 			list.addItem(params);
+			sortItems();
 			
 			EVENT.fireAll('resize');
 		};
@@ -286,10 +307,10 @@ DasomEditor.FTPItem = CLASS({
 											name : 'privateKey',
 											type : 'file',
 											on : {
-												change : (e) => {
+												change : (e, input) => {
 													
 													let fileReader = new FileReader();
-													fr.readAsText(e.getFiles()[0]);
+													fileReader.readAsText(input.getFiles()[0]);
 													fileReader.onload = (e) => {
 														privateKey = e.target.result;
 													};
