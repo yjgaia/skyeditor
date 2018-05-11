@@ -43,6 +43,11 @@ DasomEditor.IDE = OBJECT({
 		let ftpGetInfoHandler;
 		let ftpCheckExistsHandler;
 		
+		let gitCloneHandler;
+		let gitDiffHandler;
+		let gitPushHandler;
+		let gitPullHandler;
+		
 		let copyHandler;
 		let pasteHandler;
 		
@@ -772,6 +777,10 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params.copy
 			//REQUIRED: params.paste
 			//REQUIRED: params.overFileSize
+			//REQUIRED: params.gitClone
+			//REQUIRED: params.gitDiff
+			//REQUIRED: params.gitPush
+			//REQUIRED: params.gitPull
 			
 			showHomeHandler = params.showHome;
 			
@@ -803,6 +812,11 @@ DasomEditor.IDE = OBJECT({
 			pasteHandler = params.paste;
 			
 			overFileSizeHandler = params.overFileSize;
+			
+			gitCloneHandler = params.gitClone;
+			gitDiffHandler = params.gitDiff;
+			gitPushHandler = params.gitPush;
+			gitPullHandler = params.gitPull;
 			
 			self.appendTo(BODY);
 			
@@ -1106,7 +1120,11 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: tab
 			//REQUIRED: callback
 			
-			if (tab.checkIsInstanceOf(DasomEditor.CompareEditor) === true) {
+			if (tab.checkIsInstanceOf(DasomEditor.GitEditor) === true) {
+				// ignore.
+			}
+			
+			else if (tab.checkIsInstanceOf(DasomEditor.CompareEditor) === true) {
 				
 				save({
 					ftpInfo : tab.getFTPInfo(),
@@ -1868,6 +1886,39 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: path
 			
 			overFileSizeHandler(path);
+		};
+		
+		let gitClone = self.gitClone = (params) => {
+			//REQUIRED: params
+			//REQUIRED: params.path
+			//REQUIRED: params.url
+			//REQUIRED: params.username
+			//REQUIRED: params.password
+			
+			gitCloneHandler(params);
+		};
+		
+		let gitDiff = self.gitDiff = (path, handlers) => {
+			//REQUIRED: path
+			//REQUIRED: handlers
+			//REQUIRED: handlers.error
+			//REQUIRED: handlers.success
+			
+			gitDiffHandler(path, handlers);
+		};
+		
+		let gitPush = self.gitPush = (params) => {
+			//REQUIRED: params
+			//REQUIRED: params.path
+			//REQUIRED: params.message
+			
+			gitPushHandler(params);
+		};
+		
+		let gitPull = self.gitPull = (path) => {
+			//REQUIRED: path
+			
+			gitPullHandler(path);
 		};
 		
 		let getOpenedEditor = self.getOpenedEditor = (path) => {

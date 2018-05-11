@@ -98,6 +98,14 @@ DasomEditor.Editor = CLASS({
 			});
 		});
 		
+		let getTitle;
+		OVERRIDE(self.getTitle, (origin) => {
+			
+			getTitle = self.getTitle = () => {
+				return title;
+			};
+		});
+		
 		self.on('close', () => {
 			
 			if (self.getContent() !== originContent) {

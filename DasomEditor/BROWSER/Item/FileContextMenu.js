@@ -491,5 +491,25 @@ DasomEditor.FileContextMenu = CLASS({
 				}));
 			}
 		}
+		
+		if (folderPath.substring(0, folderPath.lastIndexOf('/')) === DasomEditor.IDE.getWorkspacePath()) {
+			
+			self.append(SkyDesktop.ContextMenuItem({
+				title : 'Git 설정',
+				icon : IMG({
+					src : DasomEditor.R('icon/git.png')
+				}),
+				on : {
+					tap : () => {
+						
+						DasomEditor.IDE.openEditor(DasomEditor.GitEditor({
+							folderPath : folderPath
+						}));
+						
+						self.remove();
+					}
+				}
+			}));
+		}
 	}
 });

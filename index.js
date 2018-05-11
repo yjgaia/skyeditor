@@ -1218,6 +1218,23 @@ RUN(() => {
 			}, () => {
 				shell.showItemInFolder(path);
 			});
+		},
+		
+		gitClone : () => {
+			
+		},
+		
+		gitDiff : (path, handlers) => {
+			
+			UGIT.DIFF(path, handlers);
+		},
+		
+		gitPull : () => {
+			
+		},
+		
+		gitPush : () => {
+			
 		}
 	});
 	
