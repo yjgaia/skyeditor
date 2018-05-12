@@ -27,6 +27,8 @@ DasomEditor.GitEditor = CLASS((cls) => {
 				
 				if (exists === true) {
 					
+					// 아이디, 비밀번호 정보가 없으면 정보 추가
+					
 					let loadDiff = () => {
 						
 						DasomEditor.IDE.gitDiff(folderPath, {
