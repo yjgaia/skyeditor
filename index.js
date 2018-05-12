@@ -1203,8 +1203,9 @@ RUN(() => {
 			});
 		},
 		
-		gitClone : () => {
+		gitClone : (params, handlers) => {
 			
+			UGIT.CLONE(params, handlers);
 		},
 		
 		gitDiff : (path, handlers) => {
@@ -1212,12 +1213,14 @@ RUN(() => {
 			UGIT.DIFF(path, handlers);
 		},
 		
-		gitPull : () => {
+		gitPull : (path, handlers) => {
 			
+			UGIT.PULL(path, handlers);
 		},
 		
-		gitPush : () => {
+		gitPush : (params, handlers) => {
 			
+			UGIT.PUSH(params, handlers);
 		}
 	});
 	

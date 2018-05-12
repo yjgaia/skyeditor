@@ -27,53 +27,159 @@ DasomEditor.GitEditor = CLASS((cls) => {
 				
 				if (exists === true) {
 					
-					DasomEditor.IDE.gitDiff(folderPath, {
-						error : (errorMsg) => {
-							console.log(errorMsg);
-						},
-						success : (newFilePaths, updatedFilePaths, movedFilePaths, removedFilePaths) => {
+					let loadDiff = () => {
+						
+						DasomEditor.IDE.gitDiff(folderPath, {
+							error : (errorMsg) => {
+								
+								// 오류 발생
+								SkyDesktop.Alert({
+									msg : errorMsg
+								});
+							},
+							success : (newFilePaths, updatedFilePaths, movedFilePaths, removedFilePaths) => {
+								
+								EACH(updatedFilePaths, (path) => {
+									list.append(UUI.BUTTON_H({
+										style : {
+											padding : 5
+										},
+										icon : IMG({
+											src : DasomEditor.R('icon/edit.png')
+										}),
+										spacing : 5,
+										title : path
+									}));
+								});
+								
+								EACH(newFilePaths, (path) => {
+									list.append(UUI.BUTTON_H({
+										style : {
+											padding : 5
+										},
+										icon : IMG({
+											src : DasomEditor.R('icon/add.png')
+										}),
+										spacing : 5,
+										title : path
+									}));
+								});
+								
+								EACH(movedFilePaths, (path) => {
+									list.append(UUI.BUTTON_H({
+										style : {
+											padding : 5
+										},
+										icon : IMG({
+											src : DasomEditor.R('icon/move.png')
+										}),
+										spacing : 5,
+										title : path
+									}));
+								});
+								
+								EACH(removedFilePaths, (path) => {
+									list.append(UUI.BUTTON_H({
+										style : {
+											padding : 5
+										},
+										icon : IMG({
+											src : DasomEditor.R('icon/delete.png')
+										}),
+										spacing : 5,
+										title : path
+									}));
+								});
+							}
+						});
+					};
+					
+					let pushMessageInput;
+					
+					self.append(DIV({
+						c : [
 							
-							EACH(updatedFilePaths, (path) => {
-								self.append(UUI.BUTTON_H({
-									icon : IMG({
-										src : DasomEditor.R('icon/edit.png')
-									}),
-									spacing : 5,
-									title : path
-								}));
-							});
-							
-							EACH(newFilePaths, (path) => {
-								self.append(UUI.BUTTON_H({
-									icon : IMG({
-										src : DasomEditor.R('icon/add.png')
-									}),
-									spacing : 5,
-									title : path
-								}));
-							});
-							
-							EACH(movedFilePaths, (path) => {
-								self.append(UUI.BUTTON_H({
-									icon : IMG({
-										src : DasomEditor.R('icon/move.png')
-									}),
-									spacing : 5,
-									title : path
-								}));
-							});
-							
-							EACH(removedFilePaths, (path) => {
-								self.append(UUI.BUTTON_H({
-									icon : IMG({
-										src : DasomEditor.R('icon/delete.png')
-									}),
-									spacing : 5,
-									title : path
-								}));
-							});
-						}
-					});
+						UUI.BUTTON_H({
+							style : {
+								padding : 5
+							},
+							icon : IMG({
+								src : DasomEditor.R('icon/pull.png')
+							}),
+							spacing : 5,
+							title : '풀',
+							on : {
+								tap : () => {
+									
+									let loadingBar = SkyDesktop.LoadingBar('lime');
+									
+									DasomEditor.IDE.gitPull(folderPath, {
+										error : (errorMsg) => {
+											loadingBar.done();
+											
+											// 오류 발생
+											SkyDesktop.Alert({
+												msg : errorMsg
+											});
+										},
+										success : () => {
+											loadingBar.done();
+											SkyDesktop.Noti('풀 받았습니다.');
+											
+											loadDiff();
+										}
+									});
+								}
+							}
+						}),
+						
+						pushMessageInput = UUI.FULL_INPUT({
+							value : 'no message'
+						}),
+						
+						UUI.BUTTON_H({
+							style : {
+								padding : 5
+							},
+							icon : IMG({
+								src : DasomEditor.R('icon/push.png')
+							}),
+							spacing : 5,
+							title : '푸시',
+							on : {
+								tap : () => {
+									
+									let loadingBar = SkyDesktop.LoadingBar('lime');
+									
+									DasomEditor.IDE.gitPush({
+										path : folderPath,
+										message : pushMessageInput.getValue()
+									}, {
+										error : (errorMsg) => {
+											loadingBar.done();
+											
+											// 오류 발생
+											SkyDesktop.Alert({
+												msg : errorMsg
+											});
+										},
+										success : () => {
+											loadingBar.done();
+											SkyDesktop.Noti('푸시했습니다.');
+											
+											loadDiff();
+										}
+									});
+								}
+							}
+						}),
+						
+						H3({
+							c : '변경 내역'
+						}), list = DIV()]
+					}));
+					
+					loadDiff();
 				}
 				
 				else {
