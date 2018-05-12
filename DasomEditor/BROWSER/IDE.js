@@ -1901,18 +1901,25 @@ DasomEditor.IDE = OBJECT({
 			gitCloneHandler(params, handlers);
 		};
 		
-		let gitDiff = self.gitDiff = (path, handlers) => {
-			//REQUIRED: path
+		let gitDiff = self.gitDiff = (params, handlers) => {
+			//REQUIRED: params
+			//REQUIRED: params.path
+			//REQUIRED: params.url
+			//REQUIRED: params.username
+			//REQUIRED: params.password
 			//REQUIRED: handlers
 			//REQUIRED: handlers.error
 			//REQUIRED: handlers.success
 			
-			gitDiffHandler(path, handlers);
+			gitDiffHandler(params, handlers);
 		};
 		
 		let gitPush = self.gitPush = (params, handlers) => {
 			//REQUIRED: params
 			//REQUIRED: params.path
+			//REQUIRED: params.url
+			//REQUIRED: params.username
+			//REQUIRED: params.password
 			//REQUIRED: params.message
 			//REQUIRED: handlers
 			//REQUIRED: handlers.error
@@ -1921,13 +1928,17 @@ DasomEditor.IDE = OBJECT({
 			gitPushHandler(params, handlers);
 		};
 		
-		let gitPull = self.gitPull = (path, handlers) => {
-			//REQUIRED: path
+		let gitPull = self.gitPull = (params, handlers) => {
+			//REQUIRED: params
+			//REQUIRED: params.path
+			//REQUIRED: params.url
+			//REQUIRED: params.username
+			//REQUIRED: params.password
 			//REQUIRED: handlers
 			//REQUIRED: handlers.error
 			//REQUIRED: handlers.success
 			
-			gitPullHandler(path, handlers);
+			gitPullHandler(params, handlers);
 		};
 		
 		let getOpenedEditor = self.getOpenedEditor = (path) => {

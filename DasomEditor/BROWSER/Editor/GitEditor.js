@@ -28,10 +28,18 @@ DasomEditor.GitEditor = CLASS((cls) => {
 				if (exists === true) {
 					
 					// 아이디, 비밀번호 정보가 없으면 정보 추가
+					let url;
+					let username;
+					let password;
 					
 					let loadDiff = () => {
 						
-						DasomEditor.IDE.gitDiff(folderPath, {
+						DasomEditor.IDE.gitDiff({
+							url : url,
+							path : folderPath,
+							username : username,
+							password : password
+						}, {
 							error : (errorMsg) => {
 								
 								// 오류 발생
@@ -115,7 +123,12 @@ DasomEditor.GitEditor = CLASS((cls) => {
 									
 									let loadingBar = SkyDesktop.LoadingBar('lime');
 									
-									DasomEditor.IDE.gitPull(folderPath, {
+									DasomEditor.IDE.gitPull({
+										url : url,
+										path : folderPath,
+										username : username,
+										password : password
+									}, {
 										error : (errorMsg) => {
 											loadingBar.done();
 											
@@ -154,7 +167,10 @@ DasomEditor.GitEditor = CLASS((cls) => {
 									let loadingBar = SkyDesktop.LoadingBar('lime');
 									
 									DasomEditor.IDE.gitPush({
+										url : url,
 										path : folderPath,
+										username : username,
+										password : password,
 										message : pushMessageInput.getValue()
 									}, {
 										error : (errorMsg) => {

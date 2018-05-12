@@ -1208,14 +1208,14 @@ RUN(() => {
 			UGIT.CLONE(params, handlers);
 		},
 		
-		gitDiff : (path, handlers) => {
+		gitDiff : (params, handlers) => {
 			
-			UGIT.DIFF(path, handlers);
+			UGIT.DIFF(params, handlers);
 		},
 		
-		gitPull : (path, handlers) => {
+		gitPull : (params, handlers) => {
 			
-			UGIT.PULL(path, handlers);
+			UGIT.PULL(params, handlers);
 		},
 		
 		gitPush : (params, handlers) => {
