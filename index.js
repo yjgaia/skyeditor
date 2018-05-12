@@ -52,24 +52,7 @@ RUN(() => {
 		
 		showHome : () => {
 			
-			DasomEditor.IDE.openEditor(DasomEditor.HomeTab({
-				title : '홈',
-				c : DIV({
-					style : {
-						width : '100%',
-						height : '100%',
-						overflow : 'hidden'
-					},
-					c : IFRAME({
-						style : {
-							backgroundColor : '#fff',
-							width : '100%',
-							height : '100%'
-						},
-						src : config.homepage + '?version=' + config.version
-					})
-				})
-			}));
+			DasomEditor.IDE.openEditor(DasomEditor.HomeTab(config.homepage + '?version=' + config.version));
 		},
 		
 		loadFiles : (path, errorHandler, callback) => {
