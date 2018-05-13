@@ -1,6 +1,6 @@
 require('uppercase-core');
 
-const {app, BrowserWindow} = require('electron');
+const {app, BrowserWindow, shell} = require('electron');
 const ipcMain = require('electron').ipcMain;
 
 const Path = require('path');
@@ -16,6 +16,11 @@ createWindow = () => {
 	// 새로운 브라우저 창을 생성합니다.
 	win = new BrowserWindow({
 		icon : __dirname + '/DasomEditor/R/favicon.ico'
+	});
+	
+	win.webContents.on('new-window', (event, url) => {
+		event.preventDefault();
+		shell.openExternal(url);
 	});
 	
 	ipcMain.on('toggleDevTool', () => {
