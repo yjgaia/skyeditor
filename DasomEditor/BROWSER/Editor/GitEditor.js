@@ -33,6 +33,7 @@ DasomEditor.GitEditor = CLASS((cls) => {
 						// 아이디, 비밀번호 정보가 없으면 정보 추가
 						if (gitInfoStore.get(folderPath) === undefined) {
 							
+							let form;
 							SkyDesktop.Confirm({
 								okButtonTitle : '저장',
 								msg : form = UUI.VALID_FORM({
@@ -126,18 +127,13 @@ DasomEditor.GitEditor = CLASS((cls) => {
 							
 							let gitInfo = gitInfoStore.get(folderPath);
 							
-							// 아이디, 비밀번호 정보가 없으면 정보 추가
-							let url = gitInfo.url;
-							let username = gitInfo.username;
-							let password = gitInfo.password;
-							
 							let loadDiff = () => {
 								
 								DasomEditor.IDE.gitDiff({
-									url : url,
+									url : gitInfo.url,
 									path : folderPath,
-									username : username,
-									password : password
+									username : gitInfo.username,
+									password : gitInfo.password
 								}, {
 									error : (errorMsg) => {
 										
@@ -221,6 +217,115 @@ DasomEditor.GitEditor = CLASS((cls) => {
 											padding : 5
 										},
 										icon : IMG({
+											src : DasomEditor.R('icon/setting.png')
+										}),
+										spacing : 5,
+										title : 'Git 정보 변경',
+										on : {
+											tap : () => {
+												
+												let form;
+												SkyDesktop.Confirm({
+													okButtonTitle : '저장',
+													msg : form = UUI.VALID_FORM({
+														errorMsgs : {
+															url : {
+																notEmpty : '저장소 URL을 입력해주세요.'
+															},
+															username : {
+																notEmpty : '아이디를 입력해주세요.'
+															},
+															password : {
+																notEmpty : '비밀번호를 입력해주세요.'
+															}
+														},
+														errorMsgStyle : {
+															color : 'red'
+														},
+														c : [INPUT({
+															style : {
+																width : 222,
+																padding : 8,
+																border : '1px solid #999',
+																borderRadius : 4
+															},
+															name : 'url',
+															value : gitInfo.url,
+															placeholder : '저장소 URL'
+														}), INPUT({
+															style : {
+																marginTop : 10,
+																width : 222,
+																padding : 8,
+																border : '1px solid #999',
+																borderRadius : 4
+															},
+															name : 'username',
+															value : gitInfo.username,
+															placeholder : '아이디'
+														}), INPUT({
+															style : {
+																marginTop : 10,
+																width : 222,
+																padding : 8,
+																border : '1px solid #999',
+																borderRadius : 4
+															},
+															type : 'password',
+															name : 'password',
+															value : gitInfo.password,
+															placeholder : '비밀번호'
+														})]
+													})
+												}, () => {
+													
+													let data = form.getData();
+													
+													let valid = VALID({
+														url : {
+															notEmpty : true
+														},
+														username : {
+															notEmpty : true
+														},
+														password : {
+															notEmpty : true
+														}
+													});
+													
+													let validResult = valid.check(data);
+													
+													if (validResult.checkHasError() === true) {
+														form.showErrors(validResult.getErrors());
+														return false;
+													}
+													
+													else {
+														
+														gitInfoStore.save({
+															name : folderPath,
+															value : data
+														});
+														
+														gitInfo = data;
+													}
+												});
+											}
+										}
+									})
+								}),
+								
+								DIV({
+									style : {
+										marginTop : 10,
+										padding : 5,
+										backgroundColor : '#222'
+									},
+									c : UUI.BUTTON_H({
+										style : {
+											padding : 5
+										},
+										icon : IMG({
 											src : DasomEditor.R('icon/pull.png')
 										}),
 										spacing : 5,
@@ -231,10 +336,10 @@ DasomEditor.GitEditor = CLASS((cls) => {
 												let loadingBar = SkyDesktop.LoadingBar('lime');
 												
 												DasomEditor.IDE.gitPull({
-													url : url,
+													url : gitInfo.url,
 													path : folderPath,
-													username : username,
-													password : password
+													username : gitInfo.username,
+													password : gitInfo.password
 												}, {
 													error : (errorMsg) => {
 														loadingBar.done();
@@ -277,10 +382,10 @@ DasomEditor.GitEditor = CLASS((cls) => {
 												let loadingBar = SkyDesktop.LoadingBar('lime');
 												
 												DasomEditor.IDE.gitPush({
-													url : url,
+													url : gitInfo.url,
 													path : folderPath,
-													username : username,
-													password : password,
+													username : gitInfo.username,
+													password : gitInfo.password,
 													message : pushMessageInput.getValue()
 												}, {
 													error : (errorMsg) => {
@@ -294,6 +399,8 @@ DasomEditor.GitEditor = CLASS((cls) => {
 													success : () => {
 														loadingBar.done();
 														SkyDesktop.Noti('푸시했습니다.');
+														
+														pushMessageInput.setValue('no message');
 														
 														loadDiff();
 													}
