@@ -941,24 +941,35 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params
 			//OPTIONAL: params.ftpInfo
 			//REQUIRED: params.path
+			//OPTIONAL: params.isReload
 			//REQUIRED: callback
 			
 			let ftpInfo = params.ftpInfo;
 			let path = params.path;
+			let isReload = params.isReload;
 			
 			deselectFiles();
 			
 			if (ftpInfo !== undefined) {
 				
-				let loadingBar = SkyDesktop.LoadingBar('lime');
+				let loadingBar;
+				if (isReload !== true) {
+					loadingBar = SkyDesktop.LoadingBar('lime');
+				}
 				
 				ftpLoadHandler(ftpInfo, path, () => {
-					loadingBar.done();
+					if (loadingBar !== undefined) {
+						loadingBar.done();
+					}
+					
 					SkyDesktop.Alert({
 						msg : 'FTP로부터 파일을 불러오는데 실패하였습니니다.'
 					});
 				}, (content) => {
-					loadingBar.done();
+					if (loadingBar !== undefined) {
+						loadingBar.done();
+					}
+					
 					callback(content);
 				});
 			}

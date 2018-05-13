@@ -52,24 +52,7 @@ RUN(() => {
 		
 		showHome : () => {
 			
-			DasomEditor.IDE.openEditor(DasomEditor.HomeTab({
-				title : '홈',
-				c : DIV({
-					style : {
-						width : '100%',
-						height : '100%',
-						overflow : 'hidden'
-					},
-					c : IFRAME({
-						style : {
-							backgroundColor : '#fff',
-							width : '100%',
-							height : '100%'
-						},
-						src : config.homepage + '?version=' + config.version
-					})
-				})
-			}));
+			DasomEditor.IDE.openEditor(DasomEditor.HomeTab(config.homepage + '?version=' + config.version));
 		},
 		
 		loadFiles : (path, errorHandler, callback) => {
@@ -1218,6 +1201,26 @@ RUN(() => {
 			}, () => {
 				shell.showItemInFolder(path);
 			});
+		},
+		
+		gitClone : (params, handlers) => {
+			
+			UGIT.CLONE(params, handlers);
+		},
+		
+		gitDiff : (params, handlers) => {
+			
+			UGIT.DIFF(params, handlers);
+		},
+		
+		gitPull : (params, handlers) => {
+			
+			UGIT.PULL(params, handlers);
+		},
+		
+		gitPush : (params, handlers) => {
+			
+			UGIT.PUSH(params, handlers);
 		}
 	});
 	

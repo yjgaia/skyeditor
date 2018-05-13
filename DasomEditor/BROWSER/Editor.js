@@ -108,7 +108,10 @@ DasomEditor.Editor = CLASS({
 		
 		self.on('close', () => {
 			
-			if (self.getContent() !== originContent) {
+			if (self.getContent() !== originContent && (
+				self.getContent() !== '' ||
+				originContent !== undefined
+			)) {
 				
 				SkyDesktop.Confirm({
 					msg : '저장하지 않았습니다. 정말 종료 하시겠습니까?'
@@ -132,7 +135,8 @@ DasomEditor.Editor = CLASS({
 					
 					DasomEditor.IDE.load({
 						ftpInfo : ftpInfo,
-						path : path
+						path : path,
+						isReload : true
 					}, (newContent) => {
 						
 						// 수정한 바가 없으면 새 내용으로 변경

@@ -43,6 +43,11 @@ DasomEditor.IDE = OBJECT({
 		let ftpGetInfoHandler;
 		let ftpCheckExistsHandler;
 		
+		let gitCloneHandler;
+		let gitDiffHandler;
+		let gitPushHandler;
+		let gitPullHandler;
+		
 		let copyHandler;
 		let pasteHandler;
 		
@@ -772,6 +777,10 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params.copy
 			//REQUIRED: params.paste
 			//REQUIRED: params.overFileSize
+			//REQUIRED: params.gitClone
+			//REQUIRED: params.gitDiff
+			//REQUIRED: params.gitPush
+			//REQUIRED: params.gitPull
 			
 			showHomeHandler = params.showHome;
 			
@@ -803,6 +812,11 @@ DasomEditor.IDE = OBJECT({
 			pasteHandler = params.paste;
 			
 			overFileSizeHandler = params.overFileSize;
+			
+			gitCloneHandler = params.gitClone;
+			gitDiffHandler = params.gitDiff;
+			gitPushHandler = params.gitPush;
+			gitPullHandler = params.gitPull;
 			
 			self.appendTo(BODY);
 			
@@ -927,24 +941,35 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params
 			//OPTIONAL: params.ftpInfo
 			//REQUIRED: params.path
+			//OPTIONAL: params.isReload
 			//REQUIRED: callback
 			
 			let ftpInfo = params.ftpInfo;
 			let path = params.path;
+			let isReload = params.isReload;
 			
 			deselectFiles();
 			
 			if (ftpInfo !== undefined) {
 				
-				let loadingBar = SkyDesktop.LoadingBar('lime');
+				let loadingBar;
+				if (isReload !== true) {
+					loadingBar = SkyDesktop.LoadingBar('lime');
+				}
 				
 				ftpLoadHandler(ftpInfo, path, () => {
-					loadingBar.done();
+					if (loadingBar !== undefined) {
+						loadingBar.done();
+					}
+					
 					SkyDesktop.Alert({
 						msg : 'FTP로부터 파일을 불러오는데 실패하였습니니다.'
 					});
 				}, (content) => {
-					loadingBar.done();
+					if (loadingBar !== undefined) {
+						loadingBar.done();
+					}
+					
 					callback(content);
 				});
 			}
@@ -1106,7 +1131,11 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: tab
 			//REQUIRED: callback
 			
-			if (tab.checkIsInstanceOf(DasomEditor.CompareEditor) === true) {
+			if (tab.checkIsInstanceOf(DasomEditor.GitEditor) === true) {
+				// ignore.
+			}
+			
+			else if (tab.checkIsInstanceOf(DasomEditor.CompareEditor) === true) {
 				
 				save({
 					ftpInfo : tab.getFTPInfo(),
@@ -1868,6 +1897,59 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: path
 			
 			overFileSizeHandler(path);
+		};
+		
+		let gitClone = self.gitClone = (params, handlers) => {
+			//REQUIRED: params
+			//REQUIRED: params.path
+			//REQUIRED: params.url
+			//REQUIRED: params.username
+			//REQUIRED: params.password
+			//REQUIRED: handlers
+			//REQUIRED: handlers.error
+			//REQUIRED: handlers.success
+			
+			gitCloneHandler(params, handlers);
+		};
+		
+		let gitDiff = self.gitDiff = (params, handlers) => {
+			//REQUIRED: params
+			//REQUIRED: params.path
+			//REQUIRED: params.url
+			//REQUIRED: params.username
+			//REQUIRED: params.password
+			//REQUIRED: handlers
+			//REQUIRED: handlers.error
+			//REQUIRED: handlers.success
+			
+			gitDiffHandler(params, handlers);
+		};
+		
+		let gitPush = self.gitPush = (params, handlers) => {
+			//REQUIRED: params
+			//REQUIRED: params.path
+			//REQUIRED: params.url
+			//REQUIRED: params.username
+			//REQUIRED: params.password
+			//REQUIRED: params.message
+			//REQUIRED: handlers
+			//REQUIRED: handlers.error
+			//REQUIRED: handlers.success
+			
+			gitPushHandler(params, handlers);
+		};
+		
+		let gitPull = self.gitPull = (params, handlers) => {
+			//REQUIRED: params
+			//REQUIRED: params.path
+			//REQUIRED: params.url
+			//REQUIRED: params.username
+			//REQUIRED: params.password
+			//REQUIRED: handlers
+			//REQUIRED: handlers.error
+			//REQUIRED: handlers.success
+			
+			gitPullHandler(params, handlers);
 		};
 		
 		let getOpenedEditor = self.getOpenedEditor = (path) => {
