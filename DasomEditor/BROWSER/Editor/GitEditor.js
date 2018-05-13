@@ -129,6 +129,8 @@ DasomEditor.GitEditor = CLASS((cls) => {
 							
 							let loadDiff = () => {
 								
+								list.empty();
+								
 								DasomEditor.IDE.gitDiff({
 									url : gitInfo.url,
 									path : folderPath,
