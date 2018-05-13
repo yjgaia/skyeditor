@@ -51,7 +51,6 @@ RUN(() => {
 	DasomEditor.IDE.init({
 		
 		showHome : () => {
-			
 			DasomEditor.IDE.openEditor(DasomEditor.HomeTab(config.homepage + '?version=' + config.version));
 		},
 		

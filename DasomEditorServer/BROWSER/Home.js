@@ -6,6 +6,11 @@ DasomEditorServer.Home = CLASS({
 
 	init : (inner, self) => {
 		
-		DasomEditor.IDE.init({});
+		DasomEditor.IDE.init({
+			
+			showHome : () => {
+				DasomEditor.IDE.openEditor(DasomEditor.HomeTab(BROWSER_CONFIG.DasomEditor.homepage + '?version=' + CONFIG.version));
+			}
+		});
 	}
 });

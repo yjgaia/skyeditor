@@ -2095,7 +2095,7 @@ DasomEditor.IDE = OBJECT({
 				}
 				
 				// 현재 탭 종료
-				else if (key === 'w') {
+				else if (key === 'w' || key === 'q') {
 					
 					if (tabList.getAllTabs().length > 1) {
 						tabList.getAllTabs()[1].remove();
@@ -2112,6 +2112,8 @@ DasomEditor.IDE = OBJECT({
 					if (editorGroup.getActiveTab() !== undefined) {
 						saveTab(editorGroup.getActiveTab());
 					}
+					
+					e.stopDefault();
 				}
 				
 				// 검색
@@ -2816,5 +2818,10 @@ DasomEditor.IDE = OBJECT({
 		let setDropTargetInfo = self.setDropTargetInfo = (_dropTargetInfo) => {
 			dropTargetInfo = _dropTargetInfo;
 		};
+		
+		// IDE 초기화 완료 후 크기 재설정
+		DELAY(0.1, () => {
+			EVENT.fireAll('resize');
+		});
 	}
 });
