@@ -131,6 +131,8 @@ DasomEditor.GitEditor = CLASS((cls) => {
 								
 								list.empty();
 								
+								let loadingBar = SkyDesktop.LoadingBar('lime');
+								
 								DasomEditor.IDE.gitDiff({
 									url : gitInfo.url,
 									path : folderPath,
@@ -138,6 +140,7 @@ DasomEditor.GitEditor = CLASS((cls) => {
 									password : gitInfo.password
 								}, {
 									error : (errorMsg) => {
+										loadingBar.done();
 										
 										// 오류 발생
 										SkyDesktop.Alert({
@@ -145,6 +148,7 @@ DasomEditor.GitEditor = CLASS((cls) => {
 										});
 									},
 									success : (newFilePaths, updatedFilePaths, movedFilePaths, removedFilePaths) => {
+										loadingBar.done();
 										
 										EACH(updatedFilePaths, (path) => {
 											list.append(UUI.BUTTON_H({
@@ -431,13 +435,22 @@ DasomEditor.GitEditor = CLASS((cls) => {
 										padding : 5,
 										backgroundColor : '#222'
 									},
-									c : [H3({
-										c : '변경 내역'
-									}), list = DIV({
+									c : [UUI.BUTTON_H({
 										style : {
-											marginTop : 5
+											padding : 5
+										},
+										icon : IMG({
+											src : DasomEditor.R('icon/refresh.png')
+										}),
+										isIconRight : true,
+										spacing : 10,
+										title : '변경 내역',
+										on : {
+											tap : () => {
+												loadDiff();
+											}
 										}
-									})]
+									}), list = DIV()]
 								})]
 							}));
 							
