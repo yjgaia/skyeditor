@@ -40,8 +40,12 @@ DasomEditor.HomeTab = CLASS((cls) => {
 					src : src,
 					on : {
 						load : (e, iframe) => {
-							if (iframe.getEl().contentWindow.location.href === 'about:blank') {
-								self.remove();
+							try {
+								if (iframe.getEl().contentWindow.location.href === 'about:blank') {
+									self.remove();
+								}
+							} catch(e) {
+								// ignore.
 							}
 						}
 					}
