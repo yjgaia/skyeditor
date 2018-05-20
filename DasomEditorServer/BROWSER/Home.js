@@ -110,6 +110,12 @@ DasomEditorServer.Home = CLASS({
 											modal.close();
 											next();
 										}
+										
+										else {
+											SkyDesktop.Alert({
+												msg : '비밀번호가 틀렸습니다.'
+											});
+										}
 									});
 								}
 							}
