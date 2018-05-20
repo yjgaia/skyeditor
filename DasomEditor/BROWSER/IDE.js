@@ -751,176 +751,6 @@ DasomEditor.IDE = OBJECT({
 			});
 		});
 		
-		let init = self.init = (params) => {
-			//REQUIRED: params
-			//REQUIRED: params.showHome
-			//REQUIRED: params.load
-			//REQUIRED: params.loadFiles
-			//REQUIRED: params.save
-			//REQUIRED: params.createFolder
-			//REQUIRED: params.remove
-			//REQUIRED: params.move
-			//REQUIRED: params.clone
-			//REQUIRED: params.getInfo
-			//REQUIRED: params.checkExists
-			//REQUIRED: params.ftpNew
-			//REQUIRED: params.ftpList
-			//REQUIRED: params.ftpLoad
-			//REQUIRED: params.ftpLoadFiles
-			//REQUIRED: params.ftpSave
-			//REQUIRED: params.ftpCreateFolder
-			//REQUIRED: params.ftpRemove
-			//REQUIRED: params.ftpMove
-			//REQUIRED: params.ftpClone
-			//REQUIRED: params.ftpGetInfo
-			//REQUIRED: params.ftpCheckExists
-			//REQUIRED: params.copy
-			//REQUIRED: params.paste
-			//REQUIRED: params.overFileSize
-			//REQUIRED: params.gitClone
-			//REQUIRED: params.gitDiff
-			//REQUIRED: params.gitPush
-			//REQUIRED: params.gitPull
-			
-			showHomeHandler = params.showHome;
-			
-			loadHandler = params.load;
-			loadFilesHandler = params.loadFiles;
-			saveHandler = params.save;
-			createFolderHandler = params.createFolder;
-			removeHandler = params.remove;
-			moveHandler = params.move;
-			cloneHandler = params.clone;
-			getInfoHandler = params.getInfo;
-			checkExistsHandler = params.checkExists;
-			
-			ftpNewHandler = params.ftpNew;
-			ftpDestroyHandler = params.ftpDestroy;
-			ftpListHandler = params.ftpList;
-			ftpConnectHandler = params.ftpConnect;
-			ftpLoadHandler = params.ftpLoad;
-			ftpLoadFilesHandler = params.ftpLoadFiles;
-			ftpSaveHandler = params.ftpSave;
-			ftpCreateFolderHandler = params.ftpCreateFolder;
-			ftpRemoveHandler = params.ftpRemove;
-			ftpMoveHandler = params.ftpMove;
-			ftpCloneHandler = params.ftpClone;
-			ftpGetInfoHandler = params.ftpGetInfo;
-			ftpCheckExistsHandler = params.ftpCheckExists;
-			
-			copyHandler = params.copy;
-			pasteHandler = params.paste;
-			
-			overFileSizeHandler = params.overFileSize;
-			
-			gitCloneHandler = params.gitClone;
-			gitDiffHandler = params.gitDiff;
-			gitPushHandler = params.gitPush;
-			gitPullHandler = params.gitPull;
-			
-			self.appendTo(BODY);
-			
-			// 외부 파일을 드래그 앤 드롭 했을 때
-			self.on('drop', (e) => {
-				
-				EACH(e.getFiles(), (file) => {
-					
-					let fileName = file.name;
-					
-					let fileReader = new FileReader();
-					fileReader.onload = (e) => {
-						let content = e.target.result;
-						
-						if (dropTargetInfo !== undefined) {
-							
-							let loadingBar = SkyDesktop.LoadingBar('lime');
-							
-							NEXT([
-							(next) => {
-								
-								// 이미 존재하는가?
-								checkExists({
-									ftpInfo : dropTargetInfo.ftpInfo,
-									path : dropTargetInfo.folderPath + '/' + fileName
-								}, (isExists) => {
-									
-									if (isExists === true) {
-										
-										// 덮어씌울지 물어봅니다.
-										SkyDesktop.Confirm({
-											msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
-										}, {
-											ok : () => {
-												next();
-											},
-											cancel : () => {
-												loadingBar.done();
-											}
-										});
-									}
-									
-									else {
-										next();
-									}
-								});
-							},
-							
-							() => {
-								return () => {
-									
-									save({
-										ftpInfo : dropTargetInfo.ftpInfo,
-										path : dropTargetInfo.folderPath + '/' + fileName,
-										content : content
-									}, () => {
-										loadingBar.done();
-									});
-									
-									dropTargetInfo = undefined;
-								};
-							}]);
-						}
-					};
-					fileReader.readAsText(file);
-				});
-				
-				e.stop();
-			});
-			
-			if (editorOpenedInfos.length === 0) {
-				showHomeHandler();
-			} else {
-				
-				NEXT(editorOpenedInfos, (editorOpenedInfo, next) => {
-
-					let path = editorOpenedInfo.path;
-					
-					loadHandler(path,
-
-					// 파일을 찾지 못함
-					() => {
-						editorOpenedStore.remove(path);
-						next();
-					},
-
-					(content) => {
-						
-						let fileName = path.substring(path.lastIndexOf('/') + 1);
-						
-						let editor = openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-							title : fileName,
-							path : path,
-							content : content
-						}));
-						
-						editor.setScrollTop(editorOpenedInfo.scrollTop);
-						
-						next();
-					});
-				});
-			}
-		};
-		
 		let loadFiles = self.loadFiles = (path, callback) => {
 			//REQUIRED: path
 			//REQUIRED: callback
@@ -2830,9 +2660,179 @@ DasomEditor.IDE = OBJECT({
 			dropTargetInfo = _dropTargetInfo;
 		};
 		
-		// IDE 초기화 완료 후 크기 재설정
-		DELAY(0.1, () => {
-			EVENT.fireAll('resize');
-		});
+		let init = self.init = (params) => {
+			//REQUIRED: params
+			//REQUIRED: params.showHome
+			//REQUIRED: params.load
+			//REQUIRED: params.loadFiles
+			//REQUIRED: params.save
+			//REQUIRED: params.createFolder
+			//REQUIRED: params.remove
+			//REQUIRED: params.move
+			//REQUIRED: params.clone
+			//REQUIRED: params.getInfo
+			//REQUIRED: params.checkExists
+			//REQUIRED: params.ftpNew
+			//REQUIRED: params.ftpList
+			//REQUIRED: params.ftpLoad
+			//REQUIRED: params.ftpLoadFiles
+			//REQUIRED: params.ftpSave
+			//REQUIRED: params.ftpCreateFolder
+			//REQUIRED: params.ftpRemove
+			//REQUIRED: params.ftpMove
+			//REQUIRED: params.ftpClone
+			//REQUIRED: params.ftpGetInfo
+			//REQUIRED: params.ftpCheckExists
+			//REQUIRED: params.copy
+			//REQUIRED: params.paste
+			//REQUIRED: params.overFileSize
+			//REQUIRED: params.gitClone
+			//REQUIRED: params.gitDiff
+			//REQUIRED: params.gitPush
+			//REQUIRED: params.gitPull
+			
+			showHomeHandler = params.showHome;
+			
+			loadHandler = params.load;
+			loadFilesHandler = params.loadFiles;
+			saveHandler = params.save;
+			createFolderHandler = params.createFolder;
+			removeHandler = params.remove;
+			moveHandler = params.move;
+			cloneHandler = params.clone;
+			getInfoHandler = params.getInfo;
+			checkExistsHandler = params.checkExists;
+			
+			ftpNewHandler = params.ftpNew;
+			ftpDestroyHandler = params.ftpDestroy;
+			ftpListHandler = params.ftpList;
+			ftpConnectHandler = params.ftpConnect;
+			ftpLoadHandler = params.ftpLoad;
+			ftpLoadFilesHandler = params.ftpLoadFiles;
+			ftpSaveHandler = params.ftpSave;
+			ftpCreateFolderHandler = params.ftpCreateFolder;
+			ftpRemoveHandler = params.ftpRemove;
+			ftpMoveHandler = params.ftpMove;
+			ftpCloneHandler = params.ftpClone;
+			ftpGetInfoHandler = params.ftpGetInfo;
+			ftpCheckExistsHandler = params.ftpCheckExists;
+			
+			copyHandler = params.copy;
+			pasteHandler = params.paste;
+			
+			overFileSizeHandler = params.overFileSize;
+			
+			gitCloneHandler = params.gitClone;
+			gitDiffHandler = params.gitDiff;
+			gitPushHandler = params.gitPush;
+			gitPullHandler = params.gitPull;
+			
+			self.appendTo(BODY);
+			
+			// 외부 파일을 드래그 앤 드롭 했을 때
+			self.on('drop', (e) => {
+				
+				if (dropTargetInfo !== undefined) {
+					
+					EACH(e.getFiles(), (file) => {
+						
+						let fileName = file.name;
+						
+						let fileReader = new FileReader();
+						fileReader.onload = (e) => {
+							let content = e.target.result;
+							
+							let loadingBar = SkyDesktop.LoadingBar('lime');
+							
+							NEXT([
+							(next) => {
+								
+								// 이미 존재하는가?
+								checkExists({
+									ftpInfo : dropTargetInfo.ftpInfo,
+									path : dropTargetInfo.folderPath + '/' + fileName
+								}, (isExists) => {
+									
+									if (isExists === true) {
+										
+										// 덮어씌울지 물어봅니다.
+										SkyDesktop.Confirm({
+											msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+										}, {
+											ok : () => {
+												next();
+											},
+											cancel : () => {
+												loadingBar.done();
+											}
+										});
+									}
+									
+									else {
+										next();
+									}
+								});
+							},
+							
+							() => {
+								return () => {
+									
+									save({
+										ftpInfo : dropTargetInfo.ftpInfo,
+										path : dropTargetInfo.folderPath + '/' + fileName,
+										content : content
+									}, () => {
+										loadingBar.done();
+									});
+									
+									dropTargetInfo = undefined;
+								};
+							}]);
+						};
+						fileReader.readAsText(file);
+					});
+					
+					e.stop();
+				}
+			});
+			
+			if (editorOpenedInfos.length === 0) {
+				showHomeHandler();
+			} else {
+				
+				NEXT(editorOpenedInfos, (editorOpenedInfo, next) => {
+
+					let path = editorOpenedInfo.path;
+					
+					loadHandler(path,
+
+					// 파일을 찾지 못함
+					() => {
+						editorOpenedStore.remove(path);
+						next();
+					},
+
+					(content) => {
+						
+						let fileName = path.substring(path.lastIndexOf('/') + 1);
+						
+						let editor = openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+							title : fileName,
+							path : path,
+							content : content
+						}));
+						
+						editor.setScrollTop(editorOpenedInfo.scrollTop);
+						
+						next();
+					});
+				});
+			}
+			
+			// IDE 초기화 완료 후 크기 재설정
+			DELAY(0.1, () => {
+				EVENT.fireAll('resize');
+			});
+		};
 	}
 });

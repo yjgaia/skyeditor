@@ -1266,235 +1266,42 @@ RUN(() => {
 		}
 	});
 	
-	let workspaceFileWatcher;
+	// 탐색기에서 보기 메뉴 추가
+	OVERRIDE(DasomEditor.FileContextMenu, (origin) => {
+		
+		DasomEditor.FileContextMenu = CLASS({
+			
+			preset : () => {
+				return origin;
+			},
+		
+			init : (inner, self, params) => {
+				//REQUIRED: params
+				//OPTIONAL: params.path
+				//REQUIRED: params.folderPath
+				
+				let path = params.path;
+				let folderPath = params.folderPath;
+				
+				self.append(SkyDesktop.ContextMenuItem({
+					title : '탐색기에서 보기',
+					icon : IMG({
+						src : DasomEditor.R('icon/explorer.png')
+					}),
+					on : {
+						tap : () => {
+							
+							shell.showItemInFolder(folderPath + '/.');
+							
+							self.remove();
+						}
+					}
+				}));
+			}
+		});
+	});
 	
-	let loadWorkspaceFiles = () => {
-		
-		DasomEditor.IDE.clearFileTree();
-		
-		let createFileWatcher = (path, addItem, removeItem) => {
-			
-			return FS.watch(path, (eventType, fileName) => {
-				
-				if (eventType === 'rename') {
-					
-					CHECK_FILE_EXISTS(path + '/' + fileName, (exists) => {
-						
-						if (exists === true) {
-							
-							CHECK_IS_FOLDER(path + '/' + fileName, (isFolder) => {
-								
-								if (isFolder === true) {
-									
-									let folderItem = createFolderItem(path + '/' + fileName, fileName);
-									
-									if (path === workspacePath) {
-										
-										folderItem.setIcon(IMG({
-											src : DasomEditor.R('icon/project.png')
-										}));
-										
-										folderItem.on('open', () => {
-											folderItem.setIcon(IMG({
-												src : DasomEditor.R('icon/project-opened.png')
-											}));
-										});
-										
-										folderItem.on('close', () => {
-											folderItem.setIcon(IMG({
-												src : DasomEditor.R('icon/project.png')
-											}));
-										});
-									}
-									
-									addItem({
-										key : path + '/' + fileName,
-										item : folderItem
-									});
-								}
-								
-								else {
-									addItem({
-										key : path + '/' + fileName,
-										item : DasomEditor.File({
-											path : path + '/' + fileName,
-											title : fileName
-										})
-									});
-								}
-							});
-						}
-						
-						else {
-							
-							folderOpenedStore.remove(path + '/' + fileName);
-							
-							removeItem(path + '/' + fileName);
-							
-							let opendEditor = DasomEditor.IDE.getOpenedEditor(path + '/' + fileName);
-							if (opendEditor !== undefined) {
-								opendEditor.remove();
-							}
-						}
-					});
-				}
-			});
-		};
-		
-		let createFolderItem = (path, folderName) => {
-			
-			let isOpened = folderOpenedStore.get(path);
-			
-			let fileWatcher;
-			
-			let folder = DasomEditor.Folder({
-				path : path,
-				title : folderName,
-				isOpened : isOpened,
-				on : {
-					
-					open : () => {
-						
-						folderOpenedStore.save({
-							name : path,
-							value : true
-						});
-						
-						loadFiles(path, folder, folder.close);
-						
-						if (fileWatcher !== undefined) {
-							fileWatcher.close();
-						}
-						
-						fileWatcher = createFileWatcher(path, folder.addItem, folder.removeItem);
-					},
-					
-					close : () => {
-						
-						folderOpenedStore.remove(path);
-						
-						fileWatcher.close();
-						
-						folder.removeAllItems();
-					}
-				}
-			});
-			
-			return folder;
-		};
-		
-		let loadFiles = (path, folder, close) => {
-			
-			DasomEditor.IDE.loadFiles(path, (folderNames, fileNames, isToClose) => {
-				
-				let total = 0;
-				
-				RUN((f) => {
-					let count = 0;
-					
-					while (total < folderNames.length) {
-						let folderName = folderNames[total];
-						
-						let folderItem = createFolderItem(path + '/' + folderName, folderName);
-						
-						if (path === workspacePath) {
-							
-							folderItem.setIcon(IMG({
-								src : DasomEditor.R('icon/project.png')
-							}));
-							
-							folderItem.on('open', () => {
-								folderItem.setIcon(IMG({
-									src : DasomEditor.R('icon/project-opened.png')
-								}));
-							});
-							
-							folderItem.on('close', () => {
-								folderItem.setIcon(IMG({
-									src : DasomEditor.R('icon/project.png')
-								}));
-							});
-						}
-						
-						folder.addItem({
-							key : path + '/' + folderName,
-							item : folderItem
-						});
-						
-						total += 1;
-						
-						count += 1;
-						if (path !== workspacePath && count === 50) {
-							break;
-						}
-					}
-					
-					if (path !== workspacePath && count < 50) {
-						
-						while (total - folderNames.length < fileNames.length) {
-							let fileName = fileNames[total - folderNames.length];
-							
-							folder.addItem({
-								key : path + '/' + fileName,
-								item : DasomEditor.File({
-									path : path + '/' + fileName,
-									title : fileName
-								})
-							});
-							
-							total += 1;
-							
-							count += 1;
-							if (path !== workspacePath && count === 50) {
-								break;
-							}
-						}
-					}
-					
-					// 개수가 50개 넘으면 더 불러옴
-					if (path !== workspacePath && count === 50) {
-						
-						folder.addItem({
-							key : '__MORE_BUTTON',
-							item : DasomEditor.More({
-								title : '더 보기...',
-								on : {
-									tap : () => {
-										f();
-									}
-								}
-							})
-						});
-					}
-					
-					if (total === folderNames.length + fileNames.length) {
-						folder.removeItem('__MORE_BUTTON');
-					}
-				});
-				
-				if (isToClose === true) {
-					close();
-				}
-			});
-		};
-		
-		let workspacePath = editorStore.get('workspacePath');
-		
-		if (workspacePath === undefined) {
-			workspacePath = 'workspace';
-		}
-		
-		DasomEditor.IDE.setWorkspacePath(workspacePath);
-		
-		loadFiles(workspacePath, DasomEditor.IDE);
-		
-		if (workspaceFileWatcher !== undefined) {
-			workspaceFileWatcher.close();
-		}
-		
-		workspaceFileWatcher = createFileWatcher(workspacePath, DasomEditor.IDE.addItem, DasomEditor.IDE.removeItem);
-	};
-	
+	// 저장 시 명령 메뉴 추가
 	DasomEditor.IDE.addToolbarButton(SkyDesktop.ToolbarButton({
 		icon : IMG({
 			src : DasomEditor.R('icon/command.png')
@@ -1639,6 +1446,7 @@ RUN(() => {
 		}
 	}));
 	
+	// 워크스페이스 폴더 지정 메뉴 추가
 	DasomEditor.IDE.addToolbarButton(SkyDesktop.ToolbarButton({
 		icon : IMG({
 			src : DasomEditor.R('icon/workspace.png')
@@ -1697,6 +1505,7 @@ RUN(() => {
 		}
 	}));
 	
+	// 개발자 도구 메뉴 추가
 	DasomEditor.IDE.addToolbarButton(SkyDesktop.ToolbarButton({
 		icon : IMG({
 			src : DasomEditor.R('icon/devtool.png')
@@ -1709,49 +1518,13 @@ RUN(() => {
 		}
 	}));
 	
-	loadWorkspaceFiles();
-	
-	OVERRIDE(DasomEditor.FileContextMenu, (origin) => {
-		
-		DasomEditor.FileContextMenu = CLASS({
-			
-			preset : () => {
-				return origin;
-			},
-		
-			init : (inner, self, params) => {
-				//REQUIRED: params
-				//OPTIONAL: params.path
-				//REQUIRED: params.folderPath
-				
-				let path = params.path;
-				let folderPath = params.folderPath;
-				
-				self.append(SkyDesktop.ContextMenuItem({
-					title : '탐색기에서 보기',
-					icon : IMG({
-						src : DasomEditor.R('icon/explorer.png')
-					}),
-					on : {
-						tap : () => {
-							
-							shell.showItemInFolder(folderPath + '/.');
-							
-							self.remove();
-						}
-					}
-				}));
-			}
-		});
-	});
-	
+	// 기본 드래그 앤 드롭 막기
 	EVENT('dragover', (e) => {
 		e.stop();
 	});
 	
+	// 드래그 앤 드롭으로 파일 열기
 	EVENT('drop', (e) => {
-		
-		console.log(e.getTop());
 		
 		EACH(e.getFiles(), (file) => {
 			
@@ -1770,6 +1543,240 @@ RUN(() => {
 		e.stop();
 	});
 	
+	let workspaceFileWatcher;
+	
+	// 워크스페이스 파일들을 불러옵니다.
+	let loadWorkspaceFiles = RAR(() => {
+		
+		DasomEditor.IDE.clearFileTree();
+		
+		// 파일 변경을 감지하는 와처를 생성합니다.
+		let createFileWatcher = (path, addItem, removeItem) => {
+			
+			return FS.watch(path, (eventType, fileName) => {
+				
+				if (eventType === 'rename') {
+					
+					CHECK_FILE_EXISTS(path + '/' + fileName, (exists) => {
+						
+						if (exists === true) {
+							
+							CHECK_IS_FOLDER(path + '/' + fileName, (isFolder) => {
+								
+								if (isFolder === true) {
+									
+									let folderItem = createFolderItem(path + '/' + fileName, fileName);
+									
+									if (path === workspacePath) {
+										
+										folderItem.setIcon(IMG({
+											src : DasomEditor.R('icon/project.png')
+										}));
+										
+										folderItem.on('open', () => {
+											folderItem.setIcon(IMG({
+												src : DasomEditor.R('icon/project-opened.png')
+											}));
+										});
+										
+										folderItem.on('close', () => {
+											folderItem.setIcon(IMG({
+												src : DasomEditor.R('icon/project.png')
+											}));
+										});
+									}
+									
+									addItem({
+										key : path + '/' + fileName,
+										item : folderItem
+									});
+								}
+								
+								else {
+									addItem({
+										key : path + '/' + fileName,
+										item : DasomEditor.File({
+											path : path + '/' + fileName,
+											title : fileName
+										})
+									});
+								}
+							});
+						}
+						
+						else {
+							
+							folderOpenedStore.remove(path + '/' + fileName);
+							
+							removeItem(path + '/' + fileName);
+							
+							let opendEditor = DasomEditor.IDE.getOpenedEditor(path + '/' + fileName);
+							if (opendEditor !== undefined) {
+								opendEditor.remove();
+							}
+						}
+					});
+				}
+			});
+		};
+		
+		// 폴더 생성
+		let createFolderItem = (path, folderName) => {
+			
+			let isOpened = folderOpenedStore.get(path);
+			
+			let fileWatcher;
+			
+			let folder = DasomEditor.Folder({
+				path : path,
+				title : folderName,
+				isOpened : isOpened,
+				on : {
+					
+					open : () => {
+						
+						folderOpenedStore.save({
+							name : path,
+							value : true
+						});
+						
+						loadFolderFiles(path, folder, folder.close);
+						
+						if (fileWatcher !== undefined) {
+							fileWatcher.close();
+						}
+						
+						fileWatcher = createFileWatcher(path, folder.addItem, folder.removeItem);
+					},
+					
+					close : () => {
+						
+						folderOpenedStore.remove(path);
+						
+						fileWatcher.close();
+						
+						folder.removeAllItems();
+					}
+				}
+			});
+			
+			return folder;
+		};
+		
+		// 폴더의 파일들을 로드합니다.
+		let loadFolderFiles = (path, folder, close) => {
+			
+			DasomEditor.IDE.loadFiles(path, (folderNames, fileNames, isToClose) => {
+				
+				let total = 0;
+				
+				RUN((f) => {
+					let count = 0;
+					
+					while (total < folderNames.length) {
+						let folderName = folderNames[total];
+						
+						let folderItem = createFolderItem(path + '/' + folderName, folderName);
+						
+						if (path === workspacePath) {
+							
+							folderItem.setIcon(IMG({
+								src : DasomEditor.R('icon/project.png')
+							}));
+							
+							folderItem.on('open', () => {
+								folderItem.setIcon(IMG({
+									src : DasomEditor.R('icon/project-opened.png')
+								}));
+							});
+							
+							folderItem.on('close', () => {
+								folderItem.setIcon(IMG({
+									src : DasomEditor.R('icon/project.png')
+								}));
+							});
+						}
+						
+						folder.addItem({
+							key : path + '/' + folderName,
+							item : folderItem
+						});
+						
+						total += 1;
+						
+						count += 1;
+						if (path !== workspacePath && count === 50) {
+							break;
+						}
+					}
+					
+					if (path !== workspacePath && count < 50) {
+						
+						while (total - folderNames.length < fileNames.length) {
+							let fileName = fileNames[total - folderNames.length];
+							
+							folder.addItem({
+								key : path + '/' + fileName,
+								item : DasomEditor.File({
+									path : path + '/' + fileName,
+									title : fileName
+								})
+							});
+							
+							total += 1;
+							
+							count += 1;
+							if (path !== workspacePath && count === 50) {
+								break;
+							}
+						}
+					}
+					
+					// 개수가 50개 넘으면 더 불러옴
+					if (path !== workspacePath && count === 50) {
+						
+						folder.addItem({
+							key : '__MORE_BUTTON',
+							item : DasomEditor.More({
+								title : '더 보기...',
+								on : {
+									tap : () => {
+										f();
+									}
+								}
+							})
+						});
+					}
+					
+					if (total === folderNames.length + fileNames.length) {
+						folder.removeItem('__MORE_BUTTON');
+					}
+				});
+				
+				if (isToClose === true) {
+					close();
+				}
+			});
+		};
+		
+		let workspacePath = editorStore.get('workspacePath');
+		
+		if (workspacePath === undefined) {
+			workspacePath = 'workspace';
+		}
+		
+		DasomEditor.IDE.setWorkspacePath(workspacePath);
+		
+		loadFolderFiles(workspacePath, DasomEditor.IDE);
+		
+		if (workspaceFileWatcher !== undefined) {
+			workspaceFileWatcher.close();
+		}
+		
+		workspaceFileWatcher = createFileWatcher(workspacePath, DasomEditor.IDE.addItem, DasomEditor.IDE.removeItem);
+	});
+	
+	// FTP 정보 로드
 	EACH(ftpInfoStore.all(), (ftpInfo) => {
 		DasomEditor.IDE.addFTPItem(ftpInfo);
 	});

@@ -21,8 +21,9 @@ BOOT({
 	NODE_CONFIG : {
 		isNotUsingCPUClustering : true,
 		
-		DasomEditor : {
-			rootPath : './workspace',
+		DasomEditorServer : {
+			//workspacePath : './workspace',
+			workspacePath : '..',
 			password : 'test123'
 		}
 	}
