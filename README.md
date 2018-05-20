@@ -59,7 +59,7 @@ DasomEditor.IDE.init({
 	
 	// 파일의 내용을 저장합니다.
 	save : (path, content, errorHandler, callback, isFindAndReplace) => {
-		//REQUIRED: path
+		//OPTIONAL: path
 		//REQUIRED: content
 		//REQUIRED: errorHandler
 		//OPTIONAL: callback

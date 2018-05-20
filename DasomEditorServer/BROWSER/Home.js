@@ -182,7 +182,16 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: errorHandler
 						//REQUIRED: callback
 						
-						//TODO:
+						apiRoom.send({
+							methodName : 'load',
+							data : path
+						}, (result) => {
+							if (result.errorMsg !== undefined) {
+								errorHandler(result.errorMsg);
+							} else {
+								callback(result.content);
+							}
+						});
 					},
 					
 					// 파일이 존재하는지 확인합니다.
@@ -190,7 +199,10 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: path
 						//REQUIRED: callback
 						
-						//TODO:
+						apiRoom.send({
+							methodName : 'checkExists',
+							data : path
+						}, callback);
 					},
 					
 					// 파일의 정보를 가져옵니다.
@@ -199,18 +211,56 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: errorHandler
 						//REQUIRED: callback
 						
-						//TODO:
+						apiRoom.send({
+							methodName : 'getInfo',
+							data : path
+						}, (result) => {
+							if (result.errorMsg !== undefined) {
+								errorHandler(result.errorMsg);
+							} else {
+								callback(result.info);
+							}
+						});
 					},
 					
 					// 파일의 내용을 저장합니다.
 					save : (path, content, errorHandler, callback, isFindAndReplace) => {
-						//REQUIRED: path
+						//OPTIONAL: path
 						//REQUIRED: content
 						//REQUIRED: errorHandler
 						//OPTIONAL: callback
 						//OPTIONAL: isFindAndReplace
 						
-						//TODO:
+						NEXT([(next) => {
+							
+							if (path === undefined) {
+								
+								//TODO:
+							}
+							
+							else {
+								next(path);
+							}
+						},
+						
+						() => {
+							return (path) => {
+								
+								apiRoom.send({
+									methodName : 'save',
+									data : {
+										path : path,
+										content : content
+									}
+								}, (result) => {
+									if (result.errorMsg !== undefined) {
+										errorHandler(result.errorMsg);
+									} else {
+										callback(path);
+									}
+								});
+							};
+						}]);
 					},
 					
 					// 폴더를 생성합니다.
