@@ -241,7 +241,7 @@ DasomEditorServer.Home = CLASS({
 							
 							if (path === undefined) {
 								
-								//TODO:
+								//TODO: 저장 위치 선택 창 띄우기
 							}
 							
 							else {
@@ -275,7 +275,16 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: errorHandler
 						//REQUIRED: callback
 						
-						//TODO:
+						apiRoom.send({
+							methodName : 'createFolder',
+							data : path
+						}, (result) => {
+							if (result.errorMsg !== undefined) {
+								errorHandler(result.errorMsg);
+							} else {
+								callback();
+							}
+						});
 					},
 					
 					// 파일의 위치를 변경합니다.
@@ -285,7 +294,19 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: errorHandler
 						//REQUIRED: callback
 						
-						//TODO:
+						apiRoom.send({
+							methodName : 'move',
+							data : {
+								from : from,
+								to : to
+							}
+						}, (result) => {
+							if (result.errorMsg !== undefined) {
+								errorHandler(result.errorMsg);
+							} else {
+								callback();
+							}
+						});
 					},
 					
 					// 파일을 복사합니다.
@@ -295,7 +316,19 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: errorHandler
 						//REQUIRED: callback
 						
-						//TODO:
+						apiRoom.send({
+							methodName : 'clone',
+							data : {
+								from : from,
+								to : to
+							}
+						}, (result) => {
+							if (result.errorMsg !== undefined) {
+								errorHandler(result.errorMsg);
+							} else {
+								callback();
+							}
+						});
 					},
 					
 					// 파일을 삭제합니다.
@@ -304,7 +337,16 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: errorHandler
 						//REQUIRED: callback
 						
-						//TODO:
+						apiRoom.send({
+							methodName : 'remove',
+							data : path
+						}, (result) => {
+							if (result.errorMsg !== undefined) {
+								errorHandler(result.errorMsg);
+							} else {
+								callback();
+							}
+						});
 					},
 					
 					// 새 FTP 정보를 생성합니다.
@@ -504,88 +546,13 @@ DasomEditorServer.Home = CLASS({
 				// 워크스페이스 파일들을 불러옵니다.
 				RUN(() => {
 					
-					// 파일 변경을 감지하는 룸을 생성합니다.
-					let createFileWatchingRoom = (path, addItem, removeItem) => {
-						
-						let room = DasomEditorServer.ROOM('File/' + path);
-						
-						//TODO:
-						
-						return room;
-						/*
-						return FS.watch(path, (eventType, fileName) => {
-							
-							if (eventType === 'rename') {
-								
-								CHECK_FILE_EXISTS(path + '/' + fileName, (exists) => {
-									
-									if (exists === true) {
-										
-										CHECK_IS_FOLDER(path + '/' + fileName, (isFolder) => {
-											
-											if (isFolder === true) {
-												
-												let folderItem = createFolderItem(path + '/' + fileName, fileName);
-												
-												if (path === workspacePath) {
-													
-													folderItem.setIcon(IMG({
-														src : DasomEditor.R('icon/project.png')
-													}));
-													
-													folderItem.on('open', () => {
-														folderItem.setIcon(IMG({
-															src : DasomEditor.R('icon/project-opened.png')
-														}));
-													});
-													
-													folderItem.on('close', () => {
-														folderItem.setIcon(IMG({
-															src : DasomEditor.R('icon/project.png')
-														}));
-													});
-												}
-												
-												addItem({
-													key : path + '/' + fileName,
-													item : folderItem
-												});
-											}
-											
-											else {
-												addItem({
-													key : path + '/' + fileName,
-													item : DasomEditor.File({
-														path : path + '/' + fileName,
-														title : fileName
-													})
-												});
-											}
-										});
-									}
-									
-									else {
-										
-										folderOpenedStore.remove(path + '/' + fileName);
-										
-										removeItem(path + '/' + fileName);
-										
-										let opendEditor = DasomEditor.IDE.getOpenedEditor(path + '/' + fileName);
-										if (opendEditor !== undefined) {
-											opendEditor.remove();
-										}
-									}
-								});
-							}
-						});*/
-					};
-					
 					// 폴더 생성
 					let createFolderItem = (path, folderName) => {
 						
 						let isOpened = folderOpenedStore.get(path);
 						
-						let fileWatchingRoom;
+						// 폴더 관리 룸
+						let room = DasomEditorServer.ROOM('Folder' + path);
 						
 						let folder = DasomEditor.Folder({
 							path : path,
@@ -601,26 +568,99 @@ DasomEditorServer.Home = CLASS({
 									});
 									
 									loadFolderFiles(path, folder, folder.close);
-									
-									if (fileWatchingRoom !== undefined) {
-										fileWatchingRoom.exit();
-									}
-									
-									fileWatchingRoom = createFileWatchingRoom(path, folder.addItem, folder.removeItem);
 								},
 								
 								close : () => {
 									
 									folderOpenedStore.remove(path);
 									
-									fileWatchingRoom.exit();
-									
 									folder.removeAllItems();
+								},
+								
+								remove : () => {
+									room.exit();
+									room = undefined;
 								}
 							}
 						});
 						
+						// 새 폴더 생성
+						room.on('newFolder', (folderName) => {
+							
+							let folderItem = createFolderItem(path + '/' + folderName, folderName);
+							
+							if (path === '') {
+								
+								folderItem.setIcon(IMG({
+									src : DasomEditor.R('icon/project.png')
+								}));
+								
+								folderItem.on('open', () => {
+									folderItem.setIcon(IMG({
+										src : DasomEditor.R('icon/project-opened.png')
+									}));
+								});
+								
+								folderItem.on('close', () => {
+									folderItem.setIcon(IMG({
+										src : DasomEditor.R('icon/project.png')
+									}));
+								});
+							}
+							
+							folder.addItem({
+								key : path + '/' + folderName,
+								item : folderItem
+							});
+						});
+						
+						// 새 파일 생성
+						room.on('newFile', (fileName) => {
+							folder.addItem({
+								key : path + '/' + fileName,
+								item : createFileItem(path + '/' + fileName, fileName)
+							});
+						});
+						
+						// 폴더 제거
+						room.on('remove', () => {
+							
+							folderOpenedStore.remove(path);
+							
+							folder.remove();
+						});
+						
 						return folder;
+					};
+					
+					// 파일 생성
+					let createFileItem = (path, fileName) => {
+						
+						// 파일 관리 룸
+						let room = DasomEditorServer.ROOM('File' + path);
+						
+						let file = DasomEditor.File({
+							path : path,
+							title : fileName
+						});
+						
+						file.on('remove', () => {
+							room.exit();
+							room = undefined;
+						});
+						
+						// 파일 제거
+						room.on('remove', () => {
+							
+							let opendEditor = DasomEditor.IDE.getOpenedEditor(path);
+							if (opendEditor !== undefined) {
+								opendEditor.remove();
+							}
+							
+							file.remove();
+						});
+						
+						return file;
 					};
 					
 					let loadFolderFiles = (path, folder, close) => {
@@ -676,10 +716,7 @@ DasomEditorServer.Home = CLASS({
 										
 										folder.addItem({
 											key : path + '/' + fileName,
-											item : DasomEditor.File({
-												path : path + '/' + fileName,
-												title : fileName
-											})
+											item : createFileItem(path + '/' + fileName, fileName)
 										});
 										
 										total += 1;
@@ -719,6 +756,9 @@ DasomEditorServer.Home = CLASS({
 					};
 					
 					loadFolderFiles('', DasomEditor.IDE);
+					
+					// 워크스페이스 관리 룸
+					let room = DasomEditorServer.ROOM('Folder/');
 				});
 				
 				// FTP 정보 로드

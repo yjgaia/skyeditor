@@ -2043,8 +2043,6 @@ DasomEditor.IDE = OBJECT({
 							}
 						});
 						
-						items = undefined;
-						
 						if (brotherItem === undefined) {
 							
 							if (lastItem.getParent() !== fileTree) {
@@ -2171,8 +2169,6 @@ DasomEditor.IDE = OBJECT({
 						}
 					});
 					
-					items = undefined;
-					
 					if (brotherItem === undefined) {
 						
 						if (lastItem.getParent() !== fileTree) {
@@ -2248,8 +2244,6 @@ DasomEditor.IDE = OBJECT({
 								brotherItem = item;
 							}
 						});
-						
-						items = undefined;
 						
 						if (brotherItem === undefined) {
 							

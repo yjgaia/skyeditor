@@ -17,8 +17,8 @@ RUN(() => {
 	const Path = require('path');
 	const SEP = Path.sep;
 	
-	let Rimraf = require('rimraf');
-	let exec = require('child_process').exec;
+	const Rimraf = require('rimraf');
+	const exec = require('child_process').exec;
 	
 	let editorStore = STORE('editorStore');
 	let folderOpenedStore = STORE('folderOpenedStore');
@@ -1566,6 +1566,7 @@ RUN(() => {
 							
 							CHECK_IS_FOLDER(path + '/' + fileName, (isFolder) => {
 								
+								// 새 폴더 생성
 								if (isFolder === true) {
 									
 									let folderItem = createFolderItem(path + '/' + fileName, fileName);
@@ -1595,6 +1596,7 @@ RUN(() => {
 									});
 								}
 								
+								// 새 파일 생성
 								else {
 									addItem({
 										key : path + '/' + fileName,
@@ -1607,6 +1609,7 @@ RUN(() => {
 							});
 						}
 						
+						// 파일 혹은 폴더 제거
 						else {
 							
 							folderOpenedStore.remove(path + '/' + fileName);
