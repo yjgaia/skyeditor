@@ -2828,5 +2828,10 @@ DasomEditor.IDE = OBJECT({
 				EVENT.fireAll('resize');
 			});
 		};
+		
+		// 기본 드래그 앤 드롭 막기
+		EVENT('dragover', (e) => {
+			e.stop();
+		});
 	}
 });

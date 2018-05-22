@@ -556,7 +556,7 @@ RUN(() => {
 				
 				if (fromFTPConnector === toFTPConnector) {
 					
-					toFTPConnector.move({
+					fromFTPConnector.move({
 						from : from,
 						to : to
 					}, {
@@ -608,29 +608,97 @@ RUN(() => {
 				
 				if (fromFTPConnector === toFTPConnector) {
 					
-					toFTPConnector.copyFile({
-						from : from,
-						to : to
-					}, {
+					fromFTPConnector.checkIsFolder(from, {
 						error : errorHandler,
-						success : callback
+						success : (isFolder) => {
+							
+							if (isFolder === true) {
+								
+								fromFTPConnector.copyFolder({
+									from : from,
+									to : to
+								}, {
+									error : errorHandler,
+									success : callback
+								});
+							}
+							
+							else {
+								
+								fromFTPConnector.copyFile({
+									from : from,
+									to : to
+								}, {
+									error : errorHandler,
+									success : callback
+								});
+							}
+						}
 					});
 				}
 				
 				else {
 					
-					fromFTPConnector.load(from, {
+					fromFTPConnector.checkIsFolder(from, {
 						error : errorHandler,
-						notExists : errorHandler,
-						success : (buffer) => {
+						success : (isFolder) => {
 							
-							toFTPConnector.save({
-								path : to,
-								buffer : buffer
-							}, {
-								error : errorHandler,
-								success : callback
-							});
+							if (isFolder === true) {
+								
+								let f = (from, to) => {
+									
+									// 폴더의 내용들을 읽어들임
+									fromFTPConnector.loadFiles(from, {
+										error : errorHandler,
+										success : (folderNames, fileNames) => {
+											
+											// 폴더는 다시 반복
+											EACH(folderNames, (folderName) => {
+												f(from + '/' + folderName, to + '/' + folderName);
+											});
+											
+											// 파일은 내용을 불러와 복사
+											NEXT(fileNames, (fileName, next) => {
+												
+												fromFTPConnector.load(from + '/' + fileName, {
+													error : errorHandler,
+													notExists : errorHandler,
+													success : (buffer) => {
+														
+														toFTPConnector.save({
+															path : to + '/' + fileName,
+															buffer : buffer
+														}, {
+															error : errorHandler,
+															success : next
+														});
+													}
+												});
+											});
+										}
+									});
+								};
+								
+								f(from, to);
+							}
+							
+							else {
+								
+								fromFTPConnector.load(from, {
+									error : errorHandler,
+									notExists : errorHandler,
+									success : (buffer) => {
+										
+										toFTPConnector.save({
+											path : to,
+											buffer : buffer
+										}, {
+											error : errorHandler,
+											success : callback
+										});
+									}
+								});
+							}
 						}
 					});
 				}
@@ -1520,11 +1588,6 @@ RUN(() => {
 			}
 		}
 	}));
-	
-	// 기본 드래그 앤 드롭 막기
-	EVENT('dragover', (e) => {
-		e.stop();
-	});
 	
 	// 드래그 앤 드롭으로 파일 열기
 	EVENT('drop', (e) => {

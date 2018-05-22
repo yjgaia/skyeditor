@@ -7,8 +7,8 @@ DasomEditor.FTPConnector = CLASS({
 		//REQUIRED: ftpInfo.port
 		//REQUIRED: ftpInfo.protocol
 		//REQUIRED: ftpInfo.username
-		//REQUIRED: ftpInfo.password
-		//REQUIRED: ftpInfo.privateKey
+		//OPTIONAL: ftpInfo.password
+		//OPTIONAL: ftpInfo.privateKey
 		//REQUIRED: handlers
 		//REQUIRED: handlers.error
 		//REQUIRED: handlers.success
