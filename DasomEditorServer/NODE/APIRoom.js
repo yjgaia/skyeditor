@@ -9,12 +9,11 @@ DasomEditorServer.APIRoom = OBJECT({
 		
 		DasomEditorServer.ROOM('API', (clientInfo, on, off, send, broadcastExceptMe) => {
 			
-			let isAuthed;
-			
 			// 인증하기
 			on('auth', (password, ret) => {
 				if (NODE_CONFIG.DasomEditorServer.password === password) {
-					isAuthed = true;
+					clientInfo.isAuthed = true;
+					clientInfo.roles = ['user'];
 					ret(true);
 				} else {
 					ret(false);
@@ -23,7 +22,7 @@ DasomEditorServer.APIRoom = OBJECT({
 			
 			// 파일 목록을 로드합니다.
 			on('loadFiles', (path, ret) => {
-				if (isAuthed === true && path !== undefined) {
+				if (clientInfo.isAuthed === true && path !== undefined) {
 					
 					let realPath = workspacePath + path;
 					
@@ -79,7 +78,7 @@ DasomEditorServer.APIRoom = OBJECT({
 			
 			// 파일 내용을 불러옵니다.
 			on('load', (path, ret) => {
-				if (isAuthed === true && path !== undefined) {
+				if (clientInfo.isAuthed === true && path !== undefined) {
 					
 					let realPath = workspacePath + path;
 					
@@ -105,7 +104,7 @@ DasomEditorServer.APIRoom = OBJECT({
 			
 			// 파일이 존재하는지 확인합니다.
 			on('checkExists', (path, ret) => {
-				if (isAuthed === true && path !== undefined) {
+				if (clientInfo.isAuthed === true && path !== undefined) {
 					
 					let realPath = workspacePath + path;
 					
@@ -115,7 +114,7 @@ DasomEditorServer.APIRoom = OBJECT({
 			
 			// 파일의 정보를 가져옵니다.
 			on('getInfo', (path, ret) => {
-				if (isAuthed === true && path !== undefined) {
+				if (clientInfo.isAuthed === true && path !== undefined) {
 					
 					let realPath = workspacePath + path;
 					
@@ -141,7 +140,7 @@ DasomEditorServer.APIRoom = OBJECT({
 			
 			// 파일의 내용을 저장합니다.
 			on('save', (params, ret) => {
-				if (isAuthed === true && params !== undefined && params.path !== undefined && params.content !== undefined) {
+				if (clientInfo.isAuthed === true && params !== undefined && params.path !== undefined && params.content !== undefined) {
 					
 					let path = params.path;
 					let content = params.content;
@@ -181,7 +180,7 @@ DasomEditorServer.APIRoom = OBJECT({
 			
 			// 파일을 삭제합니다.
 			on('remove', (path, ret) => {
-				if (isAuthed === true && path !== undefined) {
+				if (clientInfo.isAuthed === true && path !== undefined) {
 					
 					let realPath = workspacePath + path;
 					
@@ -234,7 +233,7 @@ DasomEditorServer.APIRoom = OBJECT({
 			
 			// 폴더를 생성합니다.
 			on('createFolder', (path, ret) => {
-				if (isAuthed === true && path !== undefined) {
+				if (clientInfo.isAuthed === true && path !== undefined) {
 					
 					let realPath = workspacePath + path;
 					
@@ -268,7 +267,7 @@ DasomEditorServer.APIRoom = OBJECT({
 			
 			// 파일의 위치를 변경합니다.
 			on('move', (params, ret) => {
-				if (isAuthed === true && params !== undefined && params.from !== undefined && params.to !== undefined) {
+				if (clientInfo.isAuthed === true && params !== undefined && params.from !== undefined && params.to !== undefined) {
 					
 					let from = params.from;
 					let to = params.to;
@@ -344,7 +343,7 @@ DasomEditorServer.APIRoom = OBJECT({
 			
 			// 파일을 복사합니다.
 			on('clone', (params, ret) => {
-				if (isAuthed === true && params !== undefined && params.from !== undefined && params.to !== undefined) {
+				if (clientInfo.isAuthed === true && params !== undefined && params.from !== undefined && params.to !== undefined) {
 					
 					let from = params.from;
 					let to = params.to;

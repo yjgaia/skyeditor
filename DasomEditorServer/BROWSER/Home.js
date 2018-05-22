@@ -8,7 +8,6 @@ DasomEditorServer.Home = CLASS({
 		
 		let editorStore = DasomEditorServer.STORE('editorStore');
 		let folderOpenedStore = DasomEditorServer.STORE('folderOpenedStore');
-		let ftpInfoStore = DasomEditorServer.STORE('ftpInfoStore');
 		
 		let apiRoom = DasomEditorServer.ROOM('API');
 		
@@ -356,7 +355,28 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: existedHandler
 						//REQUIRED: callback
 						
-						//TODO:
+						DasomEditorServer.FTPModel.checkExists(ftpInfo.username + '@' + ftpInfo.host, (exists) => {
+							
+							if (exists === true) {
+								existedHandler();
+							}
+							
+							else {
+								
+								DasomEditorServer.FTPModel.create({
+									id : ftpInfo.username + '@' + ftpInfo.host,
+									title : ftpInfo.title,
+									host : ftpInfo.host,
+									port : ftpInfo.port,
+									protocol : ftpInfo.protocol,
+									username : ftpInfo.username,
+									password : ftpInfo.password,
+									privateKey : ftpInfo.privateKey
+								}, () => {
+									callback();
+								});
+							}
+						});
 					},
 					
 					// FTP 정보를 파기합니다.
@@ -365,7 +385,6 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: errorHandler
 						//REQUIRED: callback
 						
-						//TODO:
 					},
 					
 					// FTP에 연결합니다.
@@ -762,9 +781,9 @@ DasomEditorServer.Home = CLASS({
 				});
 				
 				// FTP 정보 로드
-				EACH(ftpInfoStore.all(), (ftpInfo) => {
+				DasomEditorServer.FTPModel.find(EACH((ftpInfo) => {
 					DasomEditor.IDE.addFTPItem(ftpInfo);
-				});
+				}));
 			};
 		}])
 	}
