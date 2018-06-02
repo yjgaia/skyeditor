@@ -1294,14 +1294,24 @@ RUN(() => {
 		},
 		
 		// 파일의 크기가 너무 클 때
-		overFileSize : (path) => {
+		overFileSize : (ftpInfo, path) => {
+			//OPTIONAL: ftpInfo
 			//REQUIRED: path
 			
-			SkyDesktop.Confirm({
-				msg : '파일의 크기가 너무 커 열 수 없습니다. 탐색기에서 보시겠습니까?'
-			}, () => {
-				shell.showItemInFolder(path);
-			});
+			if (ftpInfo !== undefined) {
+				SkyDesktop.Alert({
+					msg : '파일의 크기가 너무 커 열 수 없습니다.'
+				});
+			}
+			
+			else {
+				
+				SkyDesktop.Confirm({
+					msg : '파일의 크기가 너무 커 열 수 없습니다. 탐색기에서 보시겠습니까?'
+				}, () => {
+					shell.showItemInFolder(path);
+				});
+			}
 		},
 		
 		// Git으로부터 저장소를 복사합니다.

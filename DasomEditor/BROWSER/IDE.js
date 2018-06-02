@@ -1723,10 +1723,12 @@ DasomEditor.IDE = OBJECT({
 			});
 		};
 		
-		let overFileSize = self.overFileSize = (path) => {
-			//REQUIRED: path
+		let overFileSize = self.overFileSize = (params) => {
+			//REQUIRED: params
+			//OPTIONAL: params.ftpInfo
+			//REQUIRED: params.path
 			
-			overFileSizeHandler(path);
+			overFileSizeHandler(params.ftpInfo, params.path);
 		};
 		
 		let gitClone = self.gitClone = (params, handlers) => {

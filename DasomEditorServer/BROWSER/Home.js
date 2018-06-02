@@ -11,6 +11,8 @@ DasomEditorServer.Home = CLASS({
 		
 		let apiRoom = DasomEditorServer.ROOM('API');
 		
+		let clipboardPathInfos = [];
+		
 		NEXT([
 		
 		// 인증 유지 확인
@@ -562,7 +564,7 @@ DasomEditorServer.Home = CLASS({
 					copy : (pathInfos) => {
 						//REQUIRED: pathInfos
 						
-						//TODO:
+						clipboardPathInfos = pathInfos;
 					},
 					
 					// 클립보드에서 복사한 경로를 붙혀넣기합니다.
@@ -572,14 +574,655 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: errorHandler
 						//REQUIRED: callback
 						
-						//TODO:
+						// -> FTP로
+						if (ftpInfo !== undefined) {
+							
+							let ftpFolderPaths = [];
+							let ftpFilePaths = [];
+							
+							NEXT(clipboardPathInfos, [
+							(clipboardPathInfo, next) => {
+								
+								let path = clipboardPathInfo.path;
+								
+								let fileName = path.substring(path.lastIndexOf('/') + 1);
+								
+								// FTP -> FTP
+								if (clipboardPathInfo.ftpInfo !== undefined) {
+									
+									RUN((f) => {
+										
+										NEXT([
+										(next) => {
+											
+											// 이미 존재하는가?
+											DasomEditorServer.FTPModel.checkFileExists({
+												ftpInfo : ftpInfo,
+												path : folderPath + '/' + fileName
+											}, (isExists) => {
+												
+												if (isExists === true) {
+													
+													// 같은 폴더면 (2)를 붙힙니다.
+													if (clipboardPathInfo.ftpInfo === ftpInfo && path.substring(0, path.lastIndexOf('/')) === folderPath) {
+														
+														let extname = '';
+														let index = fileName.lastIndexOf('.');
+														
+														if (index !== -1) {
+															extname = fileName.substring(index);
+															fileName = fileName.substring(0, index);
+														}
+														
+														fileName = fileName + ' (2)' + extname;
+														
+														f();
+													}
+													
+													// 덮어씌울지 물어봅니다.
+													else {
+														SkyDesktop.Confirm({
+															msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+														}, {
+															ok : () => {
+																next();
+															},
+															cancel : () => {
+																callback();
+															}
+														});
+													}
+												}
+												
+												else {
+													next();
+												}
+											});
+										},
+										
+										() => {
+											return () => {
+												
+												DasomEditorServer.FTPModel.checkIsFolder({
+													ftpInfo : clipboardPathInfo.ftpInfo,
+													path : path
+												}, {
+													error : errorHandler,
+													success : (isFolder) => {
+														
+														// 폴더 복사
+														if (isFolder === true) {
+															
+															if (clipboardPathInfo.ftpInfo === ftpInfo) {
+																
+																ftpFolderPaths.push(folderPath + '/' + fileName);
+																
+																DasomEditorServer.FTPModel.copyFolder({
+																	ftpInfo : ftpInfo,
+																	from : path,
+																	to : folderPath + '/' + fileName
+																}, {
+																	error : errorHandler,
+																	success : next
+																});
+															}
+															
+															else {
+																// 다른 FTP 끼리 폴더 복사
+																
+																f = (path, folderPath) => {
+																	
+																	// 폴더의 내용들을 읽어들임
+																	DasomEditorServer.FTPModel.loadFiles({
+																		ftpInfo : clipboardPathInfo.ftpInfo,
+																		path : path
+																	}, {
+																		error : errorHandler,
+																		success : (folderNames, fileNames) => {
+																			
+																			// 폴더는 다시 반복
+																			EACH(folderNames, (folderName) => {
+																				f(path + '/' + folderName, folderPath + '/' + folderName);
+																			});
+																			
+																			// 파일은 내용을 불러와 복사
+																			NEXT(fileNames, (fileName, next) => {
+																				
+																				DasomEditorServer.FTPModel.load({
+																					ftpInfo : clipboardPathInfo.ftpInfo,
+																					path : path + '/' + fileName
+																				}, {
+																					error : errorHandler,
+																					notExists : errorHandler,
+																					success : (buffer) => {
+																						
+																						DasomEditorServer.FTPModel.saveFile({
+																							ftpInfo : ftpInfo,
+																							path : folderPath + '/' + fileName,
+																							buffer : buffer
+																						}, {
+																							error : errorHandler,
+																							success : next
+																						});
+																					}
+																				});
+																			});
+																		}
+																	});
+																};
+																f(path, folderPath + '/' + fileName);
+																
+																ftpFolderPaths.push(folderPath + '/' + fileName);
+																
+																next();
+															}
+														}
+														
+														// 파일 복사
+														else {
+															
+															ftpFilePaths.push(folderPath + '/' + fileName);
+															
+															if (clipboardPathInfo.ftpInfo === ftpInfo) {
+																DasomEditorServer.FTPModel.copyFile({
+																	ftpInfo : ftpInfo,
+																	from : path,
+																	to : folderPath + '/' + fileName
+																}, {
+																	error : errorHandler,
+																	success : next
+																});
+															}
+															
+															else {
+																
+																DasomEditorServer.FTPModel.load({
+																	ftpInfo : clipboardPathInfo.ftpInfo,
+																	path : path
+																}, {
+																	error : errorHandler,
+																	notExists : errorHandler,
+																	success : (buffer) => {
+																		
+																		DasomEditorServer.FTPModel.saveFile({
+																			ftpInfo : ftpInfo,
+																			path : folderPath + '/' + fileName,
+																			buffer : buffer
+																		}, {
+																			error : errorHandler,
+																			success : next
+																		});
+																	}
+																});
+															}
+														}
+													}
+												});
+											};
+										}]);
+									});
+								}
+								
+								// 로컬 -> FTP
+								else {
+									
+									RUN((f) => {
+										
+										NEXT([
+										(next) => {
+											
+											// 이미 존재하는가?
+											DasomEditorServer.FTPModel.checkFileExists({
+												ftpInfo : ftpInfo,
+												path : folderPath + '/' + fileName
+											}, {
+												error : errorHandler,
+												success : (isExists) => {
+													
+													if (isExists === true) {
+														
+														// 같은 폴더면 (2)를 붙힙니다.
+														if (path.substring(0, path.lastIndexOf('/')) === folderPath) {
+															
+															let extname = '';
+															let index = fileName.lastIndexOf('.');
+															
+															if (index !== -1) {
+																extname = fileName.substring(index);
+																fileName = fileName.substring(0, index);
+															}
+															
+															fileName = fileName + ' (2)' + extname;
+															
+															f();
+														}
+														
+														// 덮어씌울지 물어봅니다.
+														else {
+															SkyDesktop.Confirm({
+																msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+															}, {
+																ok : () => {
+																	next();
+																},
+																cancel : () => {
+																	callback();
+																}
+															});
+														}
+													}
+													
+													else {
+														next();
+													}
+												}
+											});
+										},
+										
+										(next) => {
+											return () => {
+												
+												apiRoom.send({
+													methodName : 'checkIsFolder',
+													data : path
+												}, (isFolder) => {
+													
+													// 폴더 복사
+													if (isFolder === true) {
+														// 로컬 -> FTP 폴더 복사
+														
+														f = (path, folderPath) => {
+															
+															// 폴더는 다시 반복
+															apiRoom.send({
+																methodName : 'loadFiles',
+																data : path
+															}, (result) => {
+																if (result.errorMsg !== undefined) {
+																	errorHandler(result.errorMsg);
+																} else {
+																	
+																	EACH(result.folderNames, (folderName) => {
+																		f(path + '/' + folderName, folderPath + '/' + folderName);
+																	});
+																	
+																	NEXT(result.fileNames, (fileName, next) => {
+																		
+																		apiRoom.send({
+																			methodName : 'load',
+																			data : path + '/' + fileName
+																		}, (result) => {
+																			if (result.errorMsg !== undefined) {
+																				errorHandler(result.errorMsg);
+																			} else {
+																				DasomEditorServer.FTPModel.saveFile({
+																					ftpInfo : ftpInfo,
+																					path : folderPath + '/' + fileName,
+																					content : result.content
+																				}, {
+																					error : errorHandler,
+																					success : next
+																				});
+																			}
+																		});
+																	});
+																}
+															});
+														};
+														f(path, folderPath + '/' + fileName);
+														
+														ftpFolderPaths.push(folderPath + '/' + fileName);
+														
+														next();
+													}
+													
+													// 파일 복사
+													else {
+														
+														ftpFilePaths.push(folderPath + '/' + fileName);
+														
+														apiRoom.send({
+															methodName : 'load',
+															data : path
+														}, (result) => {
+															if (result.errorMsg !== undefined) {
+																errorHandler(result.errorMsg);
+															} else {
+																DasomEditorServer.FTPModel.saveFile({
+																	ftpInfo : ftpInfo,
+																	path : folderPath + '/' + fileName,
+																	content : result.content
+																}, {
+																	error : errorHandler,
+																	success : next
+																});
+															}
+														});
+													}
+												});
+											};
+										},
+										
+										() => {
+											return () => {
+												callback(ftpFolderPaths, ftpFilePaths);
+											};
+										}]);
+									});
+								}
+							}]);
+						}
+						
+						// -> 로컬로
+						else {
+							
+							NEXT(clipboardPathInfos, [
+							(clipboardPathInfo, next) => {
+								
+								let path = clipboardPathInfo.path;
+								
+								let fileName = path.substring(path.lastIndexOf('/') + 1);
+								
+								// FTP -> 로컬
+								if (clipboardPathInfo.ftpInfo !== undefined) {
+									
+									RUN((f) => {
+										
+										NEXT([
+										(next) => {
+											
+											// 이미 존재하는가?
+											apiRoom.send({
+												methodName : 'checkExists',
+												data : folderPath + '/' + fileName
+											}, (isExists) => {
+												
+												if (isExists === true) {
+													
+													// 같은 폴더면 (2)를 붙힙니다.
+													if (path.substring(0, path.lastIndexOf('/')) === folderPath) {
+														
+														let extname = '';
+														let index = fileName.lastIndexOf('.');
+														
+														if (index !== -1) {
+															extname = fileName.substring(index);
+															fileName = fileName.substring(0, index);
+														}
+														
+														fileName = fileName + ' (2)' + extname;
+														
+														f();
+													}
+													
+													// 덮어씌울지 물어봅니다.
+													else {
+														SkyDesktop.Confirm({
+															msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+														}, {
+															ok : () => {
+																next();
+															},
+															cancel : () => {
+																callback();
+															}
+														});
+													}
+												}
+												
+												else {
+													next();
+												}
+											});
+										},
+										
+										() => {
+											return () => {
+												
+												DasomEditorServer.FTPModel.checkIsFolder({
+													ftpInfo : clipboardPathInfo.ftpInfo,
+													path : path
+												}, {
+													error : errorHandler,
+													success : (isFolder) => {
+														
+														// 폴더 복사
+														if (isFolder === true) {
+															// FTP -> 로컬 폴더 복사
+															
+															apiRoom.send({
+																methodName : 'createFolder',
+																data : folderPath + '/' + fileName
+															}, (result) => {
+																if (result.errorMsg !== undefined) {
+																	errorHandler(result.errorMsg);
+																} else {
+																	
+																	f = (path, folderPath) => {
+																		
+																		// 폴더의 내용들을 읽어들임
+																		DasomEditorServer.FTPModel.loadFiles({
+																			ftpInfo : clipboardPathInfo.ftpInfo,
+																			path : path
+																		}, {
+																			error : errorHandler,
+																			success : (folderNames, fileNames) => {
+																				
+																				// 폴더는 다시 반복
+																				EACH(folderNames, (folderName) => {
+																					f(path + '/' + folderName, folderPath + '/' + folderName);
+																				});
+																				
+																				// 파일은 내용을 불러와 복사
+																				NEXT(fileNames, (fileName, next) => {
+																					
+																					DasomEditorServer.FTPModel.loadFile({
+																						ftpInfo : clipboardPathInfo.ftpInfo,
+																						path : path + '/' + fileName
+																					}, {
+																						error : errorHandler,
+																						notExists : errorHandler,
+																						success : (content) => {
+																							
+																							apiRoom.send({
+																								methodName : 'save',
+																								data : {
+																									path : folderPath + '/' + fileName,
+																									content : content
+																								}
+																							}, (result) => {
+																								if (result.errorMsg !== undefined) {
+																									errorHandler(result.errorMsg);
+																								} else {
+																									next();
+																								}
+																							});
+																						}
+																					});
+																				});
+																			}
+																		});
+																	};
+																	f(path, folderPath + '/' + fileName);
+																	
+																	next();
+																}
+															});
+														}
+														
+														// 파일 복사
+														else {
+															
+															DasomEditorServer.FTPModel.loadFile({
+																ftpInfo : clipboardPathInfo.ftpInfo,
+																path : path
+															}, {
+																error : errorHandler,
+																notExists : errorHandler,
+																success : (content) => {
+																	
+																	apiRoom.send({
+																		methodName : 'save',
+																		data : {
+																			path : folderPath + '/' + fileName,
+																			content : content
+																		}
+																	}, (result) => {
+																		if (result.errorMsg !== undefined) {
+																			errorHandler(result.errorMsg);
+																		} else {
+																			next();
+																		}
+																	});
+																}
+															});
+														}
+													}
+												});
+											};
+										}]);
+									});
+								}
+								
+								// 로컬 -> 로컬
+								else {
+									
+									RUN((f) => {
+										
+										NEXT([
+										(next) => {
+											
+											// 이미 존재하는가?
+											apiRoom.send({
+												methodName : 'checkExists',
+												data : folderPath + '/' + fileName
+											}, (isExists) => {
+												
+												if (isExists === true) {
+													
+													// 같은 폴더면 (2)를 붙힙니다.
+													if (path.substring(0, path.lastIndexOf('/')) === folderPath) {
+														
+														let extname = '';
+														let index = fileName.lastIndexOf('.');
+														
+														if (index !== -1) {
+															extname = fileName.substring(index);
+															fileName = fileName.substring(0, index);
+														}
+														
+														fileName = fileName + ' (2)' + extname;
+														
+														f();
+													}
+													
+													// 덮어씌울지 물어봅니다.
+													else {
+														SkyDesktop.Confirm({
+															msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+														}, {
+															ok : () => {
+																next();
+															},
+															cancel : () => {
+																callback();
+															}
+														});
+													}
+												}
+												
+												else {
+													next();
+												}
+											});
+										},
+										
+										() => {
+											return () => {
+												
+												apiRoom.send({
+													methodName : 'clone',
+													data : {
+														from : path,
+														to : folderPath + '/' + fileName
+													}
+												}, (result) => {
+													if (result.errorMsg !== undefined) {
+														errorHandler(result.errorMsg);
+													} else {
+														next();
+													}
+												});
+											};
+										}]);
+									});
+								}
+							},
+							
+							() => {
+								return () => {
+									callback();
+								};
+							}]);
+						}
 					},
 					
 					// 파일의 크기가 너무 클 때
-					overFileSize : (path) => {
+					overFileSize : (ftpInfo, path) => {
+						//OPTIONAL: ftpInfo
 						//REQUIRED: path
 						
-						//TODO:
+						SkyDesktop.Confirm({
+							msg : '파일의 크기가 너무 커 열 수 없습니다. 다운로드 하시겠습니까?'
+						}, () => {
+							
+							NEXT([
+							(next) => {
+								
+								if (ftpInfo !== undefined) {
+									
+									DasomEditorServer.FTPModel.loadFile({
+										ftpInfo : ftpInfo,
+										path : path
+									}, {
+										error : () => {
+											// ignore.
+										},
+										notExists : () => {
+											// ignore.
+										},
+										success : next
+									});
+									
+								} else {
+									
+									apiRoom.send({
+										methodName : 'load',
+										data : path
+									}, (result) => {
+										if (result.errorMsg === undefined) {
+											next(result.content);
+										}
+									});
+								}
+							},
+							
+							() => {
+								return (content) => {
+									
+									let el = document.createElement('a');
+									el.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+									el.setAttribute('download', path.substring(path.lastIndexOf('/') + 1));
+									
+									el.style.display = 'none';
+									document.body.appendChild(el);
+									
+									el.click();
+									
+									document.body.removeChild(el);
+								};
+							}]);
+						});
 					},
 					
 					// Git으로부터 저장소를 복사합니다.

@@ -240,7 +240,7 @@ OVERRIDE(DasomEditorServer.FTPModel, (origin) => {
 			let removeFile = self.removeFile = (params, handlers) => {
 				//REQUIRED: params
 				//REQUIRED: params.ftpInfo
-				//REQUIRED: params.path=
+				//REQUIRED: params.path
 				//REQUIRED: handlers
 				//REQUIRED: handlers.error
 				//REQUIRED: handlers.success
@@ -256,6 +256,30 @@ OVERRIDE(DasomEditorServer.FTPModel, (origin) => {
 						errorHandler(result.errorMsg);
 					} else {
 						callback();
+					}
+				});
+			};
+			
+			// FTP에서 폴더인지 확인합니다.
+			let checkIsFolder = self.checkIsFolder = (params, handlers) => {
+				//REQUIRED: params
+				//REQUIRED: params.ftpInfo
+				//REQUIRED: params.path
+				//REQUIRED: handlers
+				//REQUIRED: handlers.error
+				//REQUIRED: handlers.success
+				
+				let errorHandler = handlers.error;
+				let callback = handlers.success;
+				
+				room.send({
+					methodName : 'checkIsFolder',
+					data : params
+				}, (result) => {
+					if (result.errorMsg !== undefined) {
+						errorHandler(result.errorMsg);
+					} else {
+						callback(result.isFolder);
 					}
 				});
 			};

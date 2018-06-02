@@ -423,6 +423,16 @@ DasomEditorServer.APIRoom = OBJECT({
 					});
 				}
 			});
+			
+			// 폴더인지 확인합니다.
+			on('checkIsFolder', (path, ret) => {
+				if (clientInfo.isAuthed === true && path !== undefined) {
+					
+					let realPath = workspacePath + path;
+					
+					CHECK_IS_FOLDER(realPath, ret);
+				}
+			});
 		});
 	}
 });

@@ -19,7 +19,10 @@ DasomEditor.AceEditor = CLASS({
 				self.remove();
 			});
 			
-			DasomEditor.IDE.overFileSize(self.getPath());
+			DasomEditor.IDE.overFileSize({
+				ftpInfo : self.getFTPInfo(),
+				path : self.getPath()
+			});
 		}
 		
 		let editor;

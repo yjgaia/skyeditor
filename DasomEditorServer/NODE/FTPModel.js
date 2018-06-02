@@ -524,6 +524,36 @@ OVERRIDE(DasomEditorServer.FTPModel, (origin) => {
 					}
 				});
 				
+				// 폴더인지 확인합니다.
+				on('checkIsFolder', (params, ret) => {
+					if (clientInfo.isAuthed === true && params !== undefined && params.ftpInfo !== undefined && params.path !== undefined) {
+						
+						let ftpInfo = params.ftpInfo;
+						let path = params.path;
+						
+						let ftpConnector = ftpConnectors[ftpInfo.host];
+						
+						if (ftpConnector !== undefined) {
+							
+							ftpConnector.checkIsFolder(path, {
+								error : (errorMsg) => {
+									if (errorMsg === undefined) {
+										errorMsg = 'checkIsFolder Error!';
+									}
+									ret({
+										errorMsg : errorMsg
+									});
+								},
+								success : (isFolder) => {
+									ret({
+										isFolder : isFolder
+									});
+								}
+							});
+						}
+					}
+				});
+				
 				on('__DISCONNECTED', () => {
 					EACH(ftpConnectors, (ftpConnector) => {
 						ftpConnector.disconnect();
