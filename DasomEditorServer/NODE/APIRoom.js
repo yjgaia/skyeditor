@@ -517,7 +517,8 @@ DasomEditorServer.APIRoom = OBJECT({
 						url : params.url,
 						path : realPath,
 						username : params.username,
-						password : params.password
+						password : params.password,
+						message : params.message
 					}, {
 						error : (errorMsg) => {
 							ret({
