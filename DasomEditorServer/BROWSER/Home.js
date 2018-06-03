@@ -1526,6 +1526,44 @@ DasomEditorServer.Home = CLASS({
 					let room = DasomEditorServer.ROOM('Folder/');
 					
 					DasomEditor.IDE.setWorkspacePath('');
+					
+					// 워크스페이스 관리 룸
+					let workspaceRoom = DasomEditorServer.ROOM('Folder');
+					
+					// 새 폴더 생성
+					workspaceRoom.on('newFolder', (folderName) => {
+						
+						let folderItem = createFolderItem('/' + folderName, folderName);
+						
+						folderItem.setIcon(IMG({
+							src : DasomEditor.R('icon/project.png')
+						}));
+						
+						folderItem.on('open', () => {
+							folderItem.setIcon(IMG({
+								src : DasomEditor.R('icon/project-opened.png')
+							}));
+						});
+						
+						folderItem.on('close', () => {
+							folderItem.setIcon(IMG({
+								src : DasomEditor.R('icon/project.png')
+							}));
+						});
+						
+						DasomEditor.IDE.addItem({
+							key : '/' + folderName,
+							item : folderItem
+						});
+					});
+					
+					// 새 파일 생성
+					workspaceRoom.on('newFile', (fileName) => {
+						DasomEditor.IDE.addItem({
+							key : '/' + fileName,
+							item : createFileItem('/' + fileName, fileName)
+						});
+					});
 				});
 				
 				// FTP 정보 로드
