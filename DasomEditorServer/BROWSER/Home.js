@@ -1230,7 +1230,16 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: params
 						//REQUIRED: handlers
 						
-						//TODO:
+						apiRoom.send({
+							methodName : 'gitClone',
+							data : params
+						}, (result) => {
+							if (result.errorMsg !== undefined) {
+								handlers.errorHandler(result.errorMsg);
+							} else {
+								handlers.success();
+							}
+						});
 					},
 					
 					// 원격 저장소와의 차이를 가져옵니다.
@@ -1238,7 +1247,16 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: params
 						//REQUIRED: handlers
 						
-						//TODO:
+						apiRoom.send({
+							methodName : 'gitDiff',
+							data : params
+						}, (result) => {
+							if (result.errorMsg !== undefined) {
+								handlers.errorHandler(result.errorMsg);
+							} else {
+								handlers.success(result.newFilePaths, result.updatedFilePaths, result.movedFilePaths, result.removedFilePaths);
+							}
+						});
 					},
 					
 					// Git으로부터 Pull 합니다.
@@ -1246,7 +1264,16 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: params
 						//REQUIRED: handlers
 						
-						//TODO:
+						apiRoom.send({
+							methodName : 'gitPull',
+							data : params
+						}, (result) => {
+							if (result.errorMsg !== undefined) {
+								handlers.errorHandler(result.errorMsg);
+							} else {
+								handlers.success();
+							}
+						});
 					},
 					
 					// Git에 Push 합니다.
@@ -1254,7 +1281,16 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: params
 						//REQUIRED: handlers
 						
-						//TODO:
+						apiRoom.send({
+							methodName : 'gitPush',
+							data : params
+						}, (result) => {
+							if (result.errorMsg !== undefined) {
+								handlers.errorHandler(result.errorMsg);
+							} else {
+								handlers.success();
+							}
+						});
 					}
 				});
 				
@@ -1488,6 +1524,8 @@ DasomEditorServer.Home = CLASS({
 					
 					// 워크스페이스 관리 룸
 					let room = DasomEditorServer.ROOM('Folder/');
+					
+					DasomEditor.IDE.setWorkspacePath('');
 				});
 				
 				// FTP 정보 로드

@@ -433,6 +433,103 @@ DasomEditorServer.APIRoom = OBJECT({
 					CHECK_IS_FOLDER(realPath, ret);
 				}
 			});
+			
+			on('gitClone', (params, ret) => {
+				if (clientInfo.isAuthed === true && params !== undefined && params.path !== undefined) {
+					
+					let realPath = workspacePath + params.path;
+					
+					UGIT.CLONE({
+						url : params.url,
+						path : realPath,
+						username : params.username,
+						password : params.password
+					}, {
+						error : (errorMsg) => {
+							ret({
+								errorMsg : errorMsg
+							});
+						},
+						success : () => {
+							ret({});
+						}
+					});
+				}
+			});
+			
+			on('gitDiff', (params, ret) => {
+				if (clientInfo.isAuthed === true && params !== undefined && params.path !== undefined) {
+					
+					let realPath = workspacePath + params.path;
+					
+					UGIT.DIFF({
+						url : params.url,
+						path : realPath,
+						username : params.username,
+						password : params.password
+					}, {
+						error : (errorMsg) => {
+							ret({
+								errorMsg : errorMsg
+							});
+						},
+						success : (newFilePaths, updatedFilePaths, movedFilePaths, removedFilePaths) => {
+							ret({
+								newFilePaths : newFilePaths,
+								updatedFilePaths : updatedFilePaths,
+								movedFilePaths : movedFilePaths,
+								removedFilePaths : removedFilePaths
+							});
+						}
+					});
+				}
+			});
+			
+			on('gitPull', (params, ret) => {
+				if (clientInfo.isAuthed === true && params !== undefined && params.path !== undefined) {
+					
+					let realPath = workspacePath + params.path;
+					
+					UGIT.PULL({
+						url : params.url,
+						path : realPath,
+						username : params.username,
+						password : params.password
+					}, {
+						error : (errorMsg) => {
+							ret({
+								errorMsg : errorMsg
+							});
+						},
+						success : () => {
+							ret({});
+						}
+					});
+				}
+			});
+			
+			on('gitPush', (params, ret) => {
+				if (clientInfo.isAuthed === true && params !== undefined && params.path !== undefined) {
+					
+					let realPath = workspacePath + params.path;
+					
+					UGIT.PUSH({
+						url : params.url,
+						path : realPath,
+						username : params.username,
+						password : params.password
+					}, {
+						error : (errorMsg) => {
+							ret({
+								errorMsg : errorMsg
+							});
+						},
+						success : () => {
+							ret({});
+						}
+					});
+				}
+			});
 		});
 	}
 });
