@@ -376,6 +376,9 @@ DasomEditor.IDE = OBJECT({
 		let editorGroup;
 		self.append(TR({
 			c : TD({
+				style : {
+					height : '100%'
+				},
 				c : SkyDesktop.HorizontalTabList({
 					tabs : [leftTab = SkyDesktop.Tab({
 						size : 23,
