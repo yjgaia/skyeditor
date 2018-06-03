@@ -24,8 +24,7 @@ BOOT({
 		dbName : 'DasomEditorServer-test',
 		
 		DasomEditorServer : {
-			//workspacePath : './workspace',
-			workspacePath : '..',
+			workspacePath : './workspace',
 			password : 'test123'
 		}
 	}

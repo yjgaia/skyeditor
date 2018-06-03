@@ -1474,7 +1474,7 @@ DasomEditorServer.Home = CLASS({
 									}
 								}
 								
-								if (path !== '' && count < 50) {
+								if (count < 50) {
 									
 									while (total - folderNames.length < fileNames.length) {
 										let fileName = fileNames[total - folderNames.length];
