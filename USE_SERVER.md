@@ -1,4 +1,6 @@
 # Dasom Editor를 서버에 설치하여 사용하기
+샘플 에디터: http://hanul.co:8731/ (비밀번호는 `test123` 입니다.)
+
 1. [UPPERCASE를 설치](https://github.com/Hanul/UPPERCASE/blob/master/DOC/INSTALL.md)합니다.
 2. 아래 `git clone` 명령어를 사용하여 원하는 곳에 프로젝트를 복제합니다.
 	```
