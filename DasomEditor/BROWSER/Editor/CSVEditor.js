@@ -69,8 +69,6 @@ DasomEditor.CSVEditor = CLASS((cls) => {
 			
 			let tds = [];
 			
-			let data;
-			
 			let setContent;
 			OVERRIDE(self.setContent, (origin) => {
 				
@@ -107,7 +105,7 @@ DasomEditor.CSVEditor = CLASS((cls) => {
 										
 										let changeHandler = (e, textarea) => {
 											
-											let value = textarea.getValue();
+											value = textarea.getValue();
 											
 											REPEAT(i + 1, (i2) => {
 												if (data[i2] === undefined) {
@@ -158,7 +156,9 @@ DasomEditor.CSVEditor = CLASS((cls) => {
 				};
 			});
 			
-			if (content !== undefined) {
+			if (content === undefined) {
+				setContent('');
+			} else {
 				setContent(content);
 			}
 			
