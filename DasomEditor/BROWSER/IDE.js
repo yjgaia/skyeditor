@@ -282,6 +282,10 @@ DasomEditor.IDE = OBJECT({
 			toolbar.addButton(toolbarButton);
 		};
 		
+		let removeToolbarButton = self.removeToolbarButton = (toolbarButton) => {
+			toolbar.removeButton(toolbarButton);
+		};
+		
 		let openEditor = self.openEditor = (tab) => {
 			
 			editorGroup.addTab(tab);
@@ -983,11 +987,13 @@ DasomEditor.IDE = OBJECT({
 							path : tab.getPath2(),
 							content : tab.getContent2()
 						}, () => {
+							tab.fireEvent('save');
 							SkyDesktop.Noti('저장하였습니다.');
 						});
 					}
 					
 					else {
+						tab.fireEvent('save');
 						SkyDesktop.Noti('저장하였습니다.');
 					}
 				});
@@ -1012,6 +1018,7 @@ DasomEditor.IDE = OBJECT({
 						tab.setIcon(Editor.getIcon());
 					}
 					
+					tab.fireEvent('save');
 					SkyDesktop.Noti('저장하였습니다.');
 					
 					tab.setOriginContent(tab.getContent());
