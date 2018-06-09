@@ -242,7 +242,10 @@ RUN(() => {
 																	});
 																},
 																tap : () => {
+																	
 																	errorTab.remove();
+																	errorTab = undefined;
+																	
 																	EVENT.fireAll('resize');
 																}
 															}

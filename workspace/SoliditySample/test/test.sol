@@ -1,12 +1,8 @@
 pragma solidity ^0.4.6;
 
-import "./test/test.sol";
+import "./test2.sol";
 
-contract FairyOwnerInfo {
-	
-	function FairyOwnerInfo(uint256 initData, address initOwner) {
-    }
-    
+contract test {
 	mapping (address => string) public names;
 	
 	function saveName(string name) public {
