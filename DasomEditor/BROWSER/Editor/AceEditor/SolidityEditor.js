@@ -25,15 +25,18 @@ DasomEditor.SolidityEditor = CLASS((cls) => {
 		
 		init : (inner, self, params) => {
 			
-			let worker = new Worker(DasomEditor.R('js/solc-worker.js'));
+			let worker = WORKER(DasomEditor.R('js/solc-worker.js'));
 			
 			self.on('save', () => {
-				worker.postMessage(self.getContent());
+				worker.send({
+					methodName : 'compile',
+					data : self.getContent()
+				});
 			});
 			
-			worker.onmessage = (e) => {
-				console.log(e.data);
-			};
+			worker.on('compiled', (result) => {
+				console.log(result);
+			});
 			
 			// 메타마스크 연동이 되어있는 경우
 			if (global.web3 !== undefined) {
