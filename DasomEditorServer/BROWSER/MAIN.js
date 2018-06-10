@@ -13,7 +13,9 @@ DasomEditorServer.MAIN = METHOD({
 			//REQUIRED: callback
 			
 			DasomEditorServer.EthereumContractModel.find({
-				path : path
+				filter : {
+					path : path
+				}
 			}, callback);
 		};
 		

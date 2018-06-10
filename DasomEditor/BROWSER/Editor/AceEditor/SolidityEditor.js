@@ -207,16 +207,16 @@ DasomEditor.SolidityEditor = CLASS((cls) => {
 									}));
 								}
 							},
-							success : (contracts) => {
+							success : (contractInfos) => {
 								loadingBar.done();
 								
 								// 컴파일 결과 저장
 								contractInfoStore.save({
 									name : path,
-									value : contracts
+									value : contractInfos
 								});
 								
-								console.log('Solidity 코드(' + fileName + ') 컴파일을 완료하였습니다.', contracts);
+								console.log('Solidity 코드(' + fileName + ') 컴파일을 완료하였습니다.', contractInfos);
 								SkyDesktop.Noti('컴파일을 완료하였습니다.');
 							}
 						});
@@ -263,6 +263,9 @@ DasomEditor.SolidityEditor = CLASS((cls) => {
 													tap : () => {
 														
 														let abi = JSON.parse(contractInfo.interface);
+														
+														// 계약 생성
+														let Contract = web3.eth.contract(abi);
 														
 														let errorTab;
 														let showError = (errorMsg) => {
@@ -353,32 +356,14 @@ DasomEditor.SolidityEditor = CLASS((cls) => {
 																	okButtonTitle : '배포',
 																	msg : form = UUI.VALID_FORM()
 																}, () => {
-																	
 																	let args = [];
-																	
-																	EACH(inputs, (input, i) => {
-																		
-																		let value = input.getValue();
-																		let type = inputInfos[i].type;
-																		
-																		if (type === 'bool') {
-																			value = value === 'true';
-																		} else if (type.indexOf('int') !== -1) {
-																			value = INTEGER(value);
-																		} else if (type.indexOf('fixed') !== -1) {
-																			value = REAL(value);
-																		} else if (type.indexOf('bytes') !== -1) {
-																			value = JSON.parse(value);
-																		} 
-																		
-																		args.push(value);
+																	EACH(inputs, (input) => {
+																		args.push(input.getValue());
 																	});
-																	
 																	next(args);
 																});
 																
 																EACH(inputInfos, (inputInfo, i) => {
-																	
 																	inputs.push(INPUT({
 																		style : {
 																			marginTop : i === 0 ? 0 : 10,
@@ -396,16 +381,27 @@ DasomEditor.SolidityEditor = CLASS((cls) => {
 														(next) => {
 															return (args) => {
 																
-																// 가스 량 계산
-																web3.eth.estimateGas({
+																let getDataArgs = COPY(args);
+																getDataArgs.push({
 																	data : contractInfo.bytecode
-																}, (error, gasEstimate) => {
-																	if (error !== TO_DELETE) {
-																		showError(error.toString());
-																	} else {
-																		next(args, gasEstimate);
-																	}
 																});
+																
+																try {
+																	
+																	// 가스 량 계산
+																	web3.eth.estimateGas({
+																		data : Contract.new.getData.apply(Contract.new, getDataArgs)
+																	}, (error, gasEstimate) => {
+																		if (error !== TO_DELETE) {
+																			showError(error.toString());
+																		} else {
+																			next(args, gasEstimate);
+																		}
+																	});
+																	
+																} catch(error) {
+																	showError(error.toString());
+																}
 															};
 														},
 														
@@ -415,9 +411,6 @@ DasomEditor.SolidityEditor = CLASS((cls) => {
 																let contractArgs = COPY(args);
 																
 																let loadingBar = SkyDesktop.LoadingBar('lime');
-																
-																// 계약 생성
-																let Contract = web3.eth.contract(abi);
 																
 																contractArgs.push({
 																	from : web3.eth.accounts[0],
@@ -439,8 +432,7 @@ DasomEditor.SolidityEditor = CLASS((cls) => {
 																				path : path,
 																				name : name,
 																				address : contract.address,
-																				abi : abi,
-																				args : args
+																				abi : abi
 																			}, () => {
 																				
 																				loadingBar.done();
@@ -449,8 +441,6 @@ DasomEditor.SolidityEditor = CLASS((cls) => {
 																		}
 																	}
 																});
-																
-																console.log(contractArgs);
 																
 																Contract.new.apply(Contract, contractArgs);
 															};
@@ -473,9 +463,91 @@ DasomEditor.SolidityEditor = CLASS((cls) => {
 						}),
 						title : '계약 테스트',
 						on : {
-							tap : () => {
+							tap : (e) => {
+								
 								cls.findContracts(path, (contracts) => {
-									console.log(contracts);
+									
+									let menu = SkyDesktop.ContextMenu({
+										e : e
+									});
+									
+									menu.append(SkyDesktop.ContextMenuItem({
+										title : '주소로 계약 추가',
+										icon : IMG({
+											src : DasomEditor.R('icon/contract-add.png')
+										}),
+										on : {
+											tap : (e) => {
+												
+												menu.remove();
+												
+												DELAY(() => {
+													
+													let contractInfos = contractInfoStore.get(path);
+													if (contractInfos === undefined) {
+														SkyDesktop.Alert({
+															msg : '주소로 계약을 추가하기 전에, 먼저 파일을 저장하여 컴파일을 수행해주시기 바랍니다.'
+														});
+													}
+													
+													else {
+														
+														let menu = SkyDesktop.ContextMenu({
+															e : e
+														});
+														
+														EACH(contractInfos, (contractInfo, name) => {
+															
+															menu.append(SkyDesktop.ContextMenuItem({
+																title : name,
+																icon : IMG({
+																	src : DasomEditor.R('icon/contract.png')
+																}),
+																on : {
+																	tap : () => {
+																		
+																		SkyDesktop.Prompt({
+																			msg : '주소를 입력해주시기 바랍니다.'
+																		}, (address) => {
+																			
+																			cls.saveContract({
+																				path : path,
+																				name : name,
+																				address : address,
+																				abi : JSON.parse(contractInfo.interface)
+																			}, () => {
+																				SkyDesktop.Noti('계약을 추가하였습니다.');
+																			});
+																		});
+																		
+																		menu.remove();
+																	}
+																}
+															}));
+														});
+													}
+												});
+											}
+										}
+									}));
+									
+									EACH(contracts, (contract) => {
+										
+										menu.append(SkyDesktop.ContextMenuItem({
+											title : contract.address + ' (' + contract.name + ')',
+											icon : IMG({
+												src : DasomEditor.R('icon/contract.png')
+											}),
+											on : {
+												tap : () => {
+													
+													//TODO:
+													
+													menu.remove();
+												}
+											}
+										}));
+									});
 								});
 							}
 						}
