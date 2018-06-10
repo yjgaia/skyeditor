@@ -11,4 +11,10 @@ contract FairyOwnerInfo {
 		initData = _initData;
 		initOwner = _initOwner;
     }
+    
+	mapping (address => string) public names;
+	
+	function saveName(string name) public {
+        names[msg.sender] = name;
+    }
 }

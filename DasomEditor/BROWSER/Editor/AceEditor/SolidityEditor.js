@@ -26,6 +26,10 @@ DasomEditor.SolidityEditor = CLASS((cls) => {
 		// 구현해야합니다.
 	};
 	
+	if (global.web3 !== undefined) {
+		web3 = new Web3(web3.currentProvider);
+	}
+	
 	return {
 		
 		preset : () => {
@@ -531,17 +535,180 @@ DasomEditor.SolidityEditor = CLASS((cls) => {
 										}
 									}));
 									
-									EACH(contracts, (contract) => {
+									EACH(contracts, (contractInfo) => {
 										
 										menu.append(SkyDesktop.ContextMenuItem({
-											title : contract.address + ' (' + contract.name + ')',
+											title : contractInfo.address + ' (' + contractInfo.name + ')',
 											icon : IMG({
 												src : DasomEditor.R('icon/contract.png')
 											}),
 											on : {
 												tap : () => {
 													
-													//TODO:
+													let list;
+													
+													SkyDesktop.Alert({
+														style : {
+															onDisplayResize : (width, height) => {
+											
+																if (width > 600) {
+																	return {
+																		width : 500
+																	};
+																} else {
+																	return {
+																		width : '90%'
+																	};
+																}
+															}
+														},
+														msg : [H2({
+															style : {
+																fontWeight : 'bold'
+															},
+															c : contractInfo.name + ' 테스트'
+														}), list = DIV({
+															style : {
+																marginTop : 8,
+																overflowY : 'scroll',
+																padding : 8,
+																backgroundColor : '#e0e1e2',
+																border : '1px solid #999',
+																borderRadius : 4,
+																textAlign : 'left',
+																onDisplayResize : (width, height) => {
+																	return {
+																		height : height * 0.6
+																	};
+																}
+															}
+														})]
+													});
+													
+													EACH(contractInfo.abi, (funcInfo) => {
+														if (funcInfo.type !== 'constructor') {
+															
+															let inputList;
+															let wrapper = DIV({
+																style : {
+																	padding : '5px 8px',
+																	backgroundColor : '#fff',
+																	border : '1px solid #999',
+																	borderRadius : 4,
+																	marginBottom : 10
+																},
+																c : [H3({
+																	style : {
+																		fontWeight : 'bold',
+																		marginBottom : 5
+																	},
+																	c : funcInfo.name
+																}), FORM({
+																	c : [inputList = DIV(), UUI.FULL_SUBMIT({
+																		style : {
+																			borderRadius : 4
+																		},
+																		value : '실행'
+																	})],
+																	on : {
+																		submit : () => {
+																			
+																			let showError = (errorMsg) => {
+																				let errorPanel;
+																				inputList.after(errorPanel = P({
+																					style : {
+																						color : 'red',
+																						marginBottom : 5
+																					},
+																					c : errorMsg
+																				}));
+																				DELAY(3, () => {
+																					errorPanel.remove();
+																				});
+																			};
+																			
+																			let args = [];
+																			EACH(inputList.getChildren(), (input) => {
+																				args.push(input.getValue());
+																			});
+																			
+																			// 계약 실행
+																			let contract = web3.eth.contract(contractInfo.abi).at(contractInfo.address);
+																			
+																			args.push((error, result) => {
+																				if (error !== TO_DELETE) {
+																					showError(error.toString());
+																				} else {
+																					
+																					if (/^0x([A-Fa-f0-9]{64})$/.test(result) === true) {
+																						
+																						let loadingBar = SkyDesktop.LoadingBar('lime');
+																						
+																						let retry = RAR(() => {
+																							web3.eth.getTransactionReceipt(result, (error, result) => {
+																								if (error !== TO_DELETE) {
+																									loadingBar.done();
+																									showError(error.toString());
+																								} else if (result === TO_DELETE) {
+																									retry();
+																								} else {
+																									loadingBar.done();
+																									
+																									let resultPanel;
+																									wrapper.append(resultPanel = P({
+																										style : {
+																											marginTop : 5
+																										},
+																										c : '트랜잭션이 완료되었습니다.'
+																									}));
+																									DELAY(3, () => {
+																										resultPanel.remove();
+																									});
+																								}
+																							});
+																						});
+																					}
+																					
+																					else {
+																						
+																						let resultPanel;
+																						wrapper.append(resultPanel = P({
+																							style : {
+																								marginTop : 5
+																							},
+																							c : '실행 결과: ' + result
+																						}));
+																						DELAY(3, () => {
+																							resultPanel.remove();
+																						});
+																					}
+																				}
+																			});
+																			
+																			try {
+																				
+																				contract[funcInfo.name].apply(contract, args);
+																				
+																			} catch(error) {
+																				showError(error.toString());
+																			}
+																		}
+																	}
+																})]
+															}).appendTo(list);
+															
+															EACH(funcInfo.inputs, (inputInfo) => {
+																UUI.FULL_INPUT({
+																	style : {
+																		border : '1px solid #999',
+																		borderRadius : 4,
+																		marginBottom : 5
+																	},
+																	placeholder : (inputInfo.name === '' ? '?' : inputInfo.name) + ' (' + inputInfo.type + ')'
+																}).appendTo(inputList);
+															});
+														}
+													});
 													
 													menu.remove();
 												}
