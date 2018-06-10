@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge, chrome=1">
+		<link rel="stylesheet" media="screen" href="handsontable.full.min.css">
+		<style>
+			html, body {
+				margin: 0;
+				font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif;
+			}
+		</style>
+	</head>
+	<body>
+		<script src="handsontable.full.min.js"></script>
+		<script src="BROWSER.js"></script>
+		<script>
+			'use strict';
+			
+			let isControlMode;
+			
+			EVENT('keydown', (e) => {
+				
+				if (isControlMode === true) {
+					
+					let key = e.getKey().toLowerCase();
+					
+					// 현재 탭 종료
+					if (key === 'w' || key === 'q') {
+						location.href = 'about:blank';
+					}
+					
+					// 데이터 저장
+					if (key === 's') {
+						window.save();
+						e.stopDefault();
+					}
+				}
+				
+				if (e.getKey() === 'Control') {
+					isControlMode = true;
+				}
+			});
+			
+			EVENT('keyup', (e) => {
+				if (e.getKey() === 'Control') {
+					isControlMode = false;
+				}
+			});
+		</script>
+		<script>
+			let hot = new Handsontable(document.body, {
+				minRows : 99,
+				minCols : 999,
+				rowHeaders : true,
+				colHeaders : true,
+				colWidths : 300,
+				manualColumnResize : true,
+				manualRowResize : true
+			});
+			
+			window.loadData = (data) => {
+				hot.loadData(data);
+			};
+			
+			window.getData = (data) => {
+				return hot.getData();
+			};
+		</script>
+	</body>
+</html>

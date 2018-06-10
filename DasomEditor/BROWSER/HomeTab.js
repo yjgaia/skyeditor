@@ -24,6 +24,7 @@ DasomEditor.HomeTab = CLASS((cls) => {
 		},
 		
 		init : (inner, self, src) => {
+			//REQUIRED: src
 			
 			self.append(DIV({
 				style : {

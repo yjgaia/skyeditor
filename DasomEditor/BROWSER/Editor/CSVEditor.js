@@ -31,43 +31,46 @@ DasomEditor.CSVEditor = CLASS((cls) => {
 			//OPTIONAL: params.content
 			
 			let content = params.content;
+			if (content === undefined) {
+				content = '';
+			}
 			
-			let wrapper;
-			let table;
-			let editTextarea;
-			self.append(wrapper = DIV({
+			let iframe;
+			self.append(DIV({
 				style : {
-					position : 'absolute',
-					backgroundColor : '#fff',
-					color : '#000',
-					width : self.getWidth(),
-					height : self.getHeight(),
-					overflow : 'scroll'
+					width : '100%',
+					height : '100%',
+					overflow : 'hidden'
 				},
-				c : table = TABLE({
+				c : iframe = IFRAME({
+					style : {
+						backgroundColor : '#fff',
+						width : '100%',
+						height : '100%'
+					},
+					src : DasomEditor.R('handsontable/editor.html'),
 					on : {
-						tap : () => {
-							if (editTextarea !== undefined) {
-								editTextarea.remove();
-								editTextarea = undefined;
+						load : (e, iframe) => {
+							try {
+								if (iframe.getEl().contentWindow.location.href === 'about:blank') {
+									self.remove();
+								} else {
+									iframe.getEl().contentWindow.save = () => {
+										DasomEditor.IDE.saveTab(self);
+									}
+									setContent(content);
+								}
+							} catch(e) {
+								// ignore.
 							}
 						}
 					}
 				})
 			}));
 			
-			let resizeEvent = EVENT('resize', () => {
-				DELAY(0.1, () => {
-					if (self.checkIsRemoved() !== true) {
-						wrapper.addStyle({
-							width : self.getWidth(),
-							height : self.getHeight()
-						});
-					}
-				});
+			self.on('active', () => {
+				iframe.getEl().focus();
 			});
-			
-			let tds = [];
 			
 			let setContent;
 			OVERRIDE(self.setContent, (origin) => {
@@ -75,102 +78,21 @@ DasomEditor.CSVEditor = CLASS((cls) => {
 				setContent = self.setContent = (content) => {
 					//REQUIRED: content
 					
-					data = __PAPA.parse(content).data;
-					
-					table.empty();
-					
-					REPEAT(MAX_ROW, (i) => {
-						let tr = TR().appendTo(table);
-						tds[i] = [];
-						
-						REPEAT(MAX_COL, (j) => {
-							
-							let value;
-							
-							let td = TD({
-								style : {
-									fontWeight : i === 0 || j === 0 ? 'bold' : undefined,
-									border : '1px solid #999',
-									padding : 5,
-									minWidth : 150,
-									height : 20
-								},
-								on : {
-									doubletap : () => {
-										
-										// 편집 모드
-										if (editTextarea !== undefined) {
-											editTextarea.remove();
-										}
-										
-										let changeHandler = (e, textarea) => {
-											
-											value = textarea.getValue();
-											
-											REPEAT(i + 1, (i2) => {
-												if (data[i2] === undefined) {
-													data[i2] = [];
-												}
-											});
-											REPEAT(j, (j2) => {
-												if (data[i][j2] === undefined) {
-													data[i][j2] = '';
-												}
-											});
-											
-											data[i][j] = value;
-										};
-										
-										editTextarea = TEXTAREA({
-											style : {
-												position : 'absolute',
-												left : td.getLeft() - wrapper.getLeft(),
-												top : td.getTop() - wrapper.getTop(),
-												width : td.getWidth(),
-												height : td.getHeight()
-											},
-											value : value,
-											on : {
-												keydown : changeHandler,
-												keyup : changeHandler,
-												change : changeHandler,
-												remove : (e, textarea) => {
-													td.empty();
-													td.append(data[i][j]);
-												}
-											}
-										}).appendTo(wrapper);
-										
-										editTextarea.select();
-									}
-								}
-							}).appendTo(tr);
-							
-							if (data[i] !== undefined && data[i][j] !== undefined) {
-								value = data[i][j];
-								td.append(value);
-							}
-							tds[i][j] = td;
-						});
-					});
+					iframe.getEl().contentWindow.loadData(__PAPA.parse(content).data);
 				};
-			});
-			
-			if (content === undefined) {
-				setContent('');
-			} else {
-				setContent(content);
-			}
-			
-			self.on('remove', () => {
-				resizeEvent.remove();
 			});
 			
 			let getContent;
 			OVERRIDE(self.getContent, (origin) => {
 				
 				getContent = self.getContent = () => {
-					return __PAPA.unparse(data);
+					try {
+						return __PAPA.unparse({
+							data : iframe.getEl().contentWindow.getData()
+						});
+					} catch(e) {
+						return '';
+					}
 				};
 			});
 		}
