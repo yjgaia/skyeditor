@@ -32,8 +32,10 @@ DasomEditor.CSVEditor = CLASS((cls) => {
 			
 			let content = params.content;
 			if (content === undefined) {
-				content = '';
+				content = '\n';
 			}
+			
+			let scrollTop = 0;
 			
 			let iframe;
 			self.append(DIV({
@@ -69,7 +71,12 @@ DasomEditor.CSVEditor = CLASS((cls) => {
 			}));
 			
 			self.on('active', () => {
-				iframe.getEl().focus();
+				try {
+					iframe.getEl().focus();
+					iframe.getEl().contentWindow.fixScroll();
+				} catch(e) {
+					// ignore.
+				}
 			});
 			
 			let setContent;
@@ -78,7 +85,11 @@ DasomEditor.CSVEditor = CLASS((cls) => {
 				setContent = self.setContent = (content) => {
 					//REQUIRED: content
 					
-					iframe.getEl().contentWindow.loadData(__PAPA.parse(content).data);
+					try {
+						iframe.getEl().contentWindow.loadData(__PAPA.parse(content).data);
+					} catch(e) {
+						// ignore.
+					}
 				};
 			});
 			

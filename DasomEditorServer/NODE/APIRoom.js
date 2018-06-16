@@ -437,7 +437,8 @@ DasomEditorServer.APIRoom = OBJECT({
 			on('gitClone', (params, ret) => {
 				if (clientInfo.isAuthed === true && params !== undefined && params.path !== undefined) {
 					
-					let realPath = workspacePath + params.path;
+					let path = params.path;
+					let realPath = workspacePath + path;
 					
 					UGIT.CLONE({
 						url : params.url,
@@ -451,6 +452,14 @@ DasomEditorServer.APIRoom = OBJECT({
 							});
 						},
 						success : () => {
+							
+							// 존재하지 않던 폴더면 알림
+							DasomEditorServer.BROADCAST({
+								roomName : 'Folder' + path.substring(0, path.lastIndexOf('/')),
+								methodName : 'newFolder',
+								data : path.substring(path.lastIndexOf('/') + 1)
+							});
+							
 							ret({});
 						}
 					});

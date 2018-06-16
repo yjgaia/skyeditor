@@ -59,6 +59,7 @@ DasomEditor.IDE = OBJECT({
 		let editorSettingStore = DasomEditor.STORE('editorSettingStore');
 		let editorOpenedStore = DasomEditor.STORE('editorOpenedStore');
 		let localHistoryStore = DasomEditor.STORE('localHistoryStore');
+		let gitInfoStore = DasomEditor.STORE('gitInfoStore');
 		
 		let draggingShadow;
 		let draggingShadowPlusIcon;
@@ -151,6 +152,154 @@ DasomEditor.IDE = OBJECT({
 								if (activeTab.checkIsInstanceOf(DasomEditor.Editor) === true) {
 									saveTab(activeTab);
 								}
+							}
+						}
+					}), SkyDesktop.ToolbarButton({
+						icon : IMG({
+							src : DasomEditor.R('icon/git.png')
+						}),
+						title : 'Git Clone',
+						on : {
+							tap : () => {
+								
+								let form;
+								let firstInput;
+								SkyDesktop.Confirm({
+									okButtonTitle : '저장',
+									msg : form = UUI.VALID_FORM({
+										errorMsgs : {
+											folderName : {
+												notEmpty : '저장할 폴더명을 입력해주세요.'
+											},
+											url : {
+												notEmpty : '저장소 URL을 입력해주세요.'
+											},
+											username : {
+												notEmpty : '아이디를 입력해주세요.'
+											},
+											password : {
+												notEmpty : '비밀번호를 입력해주세요.'
+											}
+										},
+										errorMsgStyle : {
+											color : 'red'
+										},
+										c : [firstInput = INPUT({
+											style : {
+												width : 222,
+												padding : 8,
+												border : '1px solid #999',
+												borderRadius : 4
+											},
+											name : 'folderName',
+											placeholder : '저장할 폴더명'
+										}), INPUT({
+											style : {
+												marginTop : 10,
+												width : 222,
+												padding : 8,
+												border : '1px solid #999',
+												borderRadius : 4
+											},
+											name : 'url',
+											placeholder : '저장소 URL'
+										}), INPUT({
+											style : {
+												marginTop : 10,
+												width : 222,
+												padding : 8,
+												border : '1px solid #999',
+												borderRadius : 4
+											},
+											name : 'username',
+											placeholder : '아이디'
+										}), INPUT({
+											style : {
+												marginTop : 10,
+												width : 222,
+												padding : 8,
+												border : '1px solid #999',
+												borderRadius : 4
+											},
+											type : 'password',
+											name : 'password',
+											placeholder : '비밀번호'
+										})]
+									})
+								}, () => {
+									
+									let data = form.getData();
+									
+									let valid = VALID({
+										folderName : {
+											notEmpty : true
+										},
+										url : {
+											notEmpty : true
+										},
+										username : {
+											notEmpty : true
+										},
+										password : {
+											notEmpty : true
+										}
+									});
+									
+									let validResult = valid.check(data);
+									
+									if (validResult.checkHasError() === true) {
+										form.showErrors(validResult.getErrors());
+										return false;
+									}
+									
+									else {
+										
+										let folderPath = DasomEditor.IDE.getWorkspacePath() + '/' + data.folderName;
+										
+										checkExists({
+											path : folderPath
+										}, (exists) => {
+											
+											if (exists === true) {
+												SkyDesktop.Alert({
+													msg : '이미 존재하는 폴더입니다. 다른 폴더를 지정해주세요.'
+												});
+											}
+											
+											else {
+												
+												let loadingBar = SkyDesktop.LoadingBar('lime');
+												
+												gitClone({
+													path : folderPath,
+													url : data.url,
+													username : data.username,
+													password : data.password
+												}, {
+													error : (errorMsg) => {
+														loadingBar.done();
+														
+														SkyDesktop.Alert({
+															msg : errorMsg
+														});
+													},
+													success : () => {
+														loadingBar.done();
+														
+														gitInfoStore.save({
+															name : folderPath,
+															value : data
+														});
+														
+														SkyDesktop.Noti('Clone 완료');
+													}
+												});
+											}
+										});
+									}
+								});
+								
+								firstInput.focus();
 							}
 						}
 					}), SkyDesktop.ToolbarButton({
@@ -1939,11 +2088,16 @@ DasomEditor.IDE = OBJECT({
 				
 				// 붙혀넣기
 				else if (key === 'v') {
-					if (selectedFileItems.length > 0) {
-						paste({
-							ftpInfo : selectedFileItems[selectedFileItems.length - 1].getFTPInfo(),
-							folderPath : selectedFileItems[selectedFileItems.length - 1].getFolderPath()
-						});
+					
+					// 입력칸에 포커싱이 되어있지 않을 때만 처리
+					if (document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'INPUT') {
+						
+						if (selectedFileItems.length > 0) {
+							paste({
+								ftpInfo : selectedFileItems[selectedFileItems.length - 1].getFTPInfo(),
+								folderPath : selectedFileItems[selectedFileItems.length - 1].getFolderPath()
+							});
+						}
 					}
 				}
 				
