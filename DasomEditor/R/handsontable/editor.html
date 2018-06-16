@@ -67,6 +67,20 @@
 			window.getData = (data) => {
 				return hot.getData();
 			};
+			
+			window.fixScroll = () => {
+				let cell = hot.getSelectedLast();
+				let row;
+				let col;
+				if (cell === undefined) {
+					row = 0;
+					col = 0;
+				} else {
+					row = cell[0] + 1;
+					col = cell[1];
+				}
+				hot.scrollViewportTo(row, col, true, true);
+			};
 		</script>
 	</body>
 </html>
