@@ -3,7 +3,7 @@ DasomEditorServer.MAIN = METHOD({
 	run : () => {
 		
 		DasomEditorServer.MATCH_VIEW({
-			uri : '',
+			uri : '**',
 			target : DasomEditorServer.Home
 		});
 		

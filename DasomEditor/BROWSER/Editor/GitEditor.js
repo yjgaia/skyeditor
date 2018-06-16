@@ -1,6 +1,6 @@
 DasomEditor.GitEditor = CLASS((cls) => {
 	
-	let gitInfoStore = STORE('gitInfoStore');
+	let gitInfoStore = DasomEditor.STORE('gitInfoStore');
 	
 	return {
 	
