@@ -58,8 +58,8 @@ DasomEditor.IDE = OBJECT({
 		let editorMap = {};
 		let editorSettingStore = DasomEditor.STORE('editorSettingStore');
 		let editorOpenedStore = DasomEditor.STORE('editorOpenedStore');
-		let localHistoryStore = DasomEditor.STORE('localHistoryStore');
 		let gitInfoStore = DasomEditor.STORE('gitInfoStore');
+		let localHistoryMap = {};
 		
 		let draggingShadow;
 		let draggingShadowPlusIcon;
@@ -1031,25 +1031,10 @@ DasomEditor.IDE = OBJECT({
 						content : content
 					});
 					
-					if (history.length > 50) {
-						history.splice(0, 1);
-					}
-					
-					// 너무 많은 데이터를 저장하면 할당량 초과 오류가 뜸, 이 때는 히스토리를 삭제
-					try {
-						localHistoryStore.save({
-							name : STRINGIFY({
-								ftpInfo : ftpInfo,
-								path : path
-							}),
-							value : history
-						});
-					} catch(e) {
-						localHistoryStore.remove(STRINGIFY({
-							ftpInfo : ftpInfo,
-							path : path
-						}));
-					}
+					localHistoryMap[STRINGIFY({
+						ftpInfo : ftpInfo,
+						path : path
+					})] = history;
 				}
 			}
 			
@@ -1783,10 +1768,10 @@ DasomEditor.IDE = OBJECT({
 			let ftpInfo = params.ftpInfo;
 			let path = params.path;
 			
-			return localHistoryStore.get(STRINGIFY({
+			return localHistoryMap[STRINGIFY({
 				ftpInfo : ftpInfo,
 				path : path
-			}));
+			})];
 		};
 		
 		let ftpNew = self.ftpNew = (ftpInfo, callback) => {
