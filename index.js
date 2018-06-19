@@ -140,9 +140,10 @@ RUN(() => {
 		},
 		
 		// 파일의 내용을 저장합니다.
-		save : (path, content, errorHandler, callback, isFindAndReplace) => {
+		save : (path, content, buffer, errorHandler, callback, isFindAndReplace) => {
 			//OPTIONAL: path
-			//REQUIRED: content
+			//OPTIONAL: content
+			//OPTIONAL: buffer
 			//REQUIRED: errorHandler
 			//OPTIONAL: callback
 			//OPTIONAL: isFindAndReplace
@@ -168,7 +169,8 @@ RUN(() => {
 					
 					WRITE_FILE({
 						path : path,
-						content : content
+						content : content,
+						buffer : buffer
 					}, {
 						error : errorHandler,
 						success : () => {

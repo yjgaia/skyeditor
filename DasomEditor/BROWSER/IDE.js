@@ -1002,18 +1002,20 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: params
 			//OPTIONAL: params.ftpInfo
 			//REQUIRED: params.path
-			//REQUIRED: params.content
+			//OPTIONAL: params.content
+			//OPTIONAL: params.buffer
 			//OPTIONAL: params.isFindAndReplace
 			//OPTIONAL: callback
 			
 			let ftpInfo = params.ftpInfo;
 			let path = params.path;
 			let content = params.content;
+			let buffer = params.buffer;
 			let isFindAndReplace = params.isFindAndReplace;
 			
 			// 로컬 히스토리 저장
 			// 파일의 용량이 1mb 미만인 경우에만 저장, 최대 100개
-			if (content.length < 1024 * 1024) {
+			if (content !== undefined && content.length < 1024 * 1024) {
 				
 				let history = getLocalHistory({
 					ftpInfo : ftpInfo,
@@ -1090,7 +1092,7 @@ DasomEditor.IDE = OBJECT({
 			}
 			
 			else {
-				saveHandler(path, content, () => {
+				saveHandler(path, content, buffer, () => {
 					SkyDesktop.Alert({
 						msg : '파일 저장에 실패하였습니니다.'
 					});
@@ -2885,7 +2887,14 @@ DasomEditor.IDE = OBJECT({
 						
 						let fileReader = new FileReader();
 						fileReader.onload = (e) => {
-							let content = e.target.result;
+							let dataURL = e.target.result;
+							
+							let regex = /^data:.+\/(.+);base64,(.*)$/;
+							
+							let matches = dataURL.match(regex);
+							let ext = matches[1];
+							let data = matches[2];
+							let buffer = new Buffer(data, 'base64');
 							
 							let loadingBar = SkyDesktop.LoadingBar('lime');
 							
@@ -2925,7 +2934,7 @@ DasomEditor.IDE = OBJECT({
 									save({
 										ftpInfo : dropTargetInfo.ftpInfo,
 										path : dropTargetInfo.folderPath + '/' + fileName,
-										content : content
+										buffer : buffer
 									}, () => {
 										loadingBar.done();
 									});
@@ -2934,7 +2943,7 @@ DasomEditor.IDE = OBJECT({
 								};
 							}]);
 						};
-						fileReader.readAsText(file);
+						fileReader.readAsDataURL(file);
 					});
 					
 					e.stop();
