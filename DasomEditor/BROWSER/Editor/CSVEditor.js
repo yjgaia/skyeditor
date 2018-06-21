@@ -31,9 +31,6 @@ DasomEditor.CSVEditor = CLASS((cls) => {
 			//OPTIONAL: params.content
 			
 			let content = params.content;
-			if (content === undefined) {
-				content = '\n';
-			}
 			
 			let scrollTop = 0;
 			
@@ -59,6 +56,9 @@ DasomEditor.CSVEditor = CLASS((cls) => {
 								} else {
 									iframe.getEl().contentWindow.save = () => {
 										DasomEditor.IDE.saveTab(self);
+									}
+									if (content === undefined) {
+										content = getContent();
 									}
 									setContent(content);
 								}
