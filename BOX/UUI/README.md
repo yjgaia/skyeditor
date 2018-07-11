@@ -363,6 +363,18 @@ UUI.FULL_TEXTAREA({
 })
 ```
 
+## RANGE
+특정 영역 내의 값을 선택할 수 있는 슬라이더를 생성합니다.
+```javascript
+UUI.RANGE({
+	name : 'age',
+	min : 1,
+	max : 199,
+	value : 31,
+	step : 1
+})
+```
+
 ## FULL_SUBMIT
 너비가 폼 크기와 딱 맞는 전송 버튼을 생성합니다.
 ```javascript
