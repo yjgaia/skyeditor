@@ -569,6 +569,33 @@ DasomEditorServer.Home = CLASS({
 						//REQUIRED: pathInfos
 						
 						clipboardPathInfos = pathInfos;
+						
+						let text = '';
+						
+						EACH(pathInfos, (pathInfo, i) => {
+							if (i > 0) {
+								text += '\n';
+							}
+							let fileName = pathInfo.path.substring(pathInfo.path.lastIndexOf('/') + 1);
+							if (fileName.indexOf('.') !== -1) {
+								fileName = fileName.substring(0, fileName.indexOf('.'));
+							}
+							text += fileName;
+						});
+						
+						let textarea = TEXTAREA({
+							style : {
+								position : 'fixed',
+								left : -999999,
+								top : -999999
+							},
+							value : text
+						}).appendTo(BODY);
+						
+						textarea.getEl().select();
+						document.execCommand('copy');
+						
+						textarea.remove();
 					},
 					
 					// 클립보드에서 복사한 경로를 붙혀넣기합니다.
