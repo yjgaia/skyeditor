@@ -231,9 +231,10 @@ DasomEditorServer.Home = CLASS({
 					},
 					
 					// 파일의 내용을 저장합니다.
-					save : (path, content, errorHandler, callback, isFindAndReplace) => {
+					save : (path, content, buffer, errorHandler, callback, isFindAndReplace) => {
 						//OPTIONAL: path
-						//REQUIRED: content
+						//OPTIONAL: content
+						//OPTIONAL: buffer
 						//REQUIRED: errorHandler
 						//OPTIONAL: callback
 						//OPTIONAL: isFindAndReplace
@@ -253,6 +254,8 @@ DasomEditorServer.Home = CLASS({
 						
 						() => {
 							return (path) => {
+								
+								//TODO: 버퍼 저장 구현해야함
 								
 								apiRoom.send({
 									methodName : 'save',
