@@ -707,6 +707,39 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 													});
 													
 													menu.remove();
+												},
+												
+												contextmenu : (e) => {
+													
+													let menu = SkyDesktop.ContextMenu({
+														e : e
+													});
+													
+													menu.append(SkyDesktop.ContextMenuItem({
+														title : '계약 주소 복사',
+														on : {
+															tap : () => {
+																
+																let textarea = TEXTAREA({
+																	style : {
+																		position : 'fixed',
+																		left : -999999,
+																		top : -999999
+																	},
+																	value : contractInfo.address
+																}).appendTo(BODY);
+																
+																textarea.getEl().select();
+																document.execCommand('copy');
+																
+																textarea.remove();
+																
+																menu.remove();
+															}
+														}
+													});
+													
+													e.stop();
 												}
 											}
 										}));
