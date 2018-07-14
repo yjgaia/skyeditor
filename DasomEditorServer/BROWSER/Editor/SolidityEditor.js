@@ -737,7 +737,7 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 																menu.remove();
 															}
 														}
-													});
+													}));
 													
 													e.stop();
 												}
