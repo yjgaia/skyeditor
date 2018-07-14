@@ -623,9 +623,18 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 																				});
 																			};
 																			
+																			let ether;
 																			let args = [];
 																			EACH(inputList.getChildren(), (input) => {
-																				args.push(input.getValue());
+																				if (input.getName() === '__ETHER') {
+																					ether = web3.toWei(input.getValue(), 'ether');
+																				} else {
+																					args.push(input.getValue());
+																				}
+																			});
+																			
+																			args.push({
+																				value : ether
 																			});
 																			
 																			// 계약 실행
@@ -667,12 +676,20 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 																					
 																					else {
 																						
+																						if (CHECK_IS_ARRAY(result) === true) {
+																							EACH(result, (value, i) => {
+																								if (value.toNumber !== undefined) {
+																									result[i] = value.toNumber();
+																								}
+																							});
+																						}
+																						
 																						let resultPanel;
 																						wrapper.append(resultPanel = P({
 																							style : {
 																								marginTop : 5
 																							},
-																							c : '실행 결과: ' + result
+																							c : '실행 결과: ' + JSON.stringify(result)
 																						}));
 																						DELAY(3, () => {
 																							resultPanel.remove();
@@ -703,6 +720,16 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 																	placeholder : (inputInfo.name === '' ? '?' : inputInfo.name) + ' (' + inputInfo.type + ')'
 																}).appendTo(inputList);
 															});
+															
+															UUI.FULL_INPUT({
+																style : {
+																	border : '1px solid #999',
+																	borderRadius : 4,
+																	marginBottom : 5
+																},
+																name : '__ETHER',
+																placeholder : '보낼 이더'
+															}).appendTo(inputList);
 														}
 													});
 													
