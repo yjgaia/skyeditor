@@ -20,7 +20,7 @@ DasomEditor.TextEditor = CLASS((cls) => {
 			return {
 				mode : 'text',
 				icon : getIcon()
-			}
+			};
 		},
 		
 		init : (inner, self) => {

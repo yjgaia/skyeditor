@@ -20,7 +20,7 @@ DasomEditor.LessEditor = CLASS((cls) => {
 			return {
 				mode : 'less',
 				icon : getIcon()
-			}
+			};
 		}
 	};
 });

@@ -23,7 +23,7 @@ DasomEditor.CSVEditor = CLASS((cls) => {
 			return {
 				mode : 'csv',
 				icon : getIcon()
-			}
+			};
 		},
 		
 		init : (inner, self, params) => {

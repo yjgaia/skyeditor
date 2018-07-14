@@ -83,11 +83,6 @@ DasomEditor.MAIN = METHOD({
 		});
 		
 		DasomEditor.IDE.addEditor({
-			extname : 'sol',
-			editor : DasomEditor.SolidityEditor
-		});
-		
-		DasomEditor.IDE.addEditor({
 			extname : 'csv',
 			editor : DasomEditor.CSVEditor
 		});

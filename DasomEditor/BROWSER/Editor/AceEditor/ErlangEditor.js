@@ -20,7 +20,7 @@ DasomEditor.ErlangEditor = CLASS((cls) => {
 			return {
 				mode : 'erlang',
 				icon : getIcon()
-			}
+			};
 		}
 	};
 });

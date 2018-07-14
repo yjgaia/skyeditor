@@ -20,7 +20,7 @@ DasomEditor.PHPEditor = CLASS((cls) => {
 			return {
 				mode : 'php',
 				icon : getIcon()
-			}
+			};
 		}
 	};
 });

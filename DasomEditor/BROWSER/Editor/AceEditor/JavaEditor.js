@@ -20,7 +20,7 @@ DasomEditor.JavaEditor = CLASS((cls) => {
 			return {
 				mode : 'java',
 				icon : getIcon()
-			}
+			};
 		}
 	};
 });

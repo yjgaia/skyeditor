@@ -20,7 +20,7 @@ DasomEditor.GMLEditor = CLASS((cls) => {
 			return {
 				mode : 'gml',
 				icon : getIcon()
-			}
+			};
 		}
 	};
 });

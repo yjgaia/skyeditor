@@ -20,7 +20,7 @@ DasomEditor.JavaScriptEditor = CLASS((cls) => {
 			return {
 				mode : 'javascript',
 				icon : getIcon()
-			}
+			};
 		}
 	};
 });

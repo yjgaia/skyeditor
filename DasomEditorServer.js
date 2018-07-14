@@ -19,7 +19,6 @@ BOOT({
 		}
 	},
 	NODE_CONFIG : {
-		isNotUsingCPUClustering : true,
 		
 		dbName : 'DasomEditorServer-test',
 		

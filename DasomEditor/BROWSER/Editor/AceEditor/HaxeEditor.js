@@ -20,7 +20,7 @@ DasomEditor.HaxeEditor = CLASS((cls) => {
 			return {
 				mode : 'haxe',
 				icon : getIcon()
-			}
+			};
 		}
 	};
 });

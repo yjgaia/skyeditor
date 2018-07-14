@@ -7,23 +7,9 @@ DasomEditorServer.MAIN = METHOD({
 			target : DasomEditorServer.Home
 		});
 		
-		// 솔리디티 에디터에 기능 추가
-		DasomEditor.SolidityEditor.findContracts = (path, callback) => {
-			//REQUIRED: path
-			//REQUIRED: callback
-			
-			DasomEditorServer.EthereumContractModel.find({
-				filter : {
-					path : path
-				}
-			}, callback);
-		};
-		
-		DasomEditor.SolidityEditor.saveContract = (data, callback) => {
-			//REQUIRED: data
-			//REQUIRED: callback
-			
-			DasomEditorServer.EthereumContractModel.create(data, callback);
-		};
+		DasomEditor.IDE.addEditor({
+			extname : 'sol',
+			editor : DasomEditorServer.SolidityEditor
+		});
 	}
 });

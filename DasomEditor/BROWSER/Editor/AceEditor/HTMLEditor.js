@@ -20,7 +20,7 @@ DasomEditor.HTMLEditor = CLASS((cls) => {
 			return {
 				mode : 'html',
 				icon : getIcon()
-			}
+			};
 		}
 	};
 });

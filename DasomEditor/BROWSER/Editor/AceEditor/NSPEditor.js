@@ -20,7 +20,7 @@ DasomEditor.NSPEditor = CLASS((cls) => {
 			return {
 				mode : 'nsp',
 				icon : getIcon()
-			}
+			};
 		}
 	};
 });

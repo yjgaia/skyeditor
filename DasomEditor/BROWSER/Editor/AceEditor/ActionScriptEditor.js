@@ -20,7 +20,7 @@ DasomEditor.ActionScriptEditor = CLASS((cls) => {
 			return {
 				mode : 'actionscript',
 				icon : getIcon()
-			}
+			};
 		}
 	};
 });

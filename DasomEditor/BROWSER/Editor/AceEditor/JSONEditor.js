@@ -20,7 +20,7 @@ DasomEditor.JSONEditor = CLASS((cls) => {
 			return {
 				mode : 'json',
 				icon : getIcon()
-			}
+			};
 		}
 	};
 });

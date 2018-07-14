@@ -20,7 +20,7 @@ DasomEditor.XMLEditor = CLASS((cls) => {
 			return {
 				mode : 'xml',
 				icon : getIcon()
-			}
+			};
 		}
 	};
 });

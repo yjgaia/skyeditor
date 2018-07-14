@@ -9,7 +9,7 @@ DasomEditor.CompareEditor = CLASS({
 			icon : IMG({
 				src : DasomEditor.R('icon/compare.png')
 			})
-		}
+		};
 	},
 
 	init : (inner, self, params) => {

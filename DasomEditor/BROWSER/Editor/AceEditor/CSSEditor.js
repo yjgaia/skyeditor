@@ -20,7 +20,7 @@ DasomEditor.CSSEditor = CLASS((cls) => {
 			return {
 				mode : 'css',
 				icon : getIcon()
-			}
+			};
 		}
 	};
 });

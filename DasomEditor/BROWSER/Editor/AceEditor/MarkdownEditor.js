@@ -20,7 +20,7 @@ DasomEditor.MarkdownEditor = CLASS((cls) => {
 			return {
 				mode : 'markdown',
 				icon : getIcon()
-			}
+			};
 		},
 		
 		init : (inner, self) => {
