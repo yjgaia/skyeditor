@@ -725,7 +725,8 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 																style : {
 																	border : '1px solid #999',
 																	borderRadius : 4,
-																	marginBottom : 5
+																	marginBottom : 5,
+																	backgroundColor : '#ccc'
 																},
 																name : '__ETHER',
 																placeholder : '보낼 이더'
