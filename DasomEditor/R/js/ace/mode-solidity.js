@@ -69,7 +69,7 @@ var JavaScriptHighlightRules = function(options) {
         "variable.language":
             "this|bool|string|byte|bytes|bytes0|address|" + intTypes,
         "keyword":
-            "pragma|solidity|contract|interface|library|constant|event|modifier|" +
+            "pragma|solidity|contract|interface|library|emit|constant|event|modifier|" +
             "struct|mapping|enum|break|continue|delete|else|for|function|" +
             "if|new|return|returns|var|while|using|" +
             "private|public|external|internal|storage|memory",
