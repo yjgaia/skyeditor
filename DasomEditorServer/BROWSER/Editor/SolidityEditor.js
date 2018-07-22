@@ -68,7 +68,11 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 									for (let i = 7; i < line.length; i += 1) {
 										if (line[i] === '"') {
 											if (start === undefined) {
-												start = i + 3;
+												if (line.substring(i + 1, i + 4) === '../') {
+													start = i + 1;
+												} else {
+													start = i + 3;
+												}
 											} else {
 												end = i;
 												break;
@@ -83,7 +87,8 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 										let path;
 										
 										if (importPath.substring(0, 3) === '../') {
-											path = folderPath.substring(0, folderPath.lastIndexOf('/')) + importPath;
+											importPath = importPath.substring(3);
+											path = folderPath.substring(0, folderPath.lastIndexOf('/') + 1) + importPath;
 										} else {
 											path = folderPath + '/' + importPath;
 										}
