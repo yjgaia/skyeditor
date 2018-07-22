@@ -54,8 +54,6 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 						
 					if (code !== '') {
 						
-						let loadingBar = SkyDesktop.LoadingBar('lime');
-						
 						let importCodes = {};
 						
 						let loadImportFiles = (code, folderPath, importBasePath, callback) => {
@@ -120,6 +118,8 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 						};
 						
 						loadImportFiles(code, folderPath, '', () => {
+							
+							let loadingBar = SkyDesktop.LoadingBar('lime');
 							
 							console.log('Solidity 코드(' + fileName + ')를 컴파일합니다.');
 							
