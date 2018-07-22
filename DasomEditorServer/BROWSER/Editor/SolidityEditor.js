@@ -80,8 +80,16 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 										
 										let importPath = line.substring(start, end);
 										
+										let path;
+										
+										if (importPath.substring(0, 3) === '../') {
+											path = folderPath.substring(0, folderPath.lastIndexOf('/')) + importPath;
+										} else {
+											path = folderPath + '/' + importPath;
+										}
+										
 										importFileInfos.push({
-											path : folderPath + '/' + importPath,
+											path : path,
 											importPath : (importBasePath === '' ? '' : importBasePath + '/') + importPath
 										});
 									}
