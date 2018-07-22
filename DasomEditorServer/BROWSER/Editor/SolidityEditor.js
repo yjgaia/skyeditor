@@ -50,167 +50,170 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 				// 코드를 저장하면 자동으로 컴파일
 				self.on('save', () => {
 					
-					let loadingBar = SkyDesktop.LoadingBar('lime');
-					
 					let code = self.getContent();
-					
-					let importCodes = {};
-					
-					let loadImportFiles = (code, folderPath, importBasePath, callback) => {
 						
-						let importFileInfos = [];
+					if (code !== '') {
 						
-						// 코드를 분석하여 import 구문을 찾습니다.
-						EACH(code.split('\n'), (line) => {
-							line = line.trim();
-							if (line.substring(0, 7) === 'import ') {
-								let start, end;
-								for (let i = 7; i < line.length; i += 1) {
-									if (line[i] === '"') {
-										if (start === undefined) {
-											start = i + 3;
-										} else {
-											end = i;
-											break;
+						let loadingBar = SkyDesktop.LoadingBar('lime');
+						
+						let importCodes = {};
+						
+						let loadImportFiles = (code, folderPath, importBasePath, callback) => {
+							
+							let importFileInfos = [];
+							
+							// 코드를 분석하여 import 구문을 찾습니다.
+							EACH(code.split('\n'), (line) => {
+								line = line.trim();
+								if (line.substring(0, 7) === 'import ') {
+									let start, end;
+									for (let i = 7; i < line.length; i += 1) {
+										if (line[i] === '"') {
+											if (start === undefined) {
+												start = i + 3;
+											} else {
+												end = i;
+												break;
+											}
 										}
 									}
+									
+									if (start !== undefined && end !== undefined) {
+										
+										let importPath = line.substring(start, end);
+										
+										importFileInfos.push({
+											path : folderPath + '/' + importPath,
+											importPath : (importBasePath === '' ? '' : importBasePath + '/') + importPath
+										});
+									}
+								}
+							});
+							
+							NEXT(importFileInfos, [
+							(importFileInfo, next) => {
+								
+								let path = importFileInfo.path;
+								let importPath = importFileInfo.importPath;
+								
+								if (importCodes[importPath] !== undefined) {
+									next();
 								}
 								
-								if (start !== undefined && end !== undefined) {
+								else {
 									
-									let importPath = line.substring(start, end);
-									
-									importFileInfos.push({
-										path : folderPath + '/' + importPath,
-										importPath : (importBasePath === '' ? '' : importBasePath + '/') + importPath
+									DasomEditor.IDE.load({
+										ftpInfo : ftpInfo,
+										path : path
+									}, (code) => {
+										importCodes[importPath] = code;
+										
+										// 이 코드의 import 파일들도 불러옵니다.
+										loadImportFiles(code, path.substring(0, path.lastIndexOf('/')), importPath.substring(0, importPath.lastIndexOf('/')), next);
 									});
 								}
-							}
-						});
+							},
+							
+							() => {
+								return callback;
+							}]);
+						};
 						
-						NEXT(importFileInfos, [
-						(importFileInfo, next) => {
+						loadImportFiles(code, folderPath, '', () => {
 							
-							let path = importFileInfo.path;
-							let importPath = importFileInfo.importPath;
+							console.log('Solidity 코드(' + fileName + ')를 컴파일합니다.');
 							
-							if (importCodes[importPath] !== undefined) {
-								next();
-							}
+							let errorTab;
 							
-							else {
-								
-								DasomEditor.IDE.load({
-									ftpInfo : ftpInfo,
-									path : path
-								}, (code) => {
-									importCodes[importPath] = code;
+							// 저장되어 있던 계약 제거
+							contractInfoStore.remove(path);
+							
+							DasomEditorServer.EthereumContractModel.compileSolidityCode({
+								code : code,
+								importCodes : importCodes
+							}, {
+								error : (errorMsg) => {
+									loadingBar.done();
 									
-									// 이 코드의 import 파일들도 불러옵니다.
-									loadImportFiles(code, path.substring(0, path.lastIndexOf('/')), importPath.substring(0, importPath.lastIndexOf('/')), next);
-								});
-							}
-						},
-						
-						() => {
-							return callback;
-						}]);
-					};
-					
-					loadImportFiles(code, folderPath, '', () => {
-						
-						console.log('Solidity 코드(' + fileName + ')를 컴파일합니다.');
-						
-						let errorTab;
-						
-						// 저장되어 있던 계약 제거
-						contractInfoStore.remove(path);
-						
-						DasomEditorServer.EthereumContractModel.compileSolidityCode({
-							code : code,
-							importCodes : importCodes
-						}, {
-							error : (errorMsg) => {
-								loadingBar.done();
-								
-								SHOW_ERROR('컴파일 오류', errorMsg);
-								
-								if (errorTab === undefined) {
+									SHOW_ERROR('컴파일 오류', errorMsg);
 									
-									DasomEditor.IDE.addTab(errorTab = SkyDesktop.Tab({
-										style : {
-											position : 'relative'
-										},
-										size : 30,
-										c : [UUI.ICON_BUTTON({
+									if (errorTab === undefined) {
+										
+										DasomEditor.IDE.addTab(errorTab = SkyDesktop.Tab({
 											style : {
-												position : 'absolute',
-												right : 10,
-												top : 8,
-												color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
-												zIndex : 999
+												position : 'relative'
 											},
-											icon : FontAwesome.GetIcon('times'),
-											on : {
-												mouseover : (e, self) => {
-													self.addStyle({
-														color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
-													});
+											size : 30,
+											c : [UUI.ICON_BUTTON({
+												style : {
+													position : 'absolute',
+													right : 10,
+													top : 8,
+													color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
+													zIndex : 999
 												},
-												mouseout : (e, self) => {
-													self.addStyle({
-														color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
-													});
-												},
-												tap : () => {
-													
-													errorTab.remove();
-													errorTab = undefined;
-													
-													EVENT.fireAll('resize');
+												icon : FontAwesome.GetIcon('times'),
+												on : {
+													mouseover : (e, self) => {
+														self.addStyle({
+															color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
+														});
+													},
+													mouseout : (e, self) => {
+														self.addStyle({
+															color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
+														});
+													},
+													tap : () => {
+														
+														errorTab.remove();
+														errorTab = undefined;
+														
+														EVENT.fireAll('resize');
+													}
 												}
-											}
-										}), H2({
-											style : {
-												padding : 10
-											},
-											c : 'Solidity 컴파일'
-										}), P({
+											}), H2({
+												style : {
+													padding : 10
+												},
+												c : 'Solidity 컴파일'
+											}), P({
+												style : {
+													padding : 10,
+													paddingTop : 0,
+													color : 'red'
+												},
+												c : '컴파일 오류가 발생했습니다. 오류 메시지: ' + errorMsg
+											})]
+										}));
+									}
+									
+									else {
+										errorTab.append(P({
 											style : {
 												padding : 10,
 												paddingTop : 0,
 												color : 'red'
 											},
 											c : '컴파일 오류가 발생했습니다. 오류 메시지: ' + errorMsg
-										})]
-									}));
+										}));
+									}
+								},
+								success : (contractInfos) => {
+									loadingBar.done();
+									
+									// 컴파일 결과 저장
+									contractInfoStore.save({
+										name : path,
+										value : contractInfos
+									});
+									
+									console.log('Solidity 코드(' + fileName + ') 컴파일을 완료하였습니다.', contractInfos);
+									SkyDesktop.Noti('컴파일을 완료하였습니다.');
 								}
-								
-								else {
-									errorTab.append(P({
-										style : {
-											padding : 10,
-											paddingTop : 0,
-											color : 'red'
-										},
-										c : '컴파일 오류가 발생했습니다. 오류 메시지: ' + errorMsg
-									}));
-								}
-							},
-							success : (contractInfos) => {
-								loadingBar.done();
-								
-								// 컴파일 결과 저장
-								contractInfoStore.save({
-									name : path,
-									value : contractInfos
-								});
-								
-								console.log('Solidity 코드(' + fileName + ') 컴파일을 완료하였습니다.', contractInfos);
-								SkyDesktop.Noti('컴파일을 완료하였습니다.');
-							}
+							});
 						});
-					});
+					}
 				});
 				
 				let deployButton;
