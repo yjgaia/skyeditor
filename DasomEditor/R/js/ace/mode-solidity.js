@@ -67,7 +67,7 @@ var JavaScriptHighlightRules = function(options) {
         intTypes += '|bytes' + (width / 8) + '|uint' + width + '|int' + width;
     var keywordMapper = this.createKeywordMapper({
         "variable.language":
-            "this|bool|string|byte|bytes|bytes0|address|" + intTypes,
+            "this|bool|string|byte|bytes|bytes0|address|indexed|" + intTypes,
         "keyword":
             "pragma|solidity|contract|interface|library|emit|constant|event|modifier|" +
             "struct|mapping|enum|break|continue|delete|else|for|function|" +
