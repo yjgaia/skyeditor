@@ -71,7 +71,7 @@ var JavaScriptHighlightRules = function(options) {
         "keyword":
             "pragma|solidity|contract|interface|library|emit|constant|event|modifier|" +
             "struct|mapping|enum|break|continue|delete|else|for|function|" +
-            "if|new|return|returns|var|while|using|" +
+            "if|is|new|return|returns|var|while|using|" +
             "private|public|external|internal|storage|memory",
         "storage.type":
             "constant|var|function",
