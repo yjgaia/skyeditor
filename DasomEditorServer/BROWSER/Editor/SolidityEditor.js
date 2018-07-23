@@ -851,14 +851,17 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 				
 				let removeToolbarButtons = () => {
 					
-					// 도구 메뉴 제거
-					DasomEditor.IDE.removeToolbarButton(deployButton);
-					DasomEditor.IDE.removeToolbarButton(testButton);
-					DasomEditor.IDE.removeToolbarButton(networkButton);
-					
-					deployButton = undefined;
-					testButton = undefined;
-					networkButton = undefined;
+					if (deployButton !== undefined) {
+						
+						// 도구 메뉴 제거
+						DasomEditor.IDE.removeToolbarButton(deployButton);
+						DasomEditor.IDE.removeToolbarButton(testButton);
+						DasomEditor.IDE.removeToolbarButton(networkButton);
+						
+						deployButton = undefined;
+						testButton = undefined;
+						networkButton = undefined;
+					}
 				};
 				
 				self.on('deactive', removeToolbarButtons);
