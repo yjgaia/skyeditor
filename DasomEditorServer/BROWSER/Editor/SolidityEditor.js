@@ -469,384 +469,384 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 									}
 								}
 							}
-						}
-					}));
-					
-					DasomEditor.IDE.addToolbarButton(testButton = SkyDesktop.ToolbarButton({
-						icon : IMG({
-							src : DasomEditor.R('icon/test.png')
-						}),
-						title : '계약 테스트',
-						on : {
-							tap : (e) => {
-								
-								DasomEditorServer.EthereumContractModel.find({
-									filter : {
-										path : path
-									}
-								}, (contracts) => {
+						}));
+						
+						DasomEditor.IDE.addToolbarButton(testButton = SkyDesktop.ToolbarButton({
+							icon : IMG({
+								src : DasomEditor.R('icon/test.png')
+							}),
+							title : '계약 테스트',
+							on : {
+								tap : (e) => {
 									
-									let menu = SkyDesktop.ContextMenu({
-										e : e
-									});
-									
-									menu.append(SkyDesktop.ContextMenuItem({
-										title : '주소로 계약 추가',
-										icon : IMG({
-											src : DasomEditor.R('icon/contract-add.png')
-										}),
-										on : {
-											tap : (e) => {
-												
-												menu.remove();
-												
-												DELAY(() => {
+									DasomEditorServer.EthereumContractModel.find({
+										filter : {
+											path : path
+										}
+									}, (contracts) => {
+										
+										let menu = SkyDesktop.ContextMenu({
+											e : e
+										});
+										
+										menu.append(SkyDesktop.ContextMenuItem({
+											title : '주소로 계약 추가',
+											icon : IMG({
+												src : DasomEditor.R('icon/contract-add.png')
+											}),
+											on : {
+												tap : (e) => {
 													
-													let contractInfos = contractInfoStore.get(path);
-													if (contractInfos === undefined) {
+													menu.remove();
+													
+													DELAY(() => {
+														
+														let contractInfos = contractInfoStore.get(path);
+														if (contractInfos === undefined) {
+															SkyDesktop.Alert({
+																msg : '주소로 계약을 추가하기 전에, 먼저 파일을 저장하여 컴파일을 수행해주시기 바랍니다.'
+															});
+														}
+														
+														else {
+															
+															let menu = SkyDesktop.ContextMenu({
+																e : e
+															});
+															
+															EACH(contractInfos, (contractInfo, name) => {
+																
+																menu.append(SkyDesktop.ContextMenuItem({
+																	title : name,
+																	icon : IMG({
+																		src : DasomEditor.R('icon/contract.png')
+																	}),
+																	on : {
+																		tap : () => {
+																			
+																			SkyDesktop.Prompt({
+																				msg : '주소를 입력해주시기 바랍니다.'
+																			}, (address) => {
+																				
+																				DasomEditorServer.EthereumContractModel.create({
+																					path : path,
+																					name : name,
+																					address : address,
+																					abi : JSON.parse(contractInfo.interface)
+																				}, () => {
+																					SkyDesktop.Noti('계약을 추가하였습니다.');
+																				});
+																			});
+																			
+																			menu.remove();
+																		}
+																	}
+																}));
+															});
+														}
+													});
+												}
+											}
+										}));
+										
+										EACH(contracts, (contractInfo) => {
+											
+											menu.append(SkyDesktop.ContextMenuItem({
+												title : contractInfo.address + ' (' + contractInfo.name + ')',
+												icon : IMG({
+													src : DasomEditor.R('icon/contract.png')
+												}),
+												on : {
+													tap : () => {
+														
+														let list;
+														
 														SkyDesktop.Alert({
-															msg : '주소로 계약을 추가하기 전에, 먼저 파일을 저장하여 컴파일을 수행해주시기 바랍니다.'
+															style : {
+																onDisplayResize : (width, height) => {
+												
+																	if (width > 600) {
+																		return {
+																			width : 500
+																		};
+																	} else {
+																		return {
+																			width : '90%'
+																		};
+																	}
+																}
+															},
+															msg : [H2({
+																style : {
+																	fontWeight : 'bold'
+																},
+																c : contractInfo.name + ' 테스트'
+															}), list = DIV({
+																style : {
+																	marginTop : 8,
+																	overflowY : 'scroll',
+																	padding : 8,
+																	backgroundColor : '#e0e1e2',
+																	border : '1px solid #999',
+																	borderRadius : 4,
+																	textAlign : 'left',
+																	onDisplayResize : (width, height) => {
+																		return {
+																			height : height * 0.6
+																		};
+																	}
+																}
+															})]
 														});
-													}
+														
+														EACH(contractInfo.abi, (funcInfo) => {
+															if (funcInfo.type !== 'constructor') {
+																
+																let inputList;
+																let wrapper = DIV({
+																	style : {
+																		padding : '5px 8px',
+																		backgroundColor : '#fff',
+																		border : '1px solid #999',
+																		borderRadius : 4,
+																		marginBottom : 10
+																	},
+																	c : [H3({
+																		style : {
+																			fontWeight : 'bold',
+																			marginBottom : 5
+																		},
+																		c : funcInfo.name
+																	}), FORM({
+																		c : [inputList = DIV(), UUI.FULL_SUBMIT({
+																			style : {
+																				borderRadius : 4
+																			},
+																			value : '실행'
+																		})],
+																		on : {
+																			submit : () => {
+																				
+																				let showError = (errorMsg) => {
+																					let errorPanel;
+																					inputList.after(errorPanel = P({
+																						style : {
+																							color : 'red',
+																							marginBottom : 5
+																						},
+																						c : errorMsg
+																					}));
+																					DELAY(3, () => {
+																						errorPanel.remove();
+																					});
+																				};
+																				
+																				let ether;
+																				let args = [];
+																				EACH(inputList.getChildren(), (input) => {
+																					if (input.getName() === '__ETHER') {
+																						ether = web3.toWei(input.getValue(), 'ether');
+																					} else {
+																						args.push(input.getValue());
+																					}
+																				});
+																				
+																				args.push({
+																					value : ether
+																				});
+																				
+																				// 계약 실행
+																				let contract = web3.eth.contract(contractInfo.abi).at(contractInfo.address);
+																				
+																				args.push((error, result) => {
+																					if (error !== TO_DELETE) {
+																						showError(error.toString());
+																					} else {
+																						
+																						if (/^0x([A-Fa-f0-9]{64})$/.test(result) === true) {
+																							
+																							let loadingBar = SkyDesktop.LoadingBar('lime');
+																							
+																							let retry = RAR(() => {
+																								web3.eth.getTransactionReceipt(result, (error, result) => {
+																									if (error !== TO_DELETE) {
+																										loadingBar.done();
+																										showError(error.toString());
+																									} else if (result === TO_DELETE) {
+																										retry();
+																									} else {
+																										loadingBar.done();
+																										
+																										let resultPanel;
+																										wrapper.append(resultPanel = P({
+																											style : {
+																												marginTop : 5
+																											},
+																											c : '트랜잭션이 완료되었습니다.'
+																										}));
+																										DELAY(3, () => {
+																											resultPanel.remove();
+																										});
+																									}
+																								});
+																							});
+																						}
+																						
+																						else {
+																							
+																							if (CHECK_IS_ARRAY(result) === true) {
+																								EACH(result, (value, i) => {
+																									if (value.toNumber !== undefined) {
+																										result[i] = value.toNumber();
+																									}
+																								});
+																							}
+																							
+																							let resultPanel;
+																							wrapper.append(resultPanel = P({
+																								style : {
+																									marginTop : 5
+																								},
+																								c : '실행 결과: ' + JSON.stringify(result)
+																							}));
+																							DELAY(3, () => {
+																								resultPanel.remove();
+																							});
+																						}
+																					}
+																				});
+																				
+																				try {
+																					
+																					contract[funcInfo.name].apply(contract, args);
+																					
+																				} catch(error) {
+																					showError(error.toString());
+																				}
+																			}
+																		}
+																	})]
+																}).appendTo(list);
+																
+																EACH(funcInfo.inputs, (inputInfo) => {
+																	UUI.FULL_INPUT({
+																		style : {
+																			border : '1px solid #999',
+																			borderRadius : 4,
+																			marginBottom : 5
+																		},
+																		placeholder : (inputInfo.name === '' ? '?' : inputInfo.name) + ' (' + inputInfo.type + ')'
+																	}).appendTo(inputList);
+																});
+																
+																UUI.FULL_INPUT({
+																	style : {
+																		border : '1px solid #999',
+																		borderRadius : 4,
+																		marginBottom : 5,
+																		backgroundColor : '#ccc'
+																	},
+																	name : '__ETHER',
+																	placeholder : '보낼 이더'
+																}).appendTo(inputList);
+															}
+														});
+														
+														menu.remove();
+													},
 													
-													else {
+													contextmenu : (e) => {
 														
 														let menu = SkyDesktop.ContextMenu({
 															e : e
 														});
 														
-														EACH(contractInfos, (contractInfo, name) => {
-															
-															menu.append(SkyDesktop.ContextMenuItem({
-																title : name,
-																icon : IMG({
-																	src : DasomEditor.R('icon/contract.png')
-																}),
-																on : {
-																	tap : () => {
-																		
-																		SkyDesktop.Prompt({
-																			msg : '주소를 입력해주시기 바랍니다.'
-																		}, (address) => {
-																			
-																			DasomEditorServer.EthereumContractModel.create({
-																				path : path,
-																				name : name,
-																				address : address,
-																				abi : JSON.parse(contractInfo.interface)
-																			}, () => {
-																				SkyDesktop.Noti('계약을 추가하였습니다.');
-																			});
-																		});
-																		
-																		menu.remove();
-																	}
-																}
-															}));
-														});
-													}
-												});
-											}
-										}
-									}));
-									
-									EACH(contracts, (contractInfo) => {
-										
-										menu.append(SkyDesktop.ContextMenuItem({
-											title : contractInfo.address + ' (' + contractInfo.name + ')',
-											icon : IMG({
-												src : DasomEditor.R('icon/contract.png')
-											}),
-											on : {
-												tap : () => {
-													
-													let list;
-													
-													SkyDesktop.Alert({
-														style : {
-															onDisplayResize : (width, height) => {
-											
-																if (width > 600) {
-																	return {
-																		width : 500
-																	};
-																} else {
-																	return {
-																		width : '90%'
-																	};
-																}
-															}
-														},
-														msg : [H2({
-															style : {
-																fontWeight : 'bold'
-															},
-															c : contractInfo.name + ' 테스트'
-														}), list = DIV({
-															style : {
-																marginTop : 8,
-																overflowY : 'scroll',
-																padding : 8,
-																backgroundColor : '#e0e1e2',
-																border : '1px solid #999',
-																borderRadius : 4,
-																textAlign : 'left',
-																onDisplayResize : (width, height) => {
-																	return {
-																		height : height * 0.6
-																	};
-																}
-															}
-														})]
-													});
-													
-													EACH(contractInfo.abi, (funcInfo) => {
-														if (funcInfo.type !== 'constructor') {
-															
-															let inputList;
-															let wrapper = DIV({
-																style : {
-																	padding : '5px 8px',
-																	backgroundColor : '#fff',
-																	border : '1px solid #999',
-																	borderRadius : 4,
-																	marginBottom : 10
-																},
-																c : [H3({
-																	style : {
-																		fontWeight : 'bold',
-																		marginBottom : 5
-																	},
-																	c : funcInfo.name
-																}), FORM({
-																	c : [inputList = DIV(), UUI.FULL_SUBMIT({
+														menu.append(SkyDesktop.ContextMenuItem({
+															title : '계약 주소 복사',
+															on : {
+																tap : () => {
+																	
+																	let textarea = TEXTAREA({
 																		style : {
-																			borderRadius : 4
+																			position : 'fixed',
+																			left : -999999,
+																			top : -999999
 																		},
-																		value : '실행'
-																	})],
-																	on : {
-																		submit : () => {
-																			
-																			let showError = (errorMsg) => {
-																				let errorPanel;
-																				inputList.after(errorPanel = P({
-																					style : {
-																						color : 'red',
-																						marginBottom : 5
-																					},
-																					c : errorMsg
-																				}));
-																				DELAY(3, () => {
-																					errorPanel.remove();
-																				});
-																			};
-																			
-																			let ether;
-																			let args = [];
-																			EACH(inputList.getChildren(), (input) => {
-																				if (input.getName() === '__ETHER') {
-																					ether = web3.toWei(input.getValue(), 'ether');
-																				} else {
-																					args.push(input.getValue());
-																				}
-																			});
-																			
-																			args.push({
-																				value : ether
-																			});
-																			
-																			// 계약 실행
-																			let contract = web3.eth.contract(contractInfo.abi).at(contractInfo.address);
-																			
-																			args.push((error, result) => {
-																				if (error !== TO_DELETE) {
-																					showError(error.toString());
-																				} else {
-																					
-																					if (/^0x([A-Fa-f0-9]{64})$/.test(result) === true) {
-																						
-																						let loadingBar = SkyDesktop.LoadingBar('lime');
-																						
-																						let retry = RAR(() => {
-																							web3.eth.getTransactionReceipt(result, (error, result) => {
-																								if (error !== TO_DELETE) {
-																									loadingBar.done();
-																									showError(error.toString());
-																								} else if (result === TO_DELETE) {
-																									retry();
-																								} else {
-																									loadingBar.done();
-																									
-																									let resultPanel;
-																									wrapper.append(resultPanel = P({
-																										style : {
-																											marginTop : 5
-																										},
-																										c : '트랜잭션이 완료되었습니다.'
-																									}));
-																									DELAY(3, () => {
-																										resultPanel.remove();
-																									});
-																								}
-																							});
-																						});
-																					}
-																					
-																					else {
-																						
-																						if (CHECK_IS_ARRAY(result) === true) {
-																							EACH(result, (value, i) => {
-																								if (value.toNumber !== undefined) {
-																									result[i] = value.toNumber();
-																								}
-																							});
-																						}
-																						
-																						let resultPanel;
-																						wrapper.append(resultPanel = P({
-																							style : {
-																								marginTop : 5
-																							},
-																							c : '실행 결과: ' + JSON.stringify(result)
-																						}));
-																						DELAY(3, () => {
-																							resultPanel.remove();
-																						});
-																					}
-																				}
-																			});
-																			
-																			try {
-																				
-																				contract[funcInfo.name].apply(contract, args);
-																				
-																			} catch(error) {
-																				showError(error.toString());
-																			}
-																		}
-																	}
-																})]
-															}).appendTo(list);
-															
-															EACH(funcInfo.inputs, (inputInfo) => {
-																UUI.FULL_INPUT({
-																	style : {
-																		border : '1px solid #999',
-																		borderRadius : 4,
-																		marginBottom : 5
-																	},
-																	placeholder : (inputInfo.name === '' ? '?' : inputInfo.name) + ' (' + inputInfo.type + ')'
-																}).appendTo(inputList);
-															});
-															
-															UUI.FULL_INPUT({
-																style : {
-																	border : '1px solid #999',
-																	borderRadius : 4,
-																	marginBottom : 5,
-																	backgroundColor : '#ccc'
-																},
-																name : '__ETHER',
-																placeholder : '보낼 이더'
-															}).appendTo(inputList);
-														}
-													});
-													
-													menu.remove();
-												},
-												
-												contextmenu : (e) => {
-													
-													let menu = SkyDesktop.ContextMenu({
-														e : e
-													});
-													
-													menu.append(SkyDesktop.ContextMenuItem({
-														title : '계약 주소 복사',
-														on : {
-															tap : () => {
-																
-																let textarea = TEXTAREA({
-																	style : {
-																		position : 'fixed',
-																		left : -999999,
-																		top : -999999
-																	},
-																	value : contractInfo.address
-																}).appendTo(BODY);
-																
-																textarea.getEl().select();
-																document.execCommand('copy');
-																
-																textarea.remove();
-																
-																menu.remove();
+																		value : contractInfo.address
+																	}).appendTo(BODY);
+																	
+																	textarea.getEl().select();
+																	document.execCommand('copy');
+																	
+																	textarea.remove();
+																	
+																	menu.remove();
+																}
 															}
-														}
-													}));
-													
-													menu.append(SkyDesktop.ContextMenuItem({
-														title : 'ABI 복사',
-														on : {
-															tap : () => {
-																
-																let textarea = TEXTAREA({
-																	style : {
-																		position : 'fixed',
-																		left : -999999,
-																		top : -999999
-																	},
-																	value : JSON.stringify(contractInfo.abi)
-																}).appendTo(BODY);
-																
-																textarea.getEl().select();
-																document.execCommand('copy');
-																
-																textarea.remove();
-																
-																menu.remove();
+														}));
+														
+														menu.append(SkyDesktop.ContextMenuItem({
+															title : 'ABI 복사',
+															on : {
+																tap : () => {
+																	
+																	let textarea = TEXTAREA({
+																		style : {
+																			position : 'fixed',
+																			left : -999999,
+																			top : -999999
+																		},
+																		value : JSON.stringify(contractInfo.abi)
+																	}).appendTo(BODY);
+																	
+																	textarea.getEl().select();
+																	document.execCommand('copy');
+																	
+																	textarea.remove();
+																	
+																	menu.remove();
+																}
 															}
-														}
-													}));
-													
-													e.stop();
+														}));
+														
+														e.stop();
+													}
 												}
-											}
-										}));
+											}));
+										});
 									});
-								});
+								}
 							}
-						}
-					}));
-					
-					let networkTitle;
-					DasomEditor.IDE.addToolbarButton(networkButton = SkyDesktop.ToolbarButton({
-						style : {
-							cursor : 'default'
-						},
-						icon : IMG({
-							src : DasomEditor.R('icon/network.png')
-						}),
-						title : networkTitle = SPAN({
-							c : 'Checking Network ..........'
-						})
-					}));
-					
-					web3.version.getNetwork((err, netId) => {
-						networkTitle.empty();
-						if (netId === '1') {
-							networkTitle.append('Main Ethereum Network');
-						} else if (netId === '3') {
-							networkTitle.append('Ropsten Test Network');
-						} else if (netId === '4') {
-							networkTitle.append('Rinkeby Test Network');
-						} else if (netId === '42') {
-							networkTitle.append('Kovan Test Network');
-						} else {
-							networkTitle.append('Unknown Network');
-						}
-					});
+						}));
+						
+						let networkTitle;
+						DasomEditor.IDE.addToolbarButton(networkButton = SkyDesktop.ToolbarButton({
+							style : {
+								cursor : 'default'
+							},
+							icon : IMG({
+								src : DasomEditor.R('icon/network.png')
+							}),
+							title : networkTitle = SPAN({
+								c : 'Checking Network ..........'
+							})
+						}));
+						
+						web3.version.getNetwork((err, netId) => {
+							networkTitle.empty();
+							if (netId === '1') {
+								networkTitle.append('Main Ethereum Network');
+							} else if (netId === '3') {
+								networkTitle.append('Ropsten Test Network');
+							} else if (netId === '4') {
+								networkTitle.append('Rinkeby Test Network');
+							} else if (netId === '42') {
+								networkTitle.append('Kovan Test Network');
+							} else {
+								networkTitle.append('Unknown Network');
+							}
+						});
+					}
 				});
 				
 				let removeToolbarButtons = () => {
