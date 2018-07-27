@@ -19,7 +19,10 @@
 		<script>
 			'use strict';
 			
+			INIT_OBJECTS();
+			
 			let isControlMode;
+			let searchForm;
 			
 			EVENT('keydown', (e) => {
 				
@@ -37,10 +40,48 @@
 						window.save();
 						e.stopDefault();
 					}
+					
+					// 검색
+					if (key === 'f') {
+						
+						let input;
+						searchForm = FORM({
+							style : {
+								position : 'fixed',
+								right : 0,
+								top : 0,
+								zIndex : 999999,
+								padding : 5,
+								borderRadius : 3,
+								backgroundColor : '#eee'
+							},
+							c : input = INPUT({
+								style : {
+									width : 300
+								},
+								name : 'query',
+								placeholder : '검색할 문자열을 입력해주세요.'
+							}),
+							on : {
+								keyup : () => {
+									hot.getPlugin('search').query(input.getValue());
+									hot.render();
+								}
+							}
+						}).appendTo(BODY);
+						
+						hot.deselectCell();
+						input.focus();
+					}
 				}
 				
 				if (e.getKey() === 'Control') {
 					isControlMode = true;
+				}
+				
+				if (e.getKey() === 'Escape') {
+					searchForm.remove();
+					searchForm = undefined;
 				}
 			});
 			
@@ -51,14 +92,15 @@
 			});
 		</script>
 		<script>
-			let hot = new Handsontable(document.body, {
+			global.hot = new Handsontable(document.body, {
 				minRows : 1000,
 				minCols : 20,
 				rowHeaders : true,
 				colHeaders : true,
 				colWidths : 280,
 				manualColumnResize : true,
-				manualRowResize : true
+				manualRowResize : true,
+				search : true
 			});
 			
 			window.loadData = (data) => {
