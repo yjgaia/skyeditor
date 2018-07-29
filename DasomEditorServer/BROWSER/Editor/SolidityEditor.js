@@ -133,91 +133,92 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 							let errorTab;
 							
 							// 저장되어 있던 계약 제거
-							DasomEditorServer.EthereumContractModel.removeContractInfos(path);
-							
-							DasomEditorServer.EthereumContractModel.compileSolidityCode({
-								code : code,
-								importCodes : importCodes
-							}, {
-								error : (errorMsg) => {
-									loadingBar.done();
-									
-									SHOW_ERROR('컴파일 오류', errorMsg);
-									
-									if (errorTab === undefined) {
+							DasomEditorServer.EthereumContractModel.removeContractInfos(path, () => {
+								
+								DasomEditorServer.EthereumContractModel.compileSolidityCode({
+									code : code,
+									importCodes : importCodes
+								}, {
+									error : (errorMsg) => {
+										loadingBar.done();
 										
-										DasomEditor.IDE.addTab(errorTab = SkyDesktop.Tab({
-											style : {
-												position : 'relative'
-											},
-											size : 30,
-											c : [UUI.ICON_BUTTON({
+										SHOW_ERROR('컴파일 오류', errorMsg);
+										
+										if (errorTab === undefined) {
+											
+											DasomEditor.IDE.addTab(errorTab = SkyDesktop.Tab({
 												style : {
-													position : 'absolute',
-													right : 10,
-													top : 8,
-													color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
-													zIndex : 999
+													position : 'relative'
 												},
-												icon : FontAwesome.GetIcon('times'),
-												on : {
-													mouseover : (e, self) => {
-														self.addStyle({
-															color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
-														});
+												size : 30,
+												c : [UUI.ICON_BUTTON({
+													style : {
+														position : 'absolute',
+														right : 10,
+														top : 8,
+														color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
+														zIndex : 999
 													},
-													mouseout : (e, self) => {
-														self.addStyle({
-															color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
-														});
-													},
-													tap : () => {
-														
-														errorTab.remove();
-														errorTab = undefined;
-														
-														EVENT.fireAll('resize');
+													icon : FontAwesome.GetIcon('times'),
+													on : {
+														mouseover : (e, self) => {
+															self.addStyle({
+																color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
+															});
+														},
+														mouseout : (e, self) => {
+															self.addStyle({
+																color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
+															});
+														},
+														tap : () => {
+															
+															errorTab.remove();
+															errorTab = undefined;
+															
+															EVENT.fireAll('resize');
+														}
 													}
-												}
-											}), H2({
-												style : {
-													padding : 10
-												},
-												c : 'Solidity 컴파일'
-											}), P({
+												}), H2({
+													style : {
+														padding : 10
+													},
+													c : 'Solidity 컴파일'
+												}), P({
+													style : {
+														padding : 10,
+														paddingTop : 0,
+														color : 'red'
+													},
+													c : '컴파일 오류가 발생했습니다. 오류 메시지: ' + errorMsg
+												})]
+											}));
+										}
+										
+										else {
+											errorTab.append(P({
 												style : {
 													padding : 10,
 													paddingTop : 0,
 													color : 'red'
 												},
 												c : '컴파일 오류가 발생했습니다. 오류 메시지: ' + errorMsg
-											})]
-										}));
+											}));
+										}
+									},
+									success : (contractInfos) => {
+										loadingBar.done();
+										
+										// 컴파일 결과 저장
+										DasomEditorServer.EthereumContractModel.saveContractInfos({
+											path : path,
+											contractInfos : contractInfos
+										});
+										
+										console.log('Solidity 코드(' + fileName + ') 컴파일을 완료하였습니다.', contractInfos);
+										SkyDesktop.Noti('컴파일을 완료하였습니다.');
 									}
-									
-									else {
-										errorTab.append(P({
-											style : {
-												padding : 10,
-												paddingTop : 0,
-												color : 'red'
-											},
-											c : '컴파일 오류가 발생했습니다. 오류 메시지: ' + errorMsg
-										}));
-									}
-								},
-								success : (contractInfos) => {
-									loadingBar.done();
-									
-									// 컴파일 결과 저장
-									DasomEditorServer.EthereumContractModel.saveContractInfos({
-										path : path,
-										contractInfos : contractInfos
-									});
-									
-									console.log('Solidity 코드(' + fileName + ') 컴파일을 완료하였습니다.', contractInfos);
-									SkyDesktop.Noti('컴파일을 완료하였습니다.');
-								}
+								});
 							});
 						});
 					}

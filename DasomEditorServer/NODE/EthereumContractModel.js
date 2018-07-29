@@ -62,7 +62,10 @@ OVERRIDE(DasomEditorServer.EthereumContractModel, (origin) => {
 				on('removeContractInfos', (path, ret) => {
 					contractInfosDB.remove(path, {
 						notExists : () => {
-							// ignore.
+							ret();
+						},
+						success : (data) => {
+							ret();
 						}
 					});
 				});
