@@ -33,6 +33,39 @@ OVERRIDE(DasomEditorServer.EthereumContractModel, (origin) => {
 					}
 				});
 			};
+			
+			// 계약의 정보들을 저장합니다.
+			let saveContractInfos = self.saveContractInfos = (params) => {
+				//REQUIRED: params
+				//REQUIRED: params.path
+				//REQUIRED: params.contractInfos
+				
+				room.send({
+					methodName : 'saveContractInfos',
+					data : params
+				});
+			};
+			
+			// 계약의 정보들을 불러옵니다.
+			let getContractInfos = self.getContractInfos = (path, callback) => {
+				//REQUIRED: path
+				//REQUIRED: callback
+				
+				room.send({
+					methodName : 'getContractInfos',
+					data : path
+				}, callback);
+			};
+			
+			// 계약의 정보들을 삭제합니다.
+			let removeContractInfos = self.removeContractInfos = (path) => {
+				//REQUIRED: path
+				
+				room.send({
+					methodName : 'removeContractInfos',
+					data : path
+				});
+			};
 		}
 	});
 });

@@ -10,6 +10,11 @@ OVERRIDE(DasomEditorServer.EthereumContractModel, (origin) => {
 			
 			let Solc = require('solc');
 			
+			let contractInfosDB = DasomEditorServer.DB({
+				name : 'ContractInfos',
+				isNotUsingObjectId : true
+			});
+			
 			DasomEditorServer.ROOM(self.getName(), (clientInfo, on, off, send, broadcastExceptMe) => {
 				
 				// Solidity 코드를 컴파일합니다.
@@ -27,6 +32,28 @@ OVERRIDE(DasomEditorServer.EthereumContractModel, (origin) => {
 							contents : importCodes[path]
 						};
 					}));
+				});
+				
+				// 계약의 정보들을 저장합니다.
+				on('saveContractInfos', (params, ret) => {
+					
+					let path = params.path;
+					let contractInfos = params.contractInfos;
+					
+					contractInfosDB.create({
+						id : path,
+						contractInfos : contractInfos
+					});
+				});
+				
+				// 계약의 정보들을 불러옵니다.
+				on('getContractInfos', (path, ret) => {
+					contractInfosDB.get(path, ret);
+				});
+				
+				// 계약의 정보들을 삭제합니다.
+				on('removeContractInfos', (path, ret) => {
+					contractInfosDB.remove(path);
 				});
 			});
 		}

@@ -1,7 +1,5 @@
 DasomEditorServer.SolidityEditor = CLASS((cls) => {
 	
-	let contractInfoStore;
-	
 	let getName = cls.getName = () => {
 		return 'DasomEditor.SolidityEditor';
 	};
@@ -42,10 +40,6 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 				
 				let folderPath = path.substring(0, path.lastIndexOf('/'));
 				let fileName = path.substring(path.lastIndexOf('/') + 1);
-				
-				if (contractInfoStore === undefined) {
-					contractInfoStore = DasomEditor.STORE('contractInfoStore');
-				}
 				
 				// 코드를 저장하면 자동으로 컴파일
 				self.on('save', () => {
@@ -139,7 +133,7 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 							let errorTab;
 							
 							// 저장되어 있던 계약 제거
-							contractInfoStore.remove(path);
+							DasomEditorServer.EthereumContractModel.removeContractInfos(path);
 							
 							DasomEditorServer.EthereumContractModel.compileSolidityCode({
 								code : code,
@@ -216,9 +210,9 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 									loadingBar.done();
 									
 									// 컴파일 결과 저장
-									contractInfoStore.save({
-										name : path,
-										value : contractInfos
+									DasomEditorServer.EthereumContractModel.saveContractInfos({
+										path : path,
+										contractInfos : contractInfos
 									});
 									
 									console.log('Solidity 코드(' + fileName + ') 컴파일을 완료하였습니다.', contractInfos);
@@ -246,227 +240,229 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 							on : {
 								tap : (e) => {
 									
-									let contractInfos = contractInfoStore.get(path);
-									if (contractInfos === undefined) {
-										SkyDesktop.Alert({
-											msg : '배포하기 전에, 먼저 파일을 저장하여 컴파일을 수행해주시기 바랍니다.'
-										});
-									}
-									
-									if (web3.eth.accounts.length === 0) {
-										SkyDesktop.Alert({
-											msg : '메타마스크가 잠겨있습니다. 메타마스크에 로그인해주시기 바랍니다.'
-										});
-									}
-									
-									else {
-										DELAY(() => {
-											
-											let menu = SkyDesktop.ContextMenu({
-												e : e
+									DasomEditorServer.EthereumContractModel.getContractInfos(path, (contractInfos) => {
+										
+										if (contractInfos === undefined) {
+											SkyDesktop.Alert({
+												msg : '배포하기 전에, 먼저 파일을 저장하여 컴파일을 수행해주시기 바랍니다.'
 											});
-											
-											EACH(contractInfos, (contractInfo, name) => {
+										}
+										
+										if (web3.eth.accounts.length === 0) {
+											SkyDesktop.Alert({
+												msg : '메타마스크가 잠겨있습니다. 메타마스크에 로그인해주시기 바랍니다.'
+											});
+										}
+										
+										else {
+											DELAY(() => {
 												
-												menu.append(SkyDesktop.ContextMenuItem({
-													title : name,
-													icon : IMG({
-														src : DasomEditor.R('icon/contract.png')
-													}),
-													on : {
-														tap : () => {
-															
-															let abi = JSON.parse(contractInfo.interface);
-															
-															// 계약 생성
-															let Contract = web3.eth.contract(abi);
-															
-															let errorTab;
-															let showError = (errorMsg) => {
+												let menu = SkyDesktop.ContextMenu({
+													e : e
+												});
+												
+												EACH(contractInfos, (contractInfo, name) => {
+													
+													menu.append(SkyDesktop.ContextMenuItem({
+														title : name,
+														icon : IMG({
+															src : DasomEditor.R('icon/contract.png')
+														}),
+														on : {
+															tap : () => {
 																
-																SHOW_ERROR('배포 오류', errorMsg);
+																let abi = JSON.parse(contractInfo.interface);
 																
-																if (errorTab === undefined) {
+																// 계약 생성
+																let Contract = web3.eth.contract(abi);
+																
+																let errorTab;
+																let showError = (errorMsg) => {
 																	
-																	DasomEditor.IDE.addTab(errorTab = SkyDesktop.Tab({
-																		style : {
-																			position : 'relative'
-																		},
-																		size : 30,
-																		c : [UUI.ICON_BUTTON({
+																	SHOW_ERROR('배포 오류', errorMsg);
+																	
+																	if (errorTab === undefined) {
+																		
+																		DasomEditor.IDE.addTab(errorTab = SkyDesktop.Tab({
 																			style : {
-																				position : 'absolute',
-																				right : 10,
-																				top : 8,
-																				color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
-																				zIndex : 999
+																				position : 'relative'
 																			},
-																			icon : FontAwesome.GetIcon('times'),
-																			on : {
-																				mouseover : (e, self) => {
-																					self.addStyle({
-																						color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
-																					});
+																			size : 30,
+																			c : [UUI.ICON_BUTTON({
+																				style : {
+																					position : 'absolute',
+																					right : 10,
+																					top : 8,
+																					color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
+																					zIndex : 999
 																				},
-																				mouseout : (e, self) => {
-																					self.addStyle({
-																						color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
-																					});
-																				},
-																				tap : () => {
-																					
-																					errorTab.remove();
-																					errorTab = undefined;
-																					
-																					EVENT.fireAll('resize');
+																				icon : FontAwesome.GetIcon('times'),
+																				on : {
+																					mouseover : (e, self) => {
+																						self.addStyle({
+																							color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
+																						});
+																					},
+																					mouseout : (e, self) => {
+																						self.addStyle({
+																							color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
+																						});
+																					},
+																					tap : () => {
+																						
+																						errorTab.remove();
+																						errorTab = undefined;
+																						
+																						EVENT.fireAll('resize');
+																					}
 																				}
-																			}
-																		}), H2({
-																			style : {
-																				padding : 10
-																			},
-																			c : 'Solidity 계약 배포'
-																		}), P({
+																			}), H2({
+																				style : {
+																					padding : 10
+																				},
+																				c : 'Solidity 계약 배포'
+																			}), P({
+																				style : {
+																					padding : 10,
+																					paddingTop : 0,
+																					color : 'red'
+																				},
+																				c : '배포 오류가 발생했습니다. 오류 메시지: ' + errorMsg
+																			})]
+																		}));
+																	}
+																	
+																	else {
+																		errorTab.append(P({
 																			style : {
 																				padding : 10,
 																				paddingTop : 0,
 																				color : 'red'
 																			},
 																			c : '배포 오류가 발생했습니다. 오류 메시지: ' + errorMsg
-																		})]
-																	}));
-																}
-																
-																else {
-																	errorTab.append(P({
-																		style : {
-																			padding : 10,
-																			paddingTop : 0,
-																			color : 'red'
-																		},
-																		c : '배포 오류가 발생했습니다. 오류 메시지: ' + errorMsg
-																	}));
-																}
-															};
-															
-															NEXT([
-															(next) => {
-																
-																let inputInfos;
-																EACH(abi, (info) => {
-																	if (info.type === 'constructor') {
-																		inputInfos = info.inputs;
-																	}
-																});
-																
-																if (inputInfos === undefined || inputInfos.length === 0) {
-																	next([]);
-																} else {
-																	
-																	// 파라미터 입력
-																	let form;
-																	let inputs = [];
-																	SkyDesktop.Confirm({
-																		okButtonTitle : '배포',
-																		msg : form = UUI.VALID_FORM()
-																	}, () => {
-																		let args = [];
-																		EACH(inputs, (input) => {
-																			args.push(input.getValue());
-																		});
-																		next(args);
-																	});
-																	
-																	EACH(inputInfos, (inputInfo, i) => {
-																		inputs.push(INPUT({
-																			style : {
-																				marginTop : i === 0 ? 0 : 10,
-																				width : 222,
-																				padding : 8,
-																				border : '1px solid #999',
-																				borderRadius : 4
-																			},
-																			placeholder : inputInfo.name + ' (' + inputInfo.type + ')'
-																		}).appendTo(form));
-																	});
-																}
-															},
-															
-															(next) => {
-																return (args) => {
-																	
-																	let getDataArgs = COPY(args);
-																	getDataArgs.push({
-																		data : contractInfo.bytecode
-																	});
-																	
-																	try {
-																		
-																		// 가스 량 계산
-																		web3.eth.estimateGas({
-																			data : Contract.new.getData.apply(Contract.new, getDataArgs)
-																		}, (error, gasEstimate) => {
-																			if (error !== TO_DELETE) {
-																				showError(error.toString());
-																			} else {
-																				next(args, gasEstimate);
-																			}
-																		});
-																		
-																	} catch(error) {
-																		showError(error.toString());
+																		}));
 																	}
 																};
-															},
-															
-															(next) => {
-																return (args, gasEstimate) => {
+																
+																NEXT([
+																(next) => {
 																	
-																	let contractArgs = COPY(args);
-																	
-																	let loadingBar = SkyDesktop.LoadingBar('lime');
-																	
-																	contractArgs.push({
-																		from : web3.eth.accounts[0],
-																		data : contractInfo.bytecode,
-																		gas : gasEstimate
-																	});
-																	
-																	contractArgs.push((error, contract) => {
-																		if (error !== TO_DELETE) {
-																			loadingBar.done();
-																			showError(error.toString());
-																		} else {
-																			
-																			// 배포 완료
-																			if (contract.address !== undefined) {
-																				
-																				// 배포 내역 저장 (abi도 함께 저장합니다.)
-																				DasomEditorServer.EthereumContractModel.create({
-																					path : path,
-																					name : name,
-																					address : contract.address,
-																					abi : abi
-																				}, () => {
-																					
-																					loadingBar.done();
-																					SkyDesktop.Noti('계약을 배포하였습니다.');
-																				});
-																			}
+																	let inputInfos;
+																	EACH(abi, (info) => {
+																		if (info.type === 'constructor') {
+																			inputInfos = info.inputs;
 																		}
 																	});
 																	
-																	Contract.new.apply(Contract, contractArgs);
-																};
-															}]);
-															
-															menu.remove();
+																	if (inputInfos === undefined || inputInfos.length === 0) {
+																		next([]);
+																	} else {
+																		
+																		// 파라미터 입력
+																		let form;
+																		let inputs = [];
+																		SkyDesktop.Confirm({
+																			okButtonTitle : '배포',
+																			msg : form = UUI.VALID_FORM()
+																		}, () => {
+																			let args = [];
+																			EACH(inputs, (input) => {
+																				args.push(input.getValue());
+																			});
+																			next(args);
+																		});
+																		
+																		EACH(inputInfos, (inputInfo, i) => {
+																			inputs.push(INPUT({
+																				style : {
+																					marginTop : i === 0 ? 0 : 10,
+																					width : 222,
+																					padding : 8,
+																					border : '1px solid #999',
+																					borderRadius : 4
+																				},
+																				placeholder : inputInfo.name + ' (' + inputInfo.type + ')'
+																			}).appendTo(form));
+																		});
+																	}
+																},
+																
+																(next) => {
+																	return (args) => {
+																		
+																		let getDataArgs = COPY(args);
+																		getDataArgs.push({
+																			data : contractInfo.bytecode
+																		});
+																		
+																		try {
+																			
+																			// 가스 량 계산
+																			web3.eth.estimateGas({
+																				data : Contract.new.getData.apply(Contract.new, getDataArgs)
+																			}, (error, gasEstimate) => {
+																				if (error !== TO_DELETE) {
+																					showError(error.toString());
+																				} else {
+																					next(args, gasEstimate);
+																				}
+																			});
+																			
+																		} catch(error) {
+																			showError(error.toString());
+																		}
+																	};
+																},
+																
+																(next) => {
+																	return (args, gasEstimate) => {
+																		
+																		let contractArgs = COPY(args);
+																		
+																		let loadingBar = SkyDesktop.LoadingBar('lime');
+																		
+																		contractArgs.push({
+																			from : web3.eth.accounts[0],
+																			data : contractInfo.bytecode,
+																			gas : gasEstimate
+																		});
+																		
+																		contractArgs.push((error, contract) => {
+																			if (error !== TO_DELETE) {
+																				loadingBar.done();
+																				showError(error.toString());
+																			} else {
+																				
+																				// 배포 완료
+																				if (contract.address !== undefined) {
+																					
+																					// 배포 내역 저장 (abi도 함께 저장합니다.)
+																					DasomEditorServer.EthereumContractModel.create({
+																						path : path,
+																						name : name,
+																						address : contract.address,
+																						abi : abi
+																					}, () => {
+																						
+																						loadingBar.done();
+																						SkyDesktop.Noti('계약을 배포하였습니다.');
+																					});
+																				}
+																			}
+																		});
+																		
+																		Contract.new.apply(Contract, contractArgs);
+																	};
+																}]);
+																
+																menu.remove();
+															}
 														}
-													}
-												}));
+													}));
+												});
 											});
-										});
-									}
+										}
+									});
 								}
 							}
 						}));
@@ -501,48 +497,50 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 													
 													DELAY(() => {
 														
-														let contractInfos = contractInfoStore.get(path);
-														if (contractInfos === undefined) {
-															SkyDesktop.Alert({
-																msg : '주소로 계약을 추가하기 전에, 먼저 파일을 저장하여 컴파일을 수행해주시기 바랍니다.'
-															});
-														}
-														
-														else {
+														DasomEditorServer.EthereumContractModel.getContractInfos(path, (contractInfos) => {
 															
-															let menu = SkyDesktop.ContextMenu({
-																e : e
-															});
+															if (contractInfos === undefined) {
+																SkyDesktop.Alert({
+																	msg : '주소로 계약을 추가하기 전에, 먼저 파일을 저장하여 컴파일을 수행해주시기 바랍니다.'
+																});
+															}
 															
-															EACH(contractInfos, (contractInfo, name) => {
+															else {
 																
-																menu.append(SkyDesktop.ContextMenuItem({
-																	title : name,
-																	icon : IMG({
-																		src : DasomEditor.R('icon/contract.png')
-																	}),
-																	on : {
-																		tap : () => {
-																			
-																			SkyDesktop.Prompt({
-																				msg : '주소를 입력해주시기 바랍니다.'
-																			}, (address) => {
+																let menu = SkyDesktop.ContextMenu({
+																	e : e
+																});
+																
+																EACH(contractInfos, (contractInfo, name) => {
+																	
+																	menu.append(SkyDesktop.ContextMenuItem({
+																		title : name,
+																		icon : IMG({
+																			src : DasomEditor.R('icon/contract.png')
+																		}),
+																		on : {
+																			tap : () => {
 																				
-																				DasomEditorServer.EthereumContractModel.create({
-																					path : path,
-																					name : name,
-																					address : address,
-																					abi : JSON.parse(contractInfo.interface)
-																				}, () => {
-																					SkyDesktop.Noti('계약을 추가하였습니다.');
+																				SkyDesktop.Prompt({
+																					msg : '주소를 입력해주시기 바랍니다.'
+																				}, (address) => {
+																					
+																					DasomEditorServer.EthereumContractModel.create({
+																						path : path,
+																						name : name,
+																						address : address,
+																						abi : JSON.parse(contractInfo.interface)
+																					}, () => {
+																						SkyDesktop.Noti('계약을 추가하였습니다.');
+																					});
 																				});
-																			});
-																			
-																			menu.remove();
+																				
+																				menu.remove();
+																			}
 																		}
-																	}
-																}));
-															});
+																	}));
+																});
+															}
 														}
 													});
 												}
