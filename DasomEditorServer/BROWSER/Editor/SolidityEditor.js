@@ -541,7 +541,7 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 																	}));
 																});
 															}
-														}
+														});
 													});
 												}
 											}
