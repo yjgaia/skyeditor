@@ -42,13 +42,15 @@ OVERRIDE(DasomEditorServer.EthereumContractModel, (origin) => {
 					
 					contractInfosDB.create({
 						id : path,
-						contractInfos : contractInfos
+						contractInfosStr : STRINGIFY(contractInfos)
 					});
 				});
 				
 				// 계약의 정보들을 불러옵니다.
 				on('getContractInfos', (path, ret) => {
-					contractInfosDB.get(path, ret);
+					contractInfosDB.get(path, (data) => {
+						ret(PARSE_STR(data.contractInfosStr));
+					});
 				});
 				
 				// 계약의 정보들을 삭제합니다.
