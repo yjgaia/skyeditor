@@ -58,13 +58,14 @@ OVERRIDE(DasomEditorServer.EthereumContractModel, (origin) => {
 			};
 			
 			// 계약의 정보들을 삭제합니다.
-			let removeContractInfos = self.removeContractInfos = (path) => {
+			let removeContractInfos = self.removeContractInfos = (path, callback) => {
 				//REQUIRED: path
+				//REQUIRED: callback
 				
 				room.send({
 					methodName : 'removeContractInfos',
 					data : path
-				});
+				}, callback);
 			};
 		}
 	});
