@@ -479,7 +479,8 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 									DasomEditorServer.EthereumContractModel.find({
 										filter : {
 											path : path
-										}
+										},
+										count : 10
 									}, (contracts) => {
 										
 										let menu = SkyDesktop.ContextMenu({
