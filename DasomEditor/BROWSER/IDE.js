@@ -2874,118 +2874,130 @@ DasomEditor.IDE = OBJECT({
 			gitPushHandler = params.gitPush;
 			gitPullHandler = params.gitPull;
 			
-			self.appendTo(BODY);
-			
-			// 외부 파일을 드래그 앤 드롭 했을 때
-			self.on('drop', (e) => {
-				
-				if (dropTargetInfo !== undefined) {
-					
-					EACH(e.getFiles(), (file) => {
-						
-						let fileName = file.name;
-						
-						let fileReader = new FileReader();
-						fileReader.onload = (e) => {
-							let dataURL = e.target.result;
-							
-							let regex = /^data:.+\/(.+);base64,(.*)$/;
-							
-							let matches = dataURL.match(regex);
-							let ext = matches[1];
-							let data = matches[2];
-							let buffer = new Buffer(data, 'base64');
-							
-							let loadingBar = SkyDesktop.LoadingBar('lime');
-							
-							NEXT([
-							(next) => {
-								
-								// 이미 존재하는가?
-								checkExists({
-									ftpInfo : dropTargetInfo.ftpInfo,
-									path : dropTargetInfo.folderPath + '/' + fileName
-								}, (isExists) => {
-									
-									if (isExists === true) {
-										
-										// 덮어씌울지 물어봅니다.
-										SkyDesktop.Confirm({
-											msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
-										}, {
-											ok : () => {
-												next();
-											},
-											cancel : () => {
-												loadingBar.done();
-											}
-										});
-									}
-									
-									else {
-										next();
-									}
-								});
-							},
-							
-							() => {
-								return () => {
-									
-									save({
-										ftpInfo : dropTargetInfo.ftpInfo,
-										path : dropTargetInfo.folderPath + '/' + fileName,
-										buffer : buffer
-									}, () => {
-										loadingBar.done();
-									});
-									
-									dropTargetInfo = undefined;
-								};
-							}]);
-						};
-						fileReader.readAsDataURL(file);
-					});
-					
-					e.stop();
-				}
+			let loading = UUI.LOADING({
+				style : {
+					fontSize : 30
+				},
+				msg : 'Loading...'
 			});
 			
-			if (editorOpenedInfos.length === 0) {
-				showHomeHandler();
-			} else {
-				
-				NEXT(editorOpenedInfos, (editorOpenedInfo, next) => {
-
-					let path = editorOpenedInfo.path;
-					
-					loadHandler(path,
-
-					// 파일을 찾지 못함
-					() => {
-						editorOpenedStore.remove(path);
-						next();
-					},
-
-					(content) => {
-						
-						let fileName = path.substring(path.lastIndexOf('/') + 1);
-						
-						let editor = openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
-							title : fileName,
-							path : path,
-							content : content
-						}));
-						
-						editor.setScrollTop(editorOpenedInfo.scrollTop);
-						
-						next();
-					});
-				});
-			}
-			
-			// IDE 초기화 완료 후 크기 재설정
 			DELAY(0.1, () => {
-				EVENT.fireAll('resize');
+				
+				self.appendTo(BODY);
+				
+				loading.remove();
+				
+				// 외부 파일을 드래그 앤 드롭 했을 때
+				self.on('drop', (e) => {
+					
+					if (dropTargetInfo !== undefined) {
+						
+						EACH(e.getFiles(), (file) => {
+							
+							let fileName = file.name;
+							
+							let fileReader = new FileReader();
+							fileReader.onload = (e) => {
+								let dataURL = e.target.result;
+								
+								let regex = /^data:.+\/(.+);base64,(.*)$/;
+								
+								let matches = dataURL.match(regex);
+								let ext = matches[1];
+								let data = matches[2];
+								let buffer = new Buffer(data, 'base64');
+								
+								let loadingBar = SkyDesktop.LoadingBar('lime');
+								
+								NEXT([
+								(next) => {
+									
+									// 이미 존재하는가?
+									checkExists({
+										ftpInfo : dropTargetInfo.ftpInfo,
+										path : dropTargetInfo.folderPath + '/' + fileName
+									}, (isExists) => {
+										
+										if (isExists === true) {
+											
+											// 덮어씌울지 물어봅니다.
+											SkyDesktop.Confirm({
+												msg : fileName + '이(가) 존재합니다. 덮어쓰시겠습니까?'
+											}, {
+												ok : () => {
+													next();
+												},
+												cancel : () => {
+													loadingBar.done();
+												}
+											});
+										}
+										
+										else {
+											next();
+										}
+									});
+								},
+								
+								() => {
+									return () => {
+										
+										save({
+											ftpInfo : dropTargetInfo.ftpInfo,
+											path : dropTargetInfo.folderPath + '/' + fileName,
+											buffer : buffer
+										}, () => {
+											loadingBar.done();
+										});
+										
+										dropTargetInfo = undefined;
+									};
+								}]);
+							};
+							fileReader.readAsDataURL(file);
+						});
+						
+						e.stop();
+					}
+				});
+				
+				if (editorOpenedInfos.length === 0) {
+					showHomeHandler();
+				} else {
+					
+					NEXT(editorOpenedInfos, (editorOpenedInfo, next) => {
+	
+						let path = editorOpenedInfo.path;
+						
+						loadHandler(path,
+	
+						// 파일을 찾지 못함
+						() => {
+							editorOpenedStore.remove(path);
+							next();
+						},
+	
+						(content) => {
+							
+							let fileName = path.substring(path.lastIndexOf('/') + 1);
+							
+							let editor = openEditor(getEditor(fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase())({
+								title : fileName,
+								path : path,
+								content : content
+							}));
+							
+							editor.setScrollTop(editorOpenedInfo.scrollTop);
+							
+							next();
+						});
+					});
+				}
+				
+				// IDE 초기화 완료 후 크기 재설정
+				DELAY(0.1, () => {
+					EVENT.fireAll('resize');
+				});
 			});
 		};
 		
