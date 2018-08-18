@@ -2115,6 +2115,7 @@ DasomEditor.IDE = OBJECT({
 					// 작업 폴더에서만 작동
 					if (leftTabGroup.getActiveTabIndex() === 0 && selectedFileItems.length > 0) {
 						search();
+						e.stopDefault();
 					}
 				}
 				
