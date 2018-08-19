@@ -457,6 +457,39 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 																}]);
 																
 																menu.remove();
+															},
+															
+															contextmenu : (e) => {
+																
+																let menu = SkyDesktop.ContextMenu({
+																	e : e
+																});
+																
+																menu.append(SkyDesktop.ContextMenuItem({
+																	title : 'ABI 복사',
+																	on : {
+																		tap : () => {
+																			
+																			let textarea = TEXTAREA({
+																				style : {
+																					position : 'fixed',
+																					left : -999999,
+																					top : -999999
+																				},
+																				value : contractInfo.interface
+																			}).appendTo(BODY);
+																			
+																			textarea.getEl().select();
+																			document.execCommand('copy');
+																			
+																			textarea.remove();
+																			
+																			menu.remove();
+																		}
+																	}
+																}));
+																
+																e.stop();
 															}
 														}
 													}));
