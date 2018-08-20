@@ -25,16 +25,18 @@ DasomEditor.FoundLine = CLASS({
 		//REQUIRED: params.findText
 		//REQUIRED: params.lineNumber
 		//REQUIRED: params.line
+		//OPTIONAL: params.isToCheckCase
 		
 		let path = params.path;
 		let findText = params.findText;
 		let lineNumber = params.lineNumber;
 		let line = params.line;
+		let isToCheckCase = params.isToCheckCase;
 		
 		let titleChildren = [lineNumber, ': '];
 		
-		let lineLowerCase = line.toLowerCase();
-		let findTextLowerCase = findText.toLowerCase();
+		let lineLowerCase = isToCheckCase === true ? line : line.toLowerCase();
+		let findTextLowerCase = isToCheckCase === true ? findText : findText.toLowerCase();
 		
 		while (lineLowerCase.indexOf(findTextLowerCase) !== -1) {
 			

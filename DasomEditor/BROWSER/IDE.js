@@ -2565,8 +2565,21 @@ DasomEditor.IDE = OBJECT({
 		let lastFindText;
 		let search = self.search = () => {
 			
+			let isToCheckCase = false;
 			SkyDesktop.Prompt({
-				msg : '검색할 문자열을 입력해주세요.',
+				msg : ['검색할 문자열을 입력해주세요.', DIV({
+					style : {
+						marginTop : 10
+					},
+					c : UUI.FULL_CHECKBOX({
+						label : '대소문자 구분',
+						on : {
+							change : (e, checkbox) => {
+								isToCheckCase = checkbox.getValue();
+							}
+						}
+					})
+				})],
 				value : lastFindText
 			}, (findText) => {
 				
@@ -2640,7 +2653,7 @@ DasomEditor.IDE = OBJECT({
 										NEXT(foundInfos, [(info, next) => {
 											save({
 												path : info.path,
-												content : info.content.replace(new RegExp(findText.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'), 'g'), changeText),
+												content : info.content.replace(new RegExp(findText.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'), isToCheckCase === true ? 'g' : 'ig'), changeText),
 												isFindAndReplace : true
 											}, () => {
 												next();
@@ -2713,7 +2726,7 @@ DasomEditor.IDE = OBJECT({
 										EACH(content.split('\n'), (line, lineNumber) => {
 											lineNumber += 1;
 											
-											if (line.toLowerCase().indexOf(findText.toLowerCase()) !== -1) {
+											if (isToCheckCase === true ? line.indexOf(findText) !== -1 : line.toLowerCase().indexOf(findText.toLowerCase()) !== -1) {
 												foundLineInfos.push({
 													lineNumber : lineNumber,
 													line : line
@@ -2741,6 +2754,7 @@ DasomEditor.IDE = OBJECT({
 														findText : findText,
 														lineNumber : info.lineNumber,
 														line : info.line.trim(),
+														isToCheckCase : isToCheckCase,
 														on : {
 															doubletap : () => {
 																loadAndOpenEditor(path, (info.lineNumber - 1 - 10) * 17, findText);
