@@ -1,6 +1,6 @@
 DasomEditor.MAIN = METHOD({
 
-	run : (params) => {
+	run : () => {
 		
 		DasomEditor.IDE.addEditor({
 			extname : 'txt',

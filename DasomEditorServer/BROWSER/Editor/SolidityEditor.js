@@ -391,41 +391,13 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 																(next) => {
 																	return (args) => {
 																		
-																		let getDataArgs = COPY(args);
-																		getDataArgs.push({
-																			data : contractInfo.bytecode
-																		});
-																		
-																		try {
-																			
-																			// 가스 량 계산
-																			web3.eth.estimateGas({
-																				data : Contract.new.getData.apply(Contract.new, getDataArgs)
-																			}, (error, gasEstimate) => {
-																				if (error !== TO_DELETE) {
-																					showError(error.toString());
-																				} else {
-																					next(args, gasEstimate);
-																				}
-																			});
-																			
-																		} catch(error) {
-																			showError(error.toString());
-																		}
-																	};
-																},
-																
-																(next) => {
-																	return (args, gasEstimate) => {
-																		
 																		let contractArgs = COPY(args);
 																		
 																		let loadingBar = SkyDesktop.LoadingBar('lime');
 																		
 																		contractArgs.push({
 																			from : web3.eth.accounts[0],
-																			data : contractInfo.bytecode,
-																			gas : gasEstimate
+																			data : contractInfo.bytecode
 																		});
 																		
 																		contractArgs.push((error, contract) => {
