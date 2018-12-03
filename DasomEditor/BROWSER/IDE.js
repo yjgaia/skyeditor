@@ -451,7 +451,7 @@ DasomEditor.IDE = OBJECT({
 					});
 				}));
 				
-				tab.on('remove', () => {
+				tab.on('close', () => {
 					editorOpenedStore.remove(tab.getPath());
 					
 					if (savedLeftTabSize !== undefined && editorGroup.getAllTabs().length === 0) {
