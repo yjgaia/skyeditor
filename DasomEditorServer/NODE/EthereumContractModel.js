@@ -27,7 +27,7 @@ OVERRIDE(DasomEditorServer.EthereumContractModel, (origin) => {
 						sources : {
 							code : code
 						}
-					}, 1, (path) => {
+					}, (path) => {
 						return importCodes === undefined || importCodes[path] === undefined ? {} : {
 							contents : importCodes[path]
 						};
