@@ -31,7 +31,14 @@ OVERRIDE(DasomEditorServer.EthereumContractModel, (origin) => {
 					
 					ret(JSON.parse(Solc.compile(JSON.stringify({
 						language: 'Solidity',
-						sources : sources
+						sources : sources,
+						settings : {
+							outputSelection : {
+								'*' : {
+									'*' : [ '*' ]
+								}
+							}
+						}
 					}), (path) => {
 						return importCodes === undefined || importCodes[path] === undefined ? {} : {
 							contents : importCodes[path]
