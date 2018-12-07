@@ -263,209 +263,209 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 													e : e
 												});
 												
-												EACH(contractInfos, (contractInfo, name) => {
-													
-													menu.append(SkyDesktop.ContextMenuItem({
-														title : name,
-														icon : IMG({
-															src : DasomEditor.R('icon/contract.png')
-														}),
-														on : {
-															tap : () => {
-																
-																let abi = JSON.parse(contractInfo.interface);
-																
-																// 계약 생성
-																let Contract = web3.eth.contract(abi);
-																
-																let errorTab;
-																let showError = (errorMsg) => {
+												EACH(contractInfos, (contractInfos) => {
+													EACH(contractInfos, (contractInfo, name) => {
+														
+														menu.append(SkyDesktop.ContextMenuItem({
+															title : name,
+															icon : IMG({
+																src : DasomEditor.R('icon/contract.png')
+															}),
+															on : {
+																tap : () => {
 																	
-																	SHOW_ERROR('배포 오류', errorMsg);
+																	// 계약 생성
+																	let Contract = web3.eth.contract(contractInfo.abi);
 																	
-																	if (errorTab === undefined) {
+																	let errorTab;
+																	let showError = (errorMsg) => {
 																		
-																		DasomEditor.IDE.addTab(errorTab = SkyDesktop.Tab({
-																			style : {
-																				position : 'relative'
-																			},
-																			size : 30,
-																			c : [UUI.ICON_BUTTON({
+																		SHOW_ERROR('배포 오류', errorMsg);
+																		
+																		if (errorTab === undefined) {
+																			
+																			DasomEditor.IDE.addTab(errorTab = SkyDesktop.Tab({
 																				style : {
-																					position : 'absolute',
-																					right : 10,
-																					top : 8,
-																					color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
-																					zIndex : 999
+																					position : 'relative'
 																				},
-																				icon : FontAwesome.GetIcon('times'),
-																				on : {
-																					mouseover : (e, self) => {
-																						self.addStyle({
-																							color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
-																						});
+																				size : 30,
+																				c : [UUI.ICON_BUTTON({
+																					style : {
+																						position : 'absolute',
+																						right : 10,
+																						top : 8,
+																						color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc',
+																						zIndex : 999
 																					},
-																					mouseout : (e, self) => {
-																						self.addStyle({
-																							color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
-																						});
-																					},
-																					tap : () => {
-																						
-																						errorTab.remove();
-																						errorTab = undefined;
-																						
-																						EVENT.fireAll('resize');
+																					icon : FontAwesome.GetIcon('times'),
+																					on : {
+																						mouseover : (e, self) => {
+																							self.addStyle({
+																								color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#666' : '#999'
+																							});
+																						},
+																						mouseout : (e, self) => {
+																							self.addStyle({
+																								color : BROWSER_CONFIG.SkyDesktop !== undefined && BROWSER_CONFIG.SkyDesktop.theme === 'dark' ? '#444' : '#ccc'
+																							});
+																						},
+																						tap : () => {
+																							
+																							errorTab.remove();
+																							errorTab = undefined;
+																							
+																							EVENT.fireAll('resize');
+																						}
 																					}
-																				}
-																			}), H2({
-																				style : {
-																					padding : 10
-																				},
-																				c : 'Solidity 계약 배포'
-																			}), P({
+																				}), H2({
+																					style : {
+																						padding : 10
+																					},
+																					c : 'Solidity 계약 배포'
+																				}), P({
+																					style : {
+																						padding : 10,
+																						paddingTop : 0,
+																						color : 'red'
+																					},
+																					c : '배포 오류가 발생했습니다. 오류 메시지: ' + errorMsg
+																				})]
+																			}));
+																		}
+																		
+																		else {
+																			errorTab.append(P({
 																				style : {
 																					padding : 10,
 																					paddingTop : 0,
 																					color : 'red'
 																				},
 																				c : '배포 오류가 발생했습니다. 오류 메시지: ' + errorMsg
-																			})]
-																		}));
-																	}
-																	
-																	else {
-																		errorTab.append(P({
-																			style : {
-																				padding : 10,
-																				paddingTop : 0,
-																				color : 'red'
-																			},
-																			c : '배포 오류가 발생했습니다. 오류 메시지: ' + errorMsg
-																		}));
-																	}
-																};
-																
-																NEXT([
-																(next) => {
-																	
-																	let inputInfos;
-																	EACH(abi, (info) => {
-																		if (info.type === 'constructor') {
-																			inputInfos = info.inputs;
+																			}));
 																		}
-																	});
+																	};
 																	
-																	if (inputInfos === undefined || inputInfos.length === 0) {
-																		next([]);
-																	} else {
+																	NEXT([
+																	(next) => {
 																		
-																		// 파라미터 입력
-																		let form;
-																		let inputs = [];
-																		SkyDesktop.Confirm({
-																			okButtonTitle : '배포',
-																			msg : form = UUI.VALID_FORM()
-																		}, () => {
-																			let args = [];
-																			EACH(inputs, (input) => {
-																				args.push(input.getValue());
-																			});
-																			next(args);
-																		});
-																		
-																		EACH(inputInfos, (inputInfo, i) => {
-																			inputs.push(INPUT({
-																				style : {
-																					marginTop : i === 0 ? 0 : 10,
-																					width : 222,
-																					padding : 8,
-																					border : '1px solid #999',
-																					borderRadius : 4
-																				},
-																				placeholder : inputInfo.name + ' (' + inputInfo.type + ')'
-																			}).appendTo(form));
-																		});
-																	}
-																},
-																
-																(next) => {
-																	return (args) => {
-																		
-																		let contractArgs = COPY(args);
-																		
-																		let loadingBar = SkyDesktop.LoadingBar('lime');
-																		
-																		contractArgs.push({
-																			from : web3.eth.accounts[0],
-																			data : contractInfo.bytecode
-																		});
-																		
-																		contractArgs.push((error, contract) => {
-																			if (error !== TO_DELETE) {
-																				loadingBar.done();
-																				showError(error.toString());
-																			} else {
-																				
-																				// 배포 완료
-																				if (contract.address !== undefined) {
-																					
-																					// 배포 내역 저장 (abi도 함께 저장합니다.)
-																					DasomEditorServer.EthereumContractModel.create({
-																						path : path,
-																						name : name,
-																						address : contract.address,
-																						abi : abi
-																					}, () => {
-																						
-																						loadingBar.done();
-																						SkyDesktop.Noti('계약을 배포하였습니다.');
-																					});
-																				}
+																		let inputInfos;
+																		EACH(contractInfo.abi, (info) => {
+																			if (info.type === 'constructor') {
+																				inputInfos = info.inputs;
 																			}
 																		});
 																		
-																		Contract.new.apply(Contract, contractArgs);
-																	};
-																}]);
-																
-																menu.remove();
-															},
-															
-															contextmenu : (e) => {
-																
-																let menu = SkyDesktop.ContextMenu({
-																	e : e
-																});
-																
-																menu.append(SkyDesktop.ContextMenuItem({
-																	title : 'ABI 복사',
-																	on : {
-																		tap : () => {
+																		if (inputInfos === undefined || inputInfos.length === 0) {
+																			next([]);
+																		} else {
 																			
-																			let textarea = TEXTAREA({
-																				style : {
-																					position : 'fixed',
-																					left : -999999,
-																					top : -999999
-																				},
-																				value : contractInfo.interface
-																			}).appendTo(BODY);
+																			// 파라미터 입력
+																			let form;
+																			let inputs = [];
+																			SkyDesktop.Confirm({
+																				okButtonTitle : '배포',
+																				msg : form = UUI.VALID_FORM()
+																			}, () => {
+																				let args = [];
+																				EACH(inputs, (input) => {
+																					args.push(input.getValue());
+																				});
+																				next(args);
+																			});
 																			
-																			textarea.getEl().select();
-																			document.execCommand('copy');
-																			
-																			textarea.remove();
-																			
-																			menu.remove();
+																			EACH(inputInfos, (inputInfo, i) => {
+																				inputs.push(INPUT({
+																					style : {
+																						marginTop : i === 0 ? 0 : 10,
+																						width : 222,
+																						padding : 8,
+																						border : '1px solid #999',
+																						borderRadius : 4
+																					},
+																					placeholder : inputInfo.name + ' (' + inputInfo.type + ')'
+																				}).appendTo(form));
+																			});
 																		}
-																	}
-																}));
+																	},
+																	
+																	(next) => {
+																		return (args) => {
+																			
+																			let contractArgs = COPY(args);
+																			
+																			let loadingBar = SkyDesktop.LoadingBar('lime');
+																			
+																			contractArgs.push({
+																				from : web3.eth.accounts[0],
+																				data : contractInfo.evm.bytecode.object
+																			});
+																			
+																			contractArgs.push((error, contract) => {
+																				if (error !== TO_DELETE) {
+																					loadingBar.done();
+																					showError(error.toString());
+																				} else {
+																					
+																					// 배포 완료
+																					if (contract.address !== undefined) {
+																						
+																						// 배포 내역 저장 (abi도 함께 저장합니다.)
+																						DasomEditorServer.EthereumContractModel.create({
+																							path : path,
+																							name : name,
+																							address : contract.address,
+																							abi : contractInfo.abi
+																						}, () => {
+																							
+																							loadingBar.done();
+																							SkyDesktop.Noti('계약을 배포하였습니다.');
+																						});
+																					}
+																				}
+																			});
+																			
+																			Contract.new.apply(Contract, contractArgs);
+																		};
+																	}]);
+																	
+																	menu.remove();
+																},
 																
-																e.stop();
+																contextmenu : (e) => {
+																	
+																	let menu = SkyDesktop.ContextMenu({
+																		e : e
+																	});
+																	
+																	menu.append(SkyDesktop.ContextMenuItem({
+																		title : 'ABI 복사',
+																		on : {
+																			tap : () => {
+																				
+																				let textarea = TEXTAREA({
+																					style : {
+																						position : 'fixed',
+																						left : -999999,
+																						top : -999999
+																					},
+																					value : contractInfo.abi
+																				}).appendTo(BODY);
+																				
+																				textarea.getEl().select();
+																				document.execCommand('copy');
+																				
+																				textarea.remove();
+																				
+																				menu.remove();
+																			}
+																		}
+																	}));
+																	
+																	e.stop();
+																}
 															}
-														}
-													}));
+														}));
+													});
 												});
 											});
 										}
@@ -519,34 +519,36 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 																	e : e
 																});
 																
-																EACH(contractInfos, (contractInfo, name) => {
-																	
-																	menu.append(SkyDesktop.ContextMenuItem({
-																		title : name,
-																		icon : IMG({
-																			src : DasomEditor.R('icon/contract.png')
-																		}),
-																		on : {
-																			tap : () => {
-																				
-																				SkyDesktop.Prompt({
-																					msg : '주소를 입력해주시기 바랍니다.'
-																				}, (address) => {
+																EACH(contractInfos, (contractInfos) => {
+																	EACH(contractInfos, (contractInfo, name) => {
+																		
+																		menu.append(SkyDesktop.ContextMenuItem({
+																			title : name,
+																			icon : IMG({
+																				src : DasomEditor.R('icon/contract.png')
+																			}),
+																			on : {
+																				tap : () => {
 																					
-																					DasomEditorServer.EthereumContractModel.create({
-																						path : path,
-																						name : name,
-																						address : address,
-																						abi : JSON.parse(contractInfo.interface)
-																					}, () => {
-																						SkyDesktop.Noti('계약을 추가하였습니다.');
+																					SkyDesktop.Prompt({
+																						msg : '주소를 입력해주시기 바랍니다.'
+																					}, (address) => {
+																						
+																						DasomEditorServer.EthereumContractModel.create({
+																							path : path,
+																							name : name,
+																							address : address,
+																							abi : contractInfo.abi
+																						}, () => {
+																							SkyDesktop.Noti('계약을 추가하였습니다.');
+																						});
 																					});
-																				});
-																				
-																				menu.remove();
+																					
+																					menu.remove();
+																				}
 																			}
-																		}
-																	}));
+																		}));
+																	});
 																});
 															}
 														});
