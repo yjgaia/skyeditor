@@ -1,9 +1,0 @@
-{
-	"name": "dasomeditor",
-	"version": "0.0.1",
-	"main": "main.js",
-	"dependencies": {
-		"rimraf": "^2.6.2",
-		"uppercase-boot": "^1.1.0"
-	}
-}
