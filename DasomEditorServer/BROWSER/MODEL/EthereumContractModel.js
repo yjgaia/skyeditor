@@ -10,9 +10,10 @@ OVERRIDE(DasomEditorServer.EthereumContractModel, (origin) => {
 			
 			let room = self.getRoom();
 			
-				// Solidity 코드를 컴파일합니다.
+			// Solidity 코드를 컴파일합니다.
 			let compileSolidityCode = self.compileSolidityCode = (params, handlers) => {
 				//REQUIRED: params
+				//REQUIRED: params.fileName
 				//REQUIRED: params.code
 				//REQUIRED: params.importCodes
 				//REQUIRED: handlers
@@ -27,7 +28,7 @@ OVERRIDE(DasomEditorServer.EthereumContractModel, (origin) => {
 					data : params
 				}, (result) => {
 					if (result.errors !== undefined) {
-						errorHandler(result.errors[0]);
+						errorHandler('\n' + result.errors[0].formattedMessage);
 					} else {
 						callback(result.contracts);
 					}

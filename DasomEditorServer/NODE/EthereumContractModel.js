@@ -20,18 +20,23 @@ OVERRIDE(DasomEditorServer.EthereumContractModel, (origin) => {
 				// Solidity 코드를 컴파일합니다.
 				on('compileSolidityCode', (params, ret) => {
 					
+					let fileName = params.fileName;
 					let code = params.code;
 					let importCodes = params.importCodes;
 					
-					ret(Solc.compile({
-						sources : {
-							code : code
-						}
-					}, (path) => {
+					let sources = {};
+					sources[fileName] = {
+						content : code
+					};
+					
+					ret(JSON.parse(Solc.compile(JSON.stringify({
+						language: 'Solidity',
+						sources : sources
+					}), (path) => {
 						return importCodes === undefined || importCodes[path] === undefined ? {} : {
 							contents : importCodes[path]
 						};
-					}));
+					})));
 				});
 				
 				// 계약의 정보들을 저장합니다.

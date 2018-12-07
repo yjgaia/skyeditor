@@ -136,6 +136,7 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 							DasomEditorServer.EthereumContractModel.removeContractInfos(path, () => {
 								
 								DasomEditorServer.EthereumContractModel.compileSolidityCode({
+									fileName : fileName,
 									code : code,
 									importCodes : importCodes
 								}, {
