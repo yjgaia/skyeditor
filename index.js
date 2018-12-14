@@ -1738,6 +1738,7 @@ RUN(() => {
 						folderOpenedStore.remove(path);
 						
 						fileWatcher.close();
+						fileWatcher = undefined;
 						
 						folder.removeAllItems();
 					}
