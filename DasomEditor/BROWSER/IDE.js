@@ -2686,6 +2686,8 @@ DasomEditor.IDE = OBJECT({
 						
 						let total = 0;
 						
+						let moreButtonKey = '__MORE_BUTTON_' + UUID();
+						
 						RUN((f) => {
 							
 							let count = 0;
@@ -2779,7 +2781,7 @@ DasomEditor.IDE = OBJECT({
 							if (count === 20) {
 								
 								fileTree.addItem({
-									key : '__MORE_BUTTON',
+									key : moreButtonKey,
 									item : DasomEditor.More({
 										title : '더 보기...',
 										on : {
@@ -2792,7 +2794,7 @@ DasomEditor.IDE = OBJECT({
 							}
 							
 							if (total === folderNames.length + fileNames.length) {
-								fileTree.removeItem('__MORE_BUTTON');
+								fileTree.removeItem(moreButtonKey);
 							}
 						});
 					};
