@@ -2,11 +2,7 @@
 [UPPERCASE의 DOM](https://github.com/Hanul/UPPERCASE/blob/master/DOC/GUIDE/UPPERCASE-CORE-BROWSER.md#dom-객체-생성)에 애니메이션을 추가할 수 있도록 하는 BOX입니다.
 
 ## 설치하기
-1. 프로젝트의 `DEPENDENCY` 파일에 `Hanul/UANI`를 추가합니다.
-2. [`ubm`](https://www.npmjs.com/package/ubm)을 이용해 설치합니다.
-    ```
-    ubm install
-    ```
+프로젝트의 `DEPENDENCY` 파일에 `Hanul/UANI`를 추가합니다.
 
 ## FADE_IN
 DOM이 페이드 인 효과와 함께 나타나도록 애니메이션을 추가합니다.
