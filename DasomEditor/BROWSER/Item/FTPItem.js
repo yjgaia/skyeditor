@@ -16,7 +16,8 @@ DasomEditor.FTPItem = CLASS({
 			icon : IMG({
 				src : DasomEditor.R('icon/ftp.png')
 			}),
-			spacing : 5
+			spacing : 5,
+			isToFixWrapperSize : true
 		};
 	},
 	
@@ -133,8 +134,6 @@ DasomEditor.FTPItem = CLASS({
 			
 			list.addItem(params);
 			sortItems();
-			
-			EVENT.fireAll('resize');
 		};
 
 		let getItems = self.getItems = () => {

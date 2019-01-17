@@ -14,7 +14,8 @@ DasomEditor.HistoryItem = CLASS({
 			icon : IMG({
 				src : DasomEditor.R('icon/calendar.png')
 			}),
-			spacing : 5
+			spacing : 5,
+			isToFixWrapperSize : true
 		};
 	},
 	

@@ -15,7 +15,8 @@ DasomEditor.FoundLine = CLASS({
 			icon : IMG({
 				src : DasomEditor.R('icon/found-line.png')
 			}),
-			spacing : 5
+			spacing : 5,
+			isToFixWrapperSize : true
 		};
 	},
 	

@@ -104,8 +104,6 @@ DasomEditor.FoundFile = CLASS({
 			//REQUIRED: params.item
 			
 			list.addItem(params);
-			
-			EVENT.fireAll('resize');
 		};
 
 		if (params !== undefined && params.items !== undefined) {
