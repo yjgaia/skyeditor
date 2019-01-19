@@ -361,6 +361,9 @@ DasomEditor.FileContextMenu = CLASS({
 										},
 										tap : () => {
 											tab.remove();
+											
+											// Ace Editor 크기 Fix
+											EVENT.fireAll('resize');
 										}
 									}
 								}), historyList = DIV()],

@@ -556,14 +556,6 @@ DasomEditor.IDE = OBJECT({
 									}
 								}
 							}), SkyDesktop.Tab({
-                                style : {
-                                    onDisplayResize : () => {
-                                        return leftTab !== undefined ? {
-                                            width : leftTab.getWidth() - 1,
-                                            overflowX : 'auto'
-                                        } : {};
-                                    }
-                                },
 								isCannotClose : true,
 								icon : IMG({
 									src : DasomEditor.R('icon/ftp.png')
@@ -789,6 +781,9 @@ DasomEditor.IDE = OBJECT({
 							})]
 						})
 					}), SkyDesktop.Tab({
+						style : {
+							overflow : 'hidden'
+						},
 						size : 77,
 						c : tabList = SkyDesktop.VerticalTabList({
 							tabs : [SkyDesktop.Tab({
@@ -815,15 +810,6 @@ DasomEditor.IDE = OBJECT({
 				})
 			})
 		}));
-		
-		EVENT('resize', () => {
-			DELAY(() => {
-				fileTreeTab.addStyle({
-					width : leftTab.getWidth() - 1,
-					overflowX : 'auto'
-				});
-			});
-		});
 		
 		let addItem = self.addItem = (params) => {
 			//REQUIRED: params
@@ -2098,6 +2084,9 @@ DasomEditor.IDE = OBJECT({
 					else if (editorGroup.getActiveTab() !== undefined && editorGroup.getActiveTab().fireEvent('close') !== false) {
 						editorGroup.getActiveTab().remove();
 					}
+					
+					// Ace Editor 크기 Fix
+					EVENT.fireAll('resize');
 				}
 				
 				// 현재 탭 저장
@@ -2619,6 +2608,8 @@ DasomEditor.IDE = OBJECT({
 								},
 								tap : () => {
 									tab.remove();
+									
+									// Ace Editor 크기 Fix
 									EVENT.fireAll('resize');
 								}
 							}
@@ -2666,6 +2657,9 @@ DasomEditor.IDE = OBJECT({
 										}]);
 										
 										tab.remove();
+										
+										// Ace Editor 크기 Fix
+										EVENT.fireAll('resize');
 									});
 								}
 							}
@@ -3010,11 +3004,6 @@ DasomEditor.IDE = OBJECT({
 						});
 					});
 				}
-				
-				// IDE 초기화 완료 후 크기 재설정
-				DELAY(0.1, () => {
-					EVENT.fireAll('resize');
-				});
 			});
 		};
 		
