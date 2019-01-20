@@ -546,6 +546,10 @@ DasomEditor.IDE = OBJECT({
 						on : {
 							settowidth : () => {
 								
+								leftTab.addStyle({
+									width : leftTab.getToWidth()
+								});
+								
 								fileTreeTab.addStyle({
 									width : leftTab.getToWidth()
 								});
