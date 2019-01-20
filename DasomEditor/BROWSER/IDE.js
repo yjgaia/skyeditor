@@ -533,6 +533,7 @@ DasomEditor.IDE = OBJECT({
 		let leftTabGroup;
 		let savedLeftTabSize;
 		let fileTreeTab;
+		let ftpTreeTab;
 		let editorGroup;
 		table.append(TR({
 			c : TD({
@@ -541,13 +542,15 @@ DasomEditor.IDE = OBJECT({
 				},
 				c : SkyDesktop.HorizontalTabList({
 					tabs : [leftTab = SkyDesktop.Tab({
-						style : {
-							overflow : 'scroll'
-						},
 						size : 23,
 						on : {
 							settowidth : () => {
-								leftTab.addStyle({
+								
+								fileTreeTab.addStyle({
+									width : leftTab.getToWidth()
+								});
+								
+								ftpTreeTab.addStyle({
 									width : leftTab.getToWidth()
 								});
 							}
@@ -555,6 +558,9 @@ DasomEditor.IDE = OBJECT({
 						c : leftTabGroup = SkyDesktop.TabGroup({
 							activeTabIndex : 0,
 							tabs : [fileTreeTab = SkyDesktop.Tab({
+								style : {
+									overflow : 'scroll'
+								},
 								isCannotClose : true,
 								icon : IMG({
 									src : DasomEditor.R('icon/workspace.png')
@@ -572,7 +578,10 @@ DasomEditor.IDE = OBJECT({
 										e.stop();
 									}
 								}
-							}), SkyDesktop.Tab({
+							}), ftpTreeTab = SkyDesktop.Tab({
+								style : {
+									overflow : 'scroll'
+								},
 								isCannotClose : true,
 								icon : IMG({
 									src : DasomEditor.R('icon/ftp.png')
