@@ -1,7 +1,7 @@
 DasomEditor.IDE = OBJECT({
 	
 	preset : () => {
-		return TABLE;
+		return DIV;
 	},
 	
 	params : () => {
@@ -10,7 +10,8 @@ DasomEditor.IDE = OBJECT({
 			style : {
 				position : 'absolute',
 				width : '100%',
-				height : '100%'
+				height : '100%',
+				overflow : 'hidden'
 			}
 		};
 	},
@@ -70,6 +71,12 @@ DasomEditor.IDE = OBJECT({
 		// 드래그 앤 드롭 폴더 정보
 		let dropTargetInfo;
 		
+		let table = TABLE({
+			style : {
+				height : '100%'
+			}
+		}).appendTo(self);
+		
 		let addEditor = self.addEditor = (params) => {
 			//REQUIRED: params
 			//REQUIRED: params.extname
@@ -111,7 +118,7 @@ DasomEditor.IDE = OBJECT({
 		};
 		
 		let toolbar;
-		self.append(TR({
+		table.append(TR({
 			c : TD({
 				style : {
 					height : 28
@@ -527,14 +534,24 @@ DasomEditor.IDE = OBJECT({
 		let savedLeftTabSize;
 		let fileTreeTab;
 		let editorGroup;
-		self.append(TR({
+		table.append(TR({
 			c : TD({
 				style : {
 					height : '100%'
 				},
 				c : SkyDesktop.HorizontalTabList({
 					tabs : [leftTab = SkyDesktop.Tab({
+						style : {
+							overflow : 'scroll'
+						},
 						size : 23,
+						on : {
+							settowidth : () => {
+								leftTab.addStyle({
+									width : leftTab.getToWidth()
+								});
+							}
+						},
 						c : leftTabGroup = SkyDesktop.TabGroup({
 							activeTabIndex : 0,
 							tabs : [fileTreeTab = SkyDesktop.Tab({
