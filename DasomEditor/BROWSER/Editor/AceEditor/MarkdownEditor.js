@@ -46,7 +46,8 @@ DasomEditor.MarkdownEditor = CLASS((cls) => {
 					backgroundColor : '#fff',
 					color : '#000',
 					height : '100%',
-					overflow : 'scroll',
+					overflowX : 'auto',
+					overflowY : 'scroll',
 					onDisplayResize : () => {
 						return {
 							width : editor.getWidth() - 1,
