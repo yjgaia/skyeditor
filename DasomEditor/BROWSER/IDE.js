@@ -542,6 +542,9 @@ DasomEditor.IDE = OBJECT({
 				},
 				c : SkyDesktop.HorizontalTabList({
 					tabs : [leftTab = SkyDesktop.Tab({
+						style : {
+							overflow : 'hidden'
+						},
 						size : 23,
 						on : {
 							settowidth : () => {
@@ -563,7 +566,7 @@ DasomEditor.IDE = OBJECT({
 							activeTabIndex : 0,
 							tabs : [fileTreeTab = SkyDesktop.Tab({
 								style : {
-									overflow : 'scroll'
+									overflow : 'auto'
 								},
 								isCannotClose : true,
 								icon : IMG({
@@ -584,7 +587,7 @@ DasomEditor.IDE = OBJECT({
 								}
 							}), ftpTreeTab = SkyDesktop.Tab({
 								style : {
-									overflow : 'scroll'
+									overflow : 'auto'
 								},
 								isCannotClose : true,
 								icon : IMG({
