@@ -908,10 +908,6 @@ DasomEditor.IDE = OBJECT({
 			fileTree.removeItem(key);
 		};
 		
-		let getFileTreeTap = self.getFileTreeTap = () => {
-			return fileTreeTab;
-		};
-		
 		let clearFileTree = self.clearFileTree = () => {
 			fileTree.removeAllItems();
 		};
