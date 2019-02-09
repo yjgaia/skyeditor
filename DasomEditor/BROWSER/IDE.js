@@ -565,9 +565,6 @@ DasomEditor.IDE = OBJECT({
 						c : leftTabGroup = SkyDesktop.TabGroup({
 							activeTabIndex : 0,
 							tabs : [fileTreeTab = SkyDesktop.Tab({
-								style : {
-									overflow : 'auto'
-								},
 								isCannotClose : true,
 								icon : IMG({
 									src : DasomEditor.R('icon/workspace.png')
@@ -586,9 +583,6 @@ DasomEditor.IDE = OBJECT({
 									}
 								}
 							}), ftpTreeTab = SkyDesktop.Tab({
-								style : {
-									overflow : 'auto'
-								},
 								isCannotClose : true,
 								icon : IMG({
 									src : DasomEditor.R('icon/ftp.png')
@@ -912,6 +906,10 @@ DasomEditor.IDE = OBJECT({
 			//REQUIRED: key
 			
 			fileTree.removeItem(key);
+		};
+		
+		let getFileTreeTap = self.getFileTreeTap = () => {
+			return fileTreeTab;
 		};
 		
 		let clearFileTree = self.clearFileTree = () => {
