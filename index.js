@@ -1690,6 +1690,8 @@ RUN(() => {
 						// 파일 혹은 폴더 제거
 						else {
 							
+							let originScrollTop = DasomEditor.IDE.getFileTreeTab().getScrollTop();
+							
 							folderOpenedStore.remove(path + '/' + fileName);
 							
 							removeItem(path + '/' + fileName);
@@ -1698,6 +1700,21 @@ RUN(() => {
 							if (opendEditor !== undefined) {
 								opendEditor.remove();
 							}
+							
+							let count = 0;
+							let onScroll = () => {
+								
+								DasomEditor.IDE.getFileTreeTab().scrollTo({
+									top : originScrollTop
+								});
+								
+								count += 1;
+								if (count === 3) {
+									DasomEditor.IDE.getFileTreeTab().off('scroll', onScroll);
+								}
+							};
+							
+							DasomEditor.IDE.getFileTreeTab().on('scroll', onScroll);
 						}
 					});
 				}

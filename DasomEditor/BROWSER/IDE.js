@@ -838,6 +838,10 @@ DasomEditor.IDE = OBJECT({
 			})
 		}));
 		
+		let getFileTreeTab = self.getFileTreeTab = () => {
+			return fileTreeTab;
+		};
+		
 		let addItem = self.addItem = (params) => {
 			//REQUIRED: params
 			//REQUIRED: params.key
