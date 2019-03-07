@@ -2720,9 +2720,12 @@ DasomEditor.IDE = OBJECT({
 							while (total < folderNames.length) {
 								let folderName = folderNames[total];
 								
-								loadFiles(folderPath + '/' + folderName, (folderNames, fileNames) => {
-									search(folderPath + '/' + folderName, folderNames, fileNames)
-								});
+								if (folderName !== 'node_modules') {
+									
+									loadFiles(folderPath + '/' + folderName, (folderNames, fileNames) => {
+										search(folderPath + '/' + folderName, folderNames, fileNames)
+									});
+								}
 								
 								total += 1;
 								
