@@ -8,6 +8,12 @@ DasomEditor.HomeTab = CLASS((cls) => {
 		}
 	};
 	
+	global.addEventListener('message', (event) => {
+		if (event.data === '__CLOSE_HOME_TAB') {
+			remove();
+		}
+	}, false);
+	
 	return {
 	
 		preset : () => {
@@ -38,18 +44,7 @@ DasomEditor.HomeTab = CLASS((cls) => {
 						width : '100%',
 						height : '100%'
 					},
-					src : src,
-					on : {
-						load : (e, iframe) => {
-							try {
-								if (iframe.getEl().contentWindow.location.href === 'about:blank') {
-									self.remove();
-								}
-							} catch(e) {
-								// ignore.
-							}
-						}
-					}
+					src : src
 				})
 			}));
 			
