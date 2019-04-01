@@ -16,6 +16,7 @@ DasomEditor.AceEditor = CLASS({
 			content = undefined;
 			
 			DELAY(() => {
+				DasomEditor.IDE.getEditorOpenedStore().remove(self.getPath());
 				self.remove();
 			});
 			
