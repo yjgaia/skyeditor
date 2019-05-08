@@ -1,6 +1,8 @@
 # Dasom Editor
 JavaScript로 만들어진 소스코드 에디터입니다.
 
+***Electron 4.2.0에서 사용 가능합니다.***
+
 ## 기능들
 - FTP 기능
 - Git 기능
