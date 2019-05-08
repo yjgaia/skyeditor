@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge, chrome=1">
+		<link rel="stylesheet" media="screen" href="handsontable.full.min.css">
+		<style>
+			html, body {
+				margin: 0;
+				font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif;
+				font-size: 12px;
+			}
+		</style>
+	</head>
+	<body>
+		<script src="handsontable.full.min.js"></script>
+		<script src="BROWSER.js"></script>
+		<script>
+			'use strict';
+			
+			INIT_OBJECTS();
+			
+			let isControlMode;
+			let searchForm;
+			
+			EVENT('keydown', (e) => {
+				
+				if (isControlMode === true) {
+					
+					let key = e.getKey().toLowerCase();
+					
+					// 현재 탭 종료
+					if (key === 'w' || key === 'q') {
+						location.href = 'about:blank';
+					}
+					
+					// 데이터 저장
+					if (key === 's') {
+						window.save();
+						e.stopDefault();
+					}
+					
+					// 검색
+					if (key === 'f') {
+						
+						let input;
+						searchForm = FORM({
+							style : {
+								position : 'fixed',
+								right : 0,
+								top : 0,
+								zIndex : 999999,
+								padding : 5,
+								borderRadius : 3,
+								backgroundColor : '#eee'
+							},
+							c : input = INPUT({
+								style : {
+									width : 300
+								},
+								name : 'query',
+								placeholder : '검색할 문자열을 입력해주세요.'
+							}),
+							on : {
+								keyup : () => {
+									hot.getPlugin('search').query(input.getValue());
+									hot.render();
+								}
+							}
+						}).appendTo(BODY);
+						
+						hot.deselectCell();
+						input.focus();
+					}
+				}
+				
+				if (e.getKey() === 'Control') {
+					isControlMode = true;
+				}
+				
+				if (e.getKey() === 'Escape') {
+					searchForm.remove();
+					searchForm = undefined;
+				}
+			});
+			
+			EVENT('keyup', (e) => {
+				if (e.getKey() === 'Control') {
+					isControlMode = false;
+				}
+			});
+		</script>
+		<script>
+			global.hot = new Handsontable(document.body, {
+				minRows : 1000,
+				minCols : 20,
+				rowHeaders : true,
+				colHeaders : true,
+				colWidths : 280,
+				manualColumnResize : true,
+				manualRowResize : true,
+				search : true
+			});
+			
+			window.loadData = (data) => {
+				hot.loadData(data);
+			};
+			
+			window.getData = (data) => {
+				return hot.getData();
+			};
+			
+			window.fixScroll = () => {
+				let cell = hot.getSelectedLast();
+				let row;
+				let col;
+				if (cell === undefined) {
+					row = 0;
+					col = 0;
+				} else {
+					row = cell[0] + 1;
+					col = cell[1];
+				}
+				hot.scrollViewportTo(row, col, true, true);
+			};
+		</script>
+	</body>
+</html>
