@@ -864,7 +864,10 @@ DasomEditor.IDE = OBJECT({
 				
 				let loadingBar = SkyDesktop.LoadingBar('lime');
 				
-				ftpConnectHandler(ftpInfo, () => {
+				ftpConnectHandler(ftpInfo, (error) => {
+					
+					console.log(error);
+					
 					loadingBar.done();
 					SkyDesktop.Alert({
 						msg : ftpInfo.title + ' 접속에 실패하였습니다.'
