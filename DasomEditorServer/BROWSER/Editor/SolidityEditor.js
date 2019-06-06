@@ -413,7 +413,7 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 																						DasomEditorServer.EthereumContractModel.create({
 																							path : path,
 																							name : name,
-																							address : contract.address,
+																							address : web3.toChecksumAddress(contract.address),
 																							abi : contractInfo.abi
 																						}, () => {
 																							
@@ -537,7 +537,7 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 																						DasomEditorServer.EthereumContractModel.create({
 																							path : path,
 																							name : name,
-																							address : address,
+																							address : web3.toChecksumAddress(address),
 																							abi : contractInfo.abi
 																						}, () => {
 																							SkyDesktop.Noti('계약을 추가하였습니다.');
@@ -560,7 +560,7 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 										EACH(contracts, (contractInfo) => {
 											
 											menu.append(SkyDesktop.ContextMenuItem({
-												title : contractInfo.address + ' (' + contractInfo.name + ')',
+												title : web3.toChecksumAddress(contractInfo.address) + ' (' + contractInfo.name + ')',
 												icon : IMG({
 													src : DasomEditor.R('icon/contract.png')
 												}),
@@ -780,7 +780,7 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 																			left : -999999,
 																			top : -999999
 																		},
-																		value : contractInfo.address
+																		value : web3.toChecksumAddress(contractInfo.address)
 																	}).appendTo(BODY);
 																	
 																	textarea.getEl().select();
