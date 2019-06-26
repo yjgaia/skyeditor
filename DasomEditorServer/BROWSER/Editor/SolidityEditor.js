@@ -251,9 +251,7 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 										}
 										
 										if (web3.eth.accounts.length === 0) {
-											SkyDesktop.Alert({
-												msg : '메타마스크가 잠겨있습니다. 메타마스크에 로그인해주시기 바랍니다.'
-											});
+											ethereum.enable();
 										}
 										
 										else {
