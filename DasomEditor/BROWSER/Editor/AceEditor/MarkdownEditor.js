@@ -19,7 +19,10 @@ DasomEditor.MarkdownEditor = CLASS((cls) => {
 		params : () => {
 			return {
 				mode : 'markdown',
-				icon : getIcon()
+				icon : getIcon(),
+				style : {
+					backgroundColor : '#fff'
+				}
 			};
 		},
 		
@@ -42,15 +45,14 @@ DasomEditor.MarkdownEditor = CLASS((cls) => {
 			
 			self.append(_editor = DIV({
 				style : {
-					flt : 'left',
-					backgroundColor : '#fff',
+					flt : 'right',
 					color : '#000',
 					height : '100%',
 					overflowX : 'auto',
 					overflowY : 'scroll',
 					onDisplayResize : () => {
 						return {
-							width : editor.getWidth() - 1,
+							width : editor.getWidth() - 9,
 							height : editor.getHeight()
 						};
 					}
@@ -65,7 +67,7 @@ DasomEditor.MarkdownEditor = CLASS((cls) => {
 			
 			self.on('active', () => {
 				_editor.addStyle({
-					width : editor.getWidth() - 1
+					width : editor.getWidth() - 9
 				});
 			});
 			
