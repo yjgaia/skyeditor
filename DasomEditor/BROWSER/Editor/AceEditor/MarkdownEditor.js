@@ -52,7 +52,7 @@ DasomEditor.MarkdownEditor = CLASS((cls) => {
 					overflowY : 'scroll',
 					onDisplayResize : () => {
 						return {
-							width : editor.getWidth() - 9,
+							width : editor.getWidth() - 10,
 							height : editor.getHeight()
 						};
 					}
@@ -67,7 +67,7 @@ DasomEditor.MarkdownEditor = CLASS((cls) => {
 			
 			self.on('active', () => {
 				_editor.addStyle({
-					width : editor.getWidth() - 9
+					width : editor.getWidth() - 10
 				});
 			});
 			
