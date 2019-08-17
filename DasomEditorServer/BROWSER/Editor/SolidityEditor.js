@@ -446,7 +446,7 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 																						left : -999999,
 																						top : -999999
 																					},
-																					value : contractInfo.abi
+																					value : JSON.stringify(contractInfo.abi)
 																				}).appendTo(BODY);
 																				
 																				textarea.getEl().select();
