@@ -652,6 +652,8 @@ DasomEditorServer.SolidityEditor = CLASS((cls) => {
 																				EACH(inputList.getChildren(), (input) => {
 																					if (input.getName() === '__ETHER') {
 																						ether = web3.toWei(input.getValue(), 'ether');
+																					} else if (input.getValue()[0] === '[') {
+																						args.push(JSON.parse(input.getValue()));
 																					} else {
 																						args.push(input.getValue());
 																					}
