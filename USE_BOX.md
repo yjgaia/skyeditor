@@ -1,9 +1,9 @@
-# Dasom Editor를 [BOX](https://github.com/Hanul/UPPERCASE/blob/master/DOC/GUIDE/BOX.md)로 사용하기
+# Sky Editor를 [BOX](https://github.com/Hanul/UPPERCASE/blob/master/DOC/GUIDE/BOX.md)로 사용하기
 
-`DEPENDENCY` 파일에 `Hanul/DasomEditor`를 추가합니다.
+`DEPENDENCY` 파일에 `Hanul/SkyEditor`를 추가합니다.
 
 ```
-DasomEditor.IDE.init({
+SkyEditor.IDE.init({
 	
 	// 홈 화면 띄우기
 	showHome : () => {

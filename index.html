@@ -4,20 +4,20 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 		<meta http-equiv="X-UA-Compatible" content="IE=Edge, chrome=1">
-		<link rel="shortcut icon" href="DasomEditor/R/favicon.ico" />
+		<link rel="shortcut icon" href="SkyEditor/R/favicon.ico" />
 		<link rel="stylesheet" type="text/css" href="BASE_STYLE.css" />
 		<link rel="stylesheet" type="text/css" href="BOX/FontAwesome/R/css/font-awesome.min.css" />
-		<link rel="stylesheet" type="text/css" href="DasomEditor/R/css/ace-diff-style.css" />
-		<link rel="stylesheet" type="text/css" href="DasomEditor/R/css/github-markdown.css" />
-		<link rel="stylesheet" type="text/css" href="DasomEditor/R/css/github-highlight.css" />
+		<link rel="stylesheet" type="text/css" href="SkyEditor/R/css/ace-diff-style.css" />
+		<link rel="stylesheet" type="text/css" href="SkyEditor/R/css/github-markdown.css" />
+		<link rel="stylesheet" type="text/css" href="SkyEditor/R/css/github-highlight.css" />
 	</head>
 	<body>
 	    <noscript>
             <p style="padding:15px;">JavaScript is disabled. Please enable JavaScript in your browser.</p>
         </noscript>
-		<script src="DasomEditor/R/js/ace/ace.js"></script>
-		<script src="DasomEditor/R/js/ace-diff.js"></script>
-		<script src="DasomEditor/R/js/diff_match_patch.js"></script>
+		<script src="SkyEditor/R/js/ace/ace.js"></script>
+		<script src="SkyEditor/R/js/ace-diff.js"></script>
+		<script src="SkyEditor/R/js/diff_match_patch.js"></script>
 		<script>
 			'use strict';
 			
@@ -29,14 +29,14 @@
 			require('./node_modules/uppercase-boot/BROWSER.js');
 			
 			global.CONFIG = {
-				defaultBoxName : 'DasomEditor'
+				defaultBoxName : 'SkyEditor'
 			};
 			
 			global.BROWSER_CONFIG = {
 				SkyDesktop : {
 					theme : 'dark'
 				},
-				DasomEditor : {
+				SkyEditor : {
 					isApp : true
 				}
 			};
@@ -98,7 +98,7 @@
 				FOR_BOX((box) => {
 
 					// 서버 모드는 불러오지 않습니다.
-					if (box !== DasomEditorServer) {
+					if (box !== SkyEditorServer) {
 
 						let boxRootPath = CHECK_IS_IN({
 							array : INIT_BOXES.getBoxNamesInBOXFolder(),
@@ -147,11 +147,11 @@
 				require('./BOX/UFTP/NODE.js');
 				require('./BOX/UGIT/NODE.js');
 				
-				require('./DasomEditor/NODE/FTPConnector.js');
+				require('./SkyEditor/NODE/FTPConnector.js');
 				
 				INIT_OBJECTS();
 				
-				DasomEditor.MAIN();
+				SkyEditor.MAIN();
 				
 				require('./index.js');
 			});

@@ -48,11 +48,11 @@ RUN(() => {
 	
 	let clipboardPathInfos = [];
 	
-	DasomEditor.IDE.init({
+	SkyEditor.IDE.init({
 		
 		// 홈 화면 띄우기
 		showHome : () => {
-			DasomEditor.IDE.openEditor(DasomEditor.HomeTab(config.homepage + '?version=' + config.version));
+			SkyEditor.IDE.openEditor(SkyEditor.HomeTab(config.homepage + '?version=' + config.version));
 		},
 		
 		// 파일 목록을 불러옵니다.
@@ -188,7 +188,7 @@ RUN(() => {
 									
 									let folderPath = path.substring(0, path.lastIndexOf('/'));
 									
-									let workspacePath = DasomEditor.IDE.getWorkspacePath();
+									let workspacePath = SkyEditor.IDE.getWorkspacePath();
 									
 									let projectFolderPath = folderPath.substring(workspacePath.length + 1);
 									projectFolderPath = workspacePath + '/' + projectFolderPath.substring(0, projectFolderPath.indexOf('/'));
@@ -218,7 +218,7 @@ RUN(() => {
 												
 												if (errorTab === undefined) {
 													
-													DasomEditor.IDE.addTab(errorTab = SkyDesktop.Tab({
+													SkyEditor.IDE.addTab(errorTab = SkyDesktop.Tab({
 														style : {
 															position : 'relative'
 														},
@@ -423,7 +423,7 @@ RUN(() => {
 			let ftpConnector = ftpConnectors[ftpInfo.host];
 			
 			if (ftpConnector === undefined) {
-				ftpConnector = ftpConnectors[ftpInfo.host] = DasomEditor.FTPConnector(ftpInfo, {
+				ftpConnector = ftpConnectors[ftpInfo.host] = SkyEditor.FTPConnector(ftpInfo, {
 					error : errorHandler,
 					success : callback
 				});
@@ -1353,9 +1353,9 @@ RUN(() => {
 	});
 	
 	// 탐색기에서 보기 메뉴 추가
-	OVERRIDE(DasomEditor.FileContextMenu, (origin) => {
+	OVERRIDE(SkyEditor.FileContextMenu, (origin) => {
 		
-		DasomEditor.FileContextMenu = CLASS({
+		SkyEditor.FileContextMenu = CLASS({
 			
 			preset : () => {
 				return origin;
@@ -1372,7 +1372,7 @@ RUN(() => {
 				self.append(SkyDesktop.ContextMenuItem({
 					title : '탐색기에서 보기',
 					icon : IMG({
-						src : DasomEditor.R('icon/explorer.png')
+						src : SkyEditor.R('icon/explorer.png')
 					}),
 					on : {
 						tap : () => {
@@ -1388,9 +1388,9 @@ RUN(() => {
 	});
 	
 	// 저장 시 명령 메뉴 추가
-	DasomEditor.IDE.addToolbarButton(SkyDesktop.ToolbarButton({
+	SkyEditor.IDE.addToolbarButton(SkyDesktop.ToolbarButton({
 		icon : IMG({
-			src : DasomEditor.R('icon/command.png')
+			src : SkyEditor.R('icon/command.png')
 		}),
 		title : '저장 시 명령',
 		on : {
@@ -1533,9 +1533,9 @@ RUN(() => {
 	}));
 	
 	// 워크스페이스 폴더 지정 메뉴 추가
-	DasomEditor.IDE.addToolbarButton(SkyDesktop.ToolbarButton({
+	SkyEditor.IDE.addToolbarButton(SkyDesktop.ToolbarButton({
 		icon : IMG({
-			src : DasomEditor.R('icon/workspace.png')
+			src : SkyEditor.R('icon/workspace.png')
 		}),
 		title : '작업 폴더 지정',
 		on : {
@@ -1575,11 +1575,11 @@ RUN(() => {
 							value : workspacePath
 						});
 						
-						DasomEditor.IDE.setWorkspacePath(workspacePath);
+						SkyEditor.IDE.setWorkspacePath(workspacePath);
 						
-						DasomEditor.IDE.closeAllEditors();
+						SkyEditor.IDE.closeAllEditors();
 						
-						DasomEditor.IDE.getEditorOpenedStore().clear();
+						SkyEditor.IDE.getEditorOpenedStore().clear();
 						
 						loadWorkspaceFiles();
 					}
@@ -1592,9 +1592,9 @@ RUN(() => {
 	}));
 	
 	// 개발자 도구 메뉴 추가
-	DasomEditor.IDE.addToolbarButton(SkyDesktop.ToolbarButton({
+	SkyEditor.IDE.addToolbarButton(SkyDesktop.ToolbarButton({
 		icon : IMG({
-			src : DasomEditor.R('icon/devtool.png')
+			src : SkyEditor.R('icon/devtool.png')
 		}),
 		title : '개발자 도구',
 		on : {
@@ -1612,7 +1612,7 @@ RUN(() => {
 			let reader = new FileReader();
 			reader.onload = (e) => {
 				
-				DasomEditor.IDE.openEditor(DasomEditor.IDE.getEditor(file.name.substring(file.name.lastIndexOf('.') + 1).toLowerCase())({
+				SkyEditor.IDE.openEditor(SkyEditor.IDE.getEditor(file.name.substring(file.name.lastIndexOf('.') + 1).toLowerCase())({
 					title : file.name,
 					path : fixPath(file.path),
 					content : e.target.result
@@ -1629,7 +1629,7 @@ RUN(() => {
 	// 워크스페이스 파일들을 불러옵니다.
 	let loadWorkspaceFiles = RAR(() => {
 		
-		DasomEditor.IDE.clearFileTree();
+		SkyEditor.IDE.clearFileTree();
 		
 		// 파일 변경을 감지하는 와처를 생성합니다.
 		let createFileWatcher = (path, addItem, removeItem) => {
@@ -1652,18 +1652,18 @@ RUN(() => {
 									if (path === workspacePath) {
 										
 										folderItem.setIcon(IMG({
-											src : DasomEditor.R('icon/project.png')
+											src : SkyEditor.R('icon/project.png')
 										}));
 										
 										folderItem.on('open', () => {
 											folderItem.setIcon(IMG({
-												src : DasomEditor.R('icon/project-opened.png')
+												src : SkyEditor.R('icon/project-opened.png')
 											}));
 										});
 										
 										folderItem.on('close', () => {
 											folderItem.setIcon(IMG({
-												src : DasomEditor.R('icon/project.png')
+												src : SkyEditor.R('icon/project.png')
 											}));
 										});
 									}
@@ -1678,7 +1678,7 @@ RUN(() => {
 								else {
 									addItem({
 										key : path + '/' + fileName,
-										item : DasomEditor.File({
+										item : SkyEditor.File({
 											path : path + '/' + fileName,
 											title : fileName
 										})
@@ -1690,13 +1690,13 @@ RUN(() => {
 						// 파일 혹은 폴더 제거
 						else {
 							
-							let originScrollTop = DasomEditor.IDE.getFileTreeTab().getScrollTop();
+							let originScrollTop = SkyEditor.IDE.getFileTreeTab().getScrollTop();
 							
 							folderOpenedStore.remove(path + '/' + fileName);
 							
 							removeItem(path + '/' + fileName);
 							
-							let opendEditor = DasomEditor.IDE.getOpenedEditor(path + '/' + fileName);
+							let opendEditor = SkyEditor.IDE.getOpenedEditor(path + '/' + fileName);
 							if (opendEditor !== undefined) {
 								opendEditor.remove();
 							}
@@ -1704,17 +1704,17 @@ RUN(() => {
 							let count = 0;
 							let onScroll = () => {
 								
-								DasomEditor.IDE.getFileTreeTab().scrollTo({
+								SkyEditor.IDE.getFileTreeTab().scrollTo({
 									top : originScrollTop
 								});
 								
 								count += 1;
 								if (count === 3) {
-									DasomEditor.IDE.getFileTreeTab().off('scroll', onScroll);
+									SkyEditor.IDE.getFileTreeTab().off('scroll', onScroll);
 								}
 							};
 							
-							DasomEditor.IDE.getFileTreeTab().on('scroll', onScroll);
+							SkyEditor.IDE.getFileTreeTab().on('scroll', onScroll);
 						}
 					});
 				}
@@ -1728,7 +1728,7 @@ RUN(() => {
 			
 			let fileWatcher;
 			
-			let folder = DasomEditor.Folder({
+			let folder = SkyEditor.Folder({
 				path : path,
 				title : folderName,
 				isOpened : isOpened,
@@ -1768,7 +1768,7 @@ RUN(() => {
 		// 폴더의 파일들을 로드합니다.
 		let loadFolderFiles = (path, folder, close) => {
 			
-			DasomEditor.IDE.loadFiles(path, (folderNames, fileNames, isToClose) => {
+			SkyEditor.IDE.loadFiles(path, (folderNames, fileNames, isToClose) => {
 				
 				let total = 0;
 				
@@ -1783,18 +1783,18 @@ RUN(() => {
 						if (path === workspacePath) {
 							
 							folderItem.setIcon(IMG({
-								src : DasomEditor.R('icon/project.png')
+								src : SkyEditor.R('icon/project.png')
 							}));
 							
 							folderItem.on('open', () => {
 								folderItem.setIcon(IMG({
-									src : DasomEditor.R('icon/project-opened.png')
+									src : SkyEditor.R('icon/project-opened.png')
 								}));
 							});
 							
 							folderItem.on('close', () => {
 								folderItem.setIcon(IMG({
-									src : DasomEditor.R('icon/project.png')
+									src : SkyEditor.R('icon/project.png')
 								}));
 							});
 						}
@@ -1819,7 +1819,7 @@ RUN(() => {
 							
 							folder.addItem({
 								key : path + '/' + fileName,
-								item : DasomEditor.File({
+								item : SkyEditor.File({
 									path : path + '/' + fileName,
 									title : fileName
 								})
@@ -1839,7 +1839,7 @@ RUN(() => {
 						
 						folder.addItem({
 							key : '__MORE_BUTTON',
-							item : DasomEditor.More({
+							item : SkyEditor.More({
 								title : '더 보기...',
 								on : {
 									tap : () => {
@@ -1867,19 +1867,19 @@ RUN(() => {
 			workspacePath = __dirname + '/workspace';
 		}
 		
-		DasomEditor.IDE.setWorkspacePath(workspacePath);
+		SkyEditor.IDE.setWorkspacePath(workspacePath);
 		
-		loadFolderFiles(workspacePath, DasomEditor.IDE);
+		loadFolderFiles(workspacePath, SkyEditor.IDE);
 		
 		if (workspaceFileWatcher !== undefined) {
 			workspaceFileWatcher.close();
 		}
 		
-		workspaceFileWatcher = createFileWatcher(workspacePath, DasomEditor.IDE.addItem, DasomEditor.IDE.removeItem);
+		workspaceFileWatcher = createFileWatcher(workspacePath, SkyEditor.IDE.addItem, SkyEditor.IDE.removeItem);
 	});
 	
 	// FTP 정보 로드
 	EACH(ftpInfoStore.all(), (ftpInfo) => {
-		DasomEditor.IDE.addFTPItem(ftpInfo);
+		SkyEditor.IDE.addFTPItem(ftpInfo);
 	});
 });
