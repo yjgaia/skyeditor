@@ -86,5 +86,20 @@ SkyEditor.MAIN = METHOD({
 			extname : 'csv',
 			editor : SkyEditor.CSVEditor
 		});
+		
+		SkyEditor.IDE.addEditor({
+			extname : 'ts',
+			editor : SkyEditor.TypeScriptEditor
+		});
+		
+		SkyEditor.IDE.addEditor({
+			extname : 'jsx',
+			editor : SkyEditor.JSXEditor
+		});
+		
+		SkyEditor.IDE.addEditor({
+			extname : 'tsx',
+			editor : SkyEditor.TSXEditor
+		});
 	}
 });
