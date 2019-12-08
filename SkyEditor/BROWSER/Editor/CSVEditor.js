@@ -32,52 +32,16 @@ SkyEditor.CSVEditor = CLASS((cls) => {
 			
 			let content = params.content;
 			
-			let scrollTop = 0;
-			
-			let iframe;
 			self.append(DIV({
 				style : {
 					width : '100%',
 					height : '100%',
 					overflow : 'hidden'
 				},
-				c : iframe = IFRAME({
-					style : {
-						backgroundColor : '#fff',
-						width : '100%',
-						height : '100%'
-					},
-					src : SkyEditor.R('handsontable/editor.html'),
-					on : {
-						load : (e, iframe) => {
-							try {
-								if (iframe.getEl().contentWindow.location.href === 'about:blank') {
-									self.remove();
-								} else {
-									iframe.getEl().contentWindow.save = () => {
-										SkyEditor.IDE.saveTab(self);
-									}
-									if (content === undefined) {
-										content = getContent();
-									}
-									setContent(content);
-								}
-							} catch(e) {
-								// ignore.
-							}
-						}
-					}
-				})
+				c : 'TEST'
 			}));
 			
-			self.on('active', () => {
-				try {
-					iframe.getEl().focus();
-					iframe.getEl().contentWindow.fixScroll();
-				} catch(e) {
-					// ignore.
-				}
-			});
+			console.log(__PAPA.parse(content).data);
 			
 			let setContent;
 			OVERRIDE(self.setContent, (origin) => {
@@ -85,8 +49,10 @@ SkyEditor.CSVEditor = CLASS((cls) => {
 				setContent = self.setContent = (content) => {
 					//REQUIRED: content
 					
+					console.log(content);
+					
 					try {
-						iframe.getEl().contentWindow.loadData(__PAPA.parse(content).data);
+						console.log(__PAPA.parse(content).data);
 					} catch(e) {
 						// ignore.
 					}
@@ -98,9 +64,9 @@ SkyEditor.CSVEditor = CLASS((cls) => {
 				
 				getContent = self.getContent = () => {
 					try {
-						return __PAPA.unparse({
+						/*__PAPA.unparse({
 							data : iframe.getEl().contentWindow.getData()
-						});
+						})*/
 					} catch(e) {
 						return '';
 					}
