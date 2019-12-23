@@ -1557,18 +1557,17 @@ RUN(() => {
 							style : {
 								width : 222,
 								padding : 8,
-								backgroundColor : '#e0e1e2',
 								border : '1px solid #999',
 								borderRadius : 4
 							},
-							type : 'file'
+							placeholder : '폴더 경로 입력'
 						})
 					})]
 				}, () => {
 					
-					if (fileInput.getEl().files[0] !== undefined) {
+					if (VALID.notEmpty(fileInput.getValue()) === true) {
 						
-						let workspacePath = fixPath(fileInput.getEl().files[0].path);
+						let workspacePath = fixPath(fileInput.getValue());
 						
 						editorStore.save({
 							name : 'workspacePath',
@@ -1584,9 +1583,6 @@ RUN(() => {
 						loadWorkspaceFiles();
 					}
 				});
-				
-				// 폴더 선택 가능하도록
-				fileInput.getEl().setAttribute('webkitDirectory', 'webkitDirectory');
 			}
 		}
 	}));

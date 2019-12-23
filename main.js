@@ -15,14 +15,17 @@ createWindow = () => {
 	
 	// 새로운 브라우저 창을 생성합니다.
 	win = new BrowserWindow({
-		icon : __dirname + '/SkyEditor/R/favicon.ico'
+		icon : __dirname + '/SkyEditor/R/favicon.ico',
+		webPreferences : {
+			nodeIntegration: true
+		}
 	});
 	
 	win.webContents.on('new-window', (event, url) => {
 		event.preventDefault();
 		shell.openExternal(url);
 	});
-	
+	win.webContents.openDevTools();
 	ipcMain.on('toggleDevTool', () => {
 		if (win.webContents.isDevToolsOpened() !== true) {
 			win.webContents.openDevTools();
