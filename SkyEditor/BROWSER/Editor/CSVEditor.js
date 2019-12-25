@@ -32,16 +32,52 @@ SkyEditor.CSVEditor = CLASS((cls) => {
 			
 			let content = params.content;
 			
+			let scrollTop = 0;
+			
+			let iframe;
 			self.append(DIV({
 				style : {
 					width : '100%',
 					height : '100%',
 					overflow : 'hidden'
 				},
-				c : 'TEST'
+				c : iframe = IFRAME({
+					style : {
+						backgroundColor : '#fff',
+						width : '100%',
+						height : '100%'
+					},
+					src : SkyEditor.R('handsontable/editor.html'),
+					on : {
+						load : (e, iframe) => {
+							try {
+								if (iframe.getEl().contentWindow.location.href === 'about:blank') {
+									self.remove();
+								} else {
+									iframe.getEl().contentWindow.save = () => {
+										SkyEditor.IDE.saveTab(self);
+									}
+									if (content === undefined) {
+										content = getContent();
+									}
+									setContent(content);
+								}
+							} catch(e) {
+								// ignore.
+							}
+						}
+					}
+				})
 			}));
 			
-			console.log(__PAPA.parse(content).data);
+			self.on('active', () => {
+				try {
+					iframe.getEl().focus();
+					iframe.getEl().contentWindow.fixScroll();
+				} catch(e) {
+					// ignore.
+				}
+			});
 			
 			let setContent;
 			OVERRIDE(self.setContent, (origin) => {
@@ -49,10 +85,11 @@ SkyEditor.CSVEditor = CLASS((cls) => {
 				setContent = self.setContent = (content) => {
 					//REQUIRED: content
 					
-					console.log(content);
-					
 					try {
-						console.log(__PAPA.parse(content).data);
+						if (content === '') {
+							content = ',';
+						}
+						iframe.getEl().contentWindow.loadData(__PAPA.parse(content).data);
 					} catch(e) {
 						// ignore.
 					}
@@ -64,9 +101,28 @@ SkyEditor.CSVEditor = CLASS((cls) => {
 				
 				getContent = self.getContent = () => {
 					try {
-						/*__PAPA.unparse({
+						
+						let lines = __PAPA.unparse({
 							data : iframe.getEl().contentWindow.getData()
-						})*/
+						});
+						
+						let content = '';
+						lines.split('\n').forEach((line) => {
+							line = line.trim();
+							for (let i = line.length - 1; i >= 0; i -= 1) {
+								if (line[i] !== ',') {
+									line = line.substring(0, i + 1);
+									break;
+								}
+								if (i === 0) {
+									line = '';
+								}
+							}
+							content += line + '\n';
+						});
+						
+						return content.trim();
+						
 					} catch(e) {
 						return '';
 					}
