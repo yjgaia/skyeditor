@@ -1,0 +1,6 @@
+SkyEditorBasic.MAIN = METHOD({
+
+	run: () => {
+
+	}
+});
