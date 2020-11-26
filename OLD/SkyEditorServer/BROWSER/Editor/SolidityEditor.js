@@ -710,6 +710,8 @@ SkyEditorServer.SolidityEditor = CLASS((cls) => {
 																								});
 																							}
 																							
+																							console.log(result);
+																							
 																							let resultPanel;
 																							wrapper.append(resultPanel = P({
 																								style : {

@@ -1,14 +1,13 @@
-var keccak = require('keccak');
-
-function keccak256 (input) {
-  return keccak('keccak256').update(input).digest();
-}
+var assert = require('assert');
+var keccak256 = require('js-sha3').keccak256;
 
 function libraryHashPlaceholder (input) {
-  return '$' + keccak256(input).toString('hex').slice(0, 34) + '$';
+  return '$' + keccak256(input).slice(0, 34) + '$';
 }
 
 var linkBytecode = function (bytecode, libraries) {
+  assert(typeof bytecode === 'string');
+  assert(typeof libraries === 'object');
   // NOTE: for backwards compatibility support old compiler which didn't use file names
   var librariesComplete = {};
   for (var libraryName in libraries) {
@@ -56,6 +55,7 @@ var linkBytecode = function (bytecode, libraries) {
 };
 
 var findLinkReferences = function (bytecode) {
+  assert(typeof bytecode === 'string');
   // find 40 bytes in the pattern of __...<36 digits>...__
   // e.g. __Lib.sol:L_____________________________
   var linkReferences = {};

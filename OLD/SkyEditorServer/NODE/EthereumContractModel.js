@@ -39,10 +39,12 @@ OVERRIDE(SkyEditorServer.EthereumContractModel, (origin) => {
 								}
 							}
 						}
-					}), (path) => {
-						return importCodes === undefined || importCodes[path] === undefined ? {} : {
-							contents : importCodes[path]
-						};
+					}), {
+						import : (path) => {
+							return importCodes === undefined || importCodes[path] === undefined ? {} : {
+								contents : importCodes[path]
+							};
+						}
 					})));
 				});
 				

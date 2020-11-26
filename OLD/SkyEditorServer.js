@@ -23,7 +23,7 @@ BOOT({
 		dbName : 'SkyEditorServer-test',
 		
 		SkyEditorServer : {
-			workspacePath : '../',
+			workspacePath : '../../',
 			password : 'test123'
 		}
 	}

@@ -3,6 +3,7 @@ var linker = require('./linker.js');
 /// Translate old style version numbers to semver.
 /// Old style: 0.3.6-3fc68da5/Release-Emscripten/clang
 ///            0.3.5-371690f0/Release-Emscripten/clang/Interpreter
+///            0.3.5-0/Release-Emscripten/clang/Interpreter
 ///            0.2.0-e7098958/.-Emscripten/clang/int linked to libethereum-1.1.1-bbb80ab0/.-Emscripten/clang/int
 ///            0.1.3-0/.-/clang/int linked to libethereum-0.9.92-0/.-/clang/int
 ///            0.1.2-5c3bfd4b*/.-/clang/int
@@ -16,6 +17,9 @@ function versionToSemver (version) {
   }
   if (version.indexOf('0.1.3-0') !== -1) {
     return '0.1.3';
+  }
+  if (version.indexOf('0.3.5-0') !== -1) {
+    return '0.3.5';
   }
   // assume it is already semver compatible
   return version;
@@ -110,15 +114,15 @@ function translateJsonCompilerOutput (output, libraries) {
       'evm': {
         'legacyAssembly': contractInput['assembly'],
         'bytecode': {
-          'object': linker.linkBytecode(contractInput['bytecode'], libraries),
+          'object': contractInput['bytecode'] && linker.linkBytecode(contractInput['bytecode'], libraries || {}),
           'opcodes': contractInput['opcodes'],
           'sourceMap': contractInput['srcmap'],
-          'linkReferences': linker.findLinkReferences(contractInput['bytecode'])
+          'linkReferences': contractInput['bytecode'] && linker.findLinkReferences(contractInput['bytecode'])
         },
         'deployedBytecode': {
-          'object': linker.linkBytecode(contractInput['runtimeBytecode'], libraries),
+          'object': contractInput['runtimeBytecode'] && linker.linkBytecode(contractInput['runtimeBytecode'], libraries || {}),
           'sourceMap': contractInput['srcmapRuntime'],
-          'linkReferences': linker.findLinkReferences(contractInput['runtimeBytecode'])
+          'linkReferences': contractInput['runtimeBytecode'] && linker.findLinkReferences(contractInput['runtimeBytecode'])
         },
         'methodIdentifiers': contractInput['functionHashes'],
         'gasEstimates': translatedGasEstimates
@@ -155,8 +159,9 @@ function escapeString (text) {
     .replace(/\t/g, '\\t');
 }
 
+// 'asm' can be an object or a string
 function formatAssemblyText (asm, prefix, source) {
-  if (typeof asm === typeof '' || asm === null || asm === undefined) {
+  if (typeof asm === 'string' || asm === null || asm === undefined) {
     return prefix + (asm || '') + '\n';
   }
   var text = prefix + '.code\n';
